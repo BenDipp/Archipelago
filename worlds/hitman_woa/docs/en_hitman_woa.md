@@ -1,0 +1,1 @@
+The game info page is for a short breakdown of what your game is and how it works in Archipelago. Any additional information that may be useful to the player when learning your randomizer should also go here. 

@@ -202,3 +202,5 @@ minecraft_versions.json
 .LSOverride
 Thumbs.db
 [Dd]esktop.ini
+
+*.xlsx
