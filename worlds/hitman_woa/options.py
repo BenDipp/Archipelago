@@ -21,7 +21,7 @@ class GoalDifficulty(Choice):
 class GoalLevel(Choice):
     """Which level completion is the goal. If the entered level is not included with its whole season, it will be added regardless."""
     display_name = "Goal Level"
-    option_ica_facility = 0 #TODO: does not generate when chosen
+    option_ica_facility = 0
     option_paris = 1
     option_sapienza = 2
     option_marrakesh = 3

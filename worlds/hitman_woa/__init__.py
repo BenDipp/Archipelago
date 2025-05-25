@@ -250,9 +250,6 @@ class HitmanWorld(World):
 
         total_locations = len(self.multiworld.get_unfilled_locations(self.player))
         total_items = len(item_pool)
-
-        if self.options.goal_mode.value == self.options.goal_mode.option_level_completion:
-             total_locations = total_locations-1 # one location will be converted into an event during rules setup
         
         for _ in range(total_locations - total_items):
             if len(valid_useful) != 0:
@@ -283,9 +280,8 @@ class HitmanWorld(World):
             #        self.options.goal_amount.value) 
                 #Assumes that every level-unlock gives 1 check towards the goal
             case self.options.goal_mode.option_level_completion:
-                self.multiworld.get_location(self.goal_location, self.player).place_locked_item(self.create_event("Victory"))
-                self.multiworld.get_location(self.goal_location, self.player).address = None
-                self.multiworld.completion_condition[self.player] = lambda state: state.has("Victory", self.player)
+                self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location(self.goal_location, self.player)
+                print(self.goal_location)
             case self.options.goal_mode.option_contract_collection:
                 self.multiworld.completion_condition[self.player] = lambda state: state.has("Contract Piece", self.player, self.options.goal_required_contract_pieces.value) 
     
