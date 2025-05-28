@@ -4,31 +4,26 @@ import threading
 import time
 import requests
 
-from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg, server_loop, gui_enabled, logger
-from NetUtils import ClientStatus, Endpoint, NetworkItem
-
-tracker_lodaded  = False
-#try:
-#    from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
-#    tracker_lodaded = True
-#except ModuleNotFoundError:
-from CommonClient import CommonContext as SuperContext
+from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg, server_loop, gui_enabled, logger, CommonContext
+from NetUtils import ClientStatus, NetworkItem
+from settings import get_settings
+from .items import item_table, base_id
 
 class HitmanCommandProcessor(ClientCommandProcessor):
-    def __init__(self, ctx: SuperContext):
+    def __init__(self, ctx: CommonContext):
         super().__init__(ctx)
 
-class HitmanContext(SuperContext):
+class HitmanContext(CommonContext):
     command_processor = HitmanCommandProcessor
     game = "HITMAN World of Assasination"
     tags = {"AP"}
-    items_handling = 0b111  # receive all items for /received TODO: wtf does that mean
+    items_handling = 0b111
     want_slot_data = True
     slot_data = {}
     collected_contract_pieces = 0
     sse_thread = None
     sse_running = False
-    peacock_url = "http://localhost/_wf/archipelago"
+    peacock_url = "http://"+get_settings().hitman_woa_options.peacock_url+ "/_wf/archipelago"
 
     async def server_auth(self, password_requested: bool = False):
         # check if Peacock is running
@@ -37,14 +32,14 @@ class HitmanContext(SuperContext):
             if r.status_code != 200:
                 raise Exception(r.text)
         except Exception as e:
-            logger.error("No respone from Peacock, are you sure it is running?")# TODO: better errors
+            logger.error("No respone from Peacock, please make sure the Peacock server is running before connecting.")
             self.exit_event.set()
             return
 
         if password_requested and not self.password:
             await super(HitmanContext, self).server_auth(password_requested)
         await self.get_username()
-        await self.send_connect(game="HITMAN World of Assasination") #TODO: why cant acess game or self.game?
+        await self.send_connect(game=self.game) 
 
     def on_package(self, cmd: str, args: dict):
         match cmd:
@@ -58,20 +53,18 @@ class HitmanContext(SuperContext):
             case "ReceivedItems":
                 self.recieve_items(args["items"])
             case "PrintJSON"| "Retrieved" | "RoomInfo" | "Bounced" | "RoomUpdate":
-                pass #not implemented
+                pass
             case _:
                 print("Not implemented cmd: "+cmd+", with args: "+str(args))
 
     async def disconnect(self, allow_autoreconnect: bool = False):
-        self.game = ""
-
         if self.sse_thread != None:
             self.sse_running = False
 
         await super().disconnect(allow_autoreconnect)
 
     async def disconnectOnWindowClose(self):
-        # only nececery in rare circumstances where it would give no respone when closing with windos x while connected
+        # only nececery in rare circumstances, where the window would give no respone when closing with the windows x while connected
         await self.disconnect()
 
     def make_gui(self):
@@ -82,11 +75,9 @@ class HitmanContext(SuperContext):
     def set_difficulty(self):
         try:
             r = requests.get(self.peacock_url+"/setDifficulty/"+self.slot_data["difficulty"])
-            if not r.status_code == 200:
-                logger.error("No response when setting difficulty, disconnecting!")
-                self.disconnect(False)
+            r.raise_for_status()
         except Exception as e:
-                logger.error("No response when setting difficulty, disconnecting!")
+                logger.error("Error occured while attempting to set difficulty, disconnecting!")
                 self.disconnect(False)
 
     def set_goal(self):
@@ -100,33 +91,26 @@ class HitmanContext(SuperContext):
                     moreGoalData = "none"
 
             r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goalData)+"/"+moreGoalData)
-            if not r.status_code == 200:
-                logger.error("No response when setting goal, disconnecting!")
-                self.disconnect(False)
+            r.raise_for_status()
         except Exception as e:
-                logger.error("No response when setting goal, disconnecting!")
+                logger.error("Error occured while attempting to set goal, disconnecting!")
                 self.disconnect(False)
 
     def recieve_items(self, items:list[NetworkItem]):
         itemIds = []
         for item in items:
             itemIds.append(item.item)
-            if item.item - 2023011800 == 1000: #TODO: dont hardcode baseid or contract piece
+            if item.item == base_id + item_table["Contract Piece"][0]:
                 self.collected_contract_pieces += 1
         try:
             r = requests.post(self.peacock_url+"/sendItems?items="+str(itemIds)) 
-            #TODO: somehow configure this? (but assume localhost isnt too bad) also port? (I think P uses 80 always?)
-            if not r.status_code == 200:
-                logger.error("No response when sending Items, disconnecting!")
-                asyncio.run(self.disconnect(False))
-                return
+            r.raise_for_status()
         except Exception as e:
-                logger.error("No response when sending Items, disconnecting!")
+                logger.error("No response when sending Items to Peacock, disconnecting!")
                 asyncio.run(self.disconnect(False))
                 return
 
         if self.slot_data["goal_mode"] == "contract_collection" and self.collected_contract_pieces >= self.slot_data["goal_amount"]:
-            print("SENDING GOAL!")
             loop = asyncio.get_event_loop()
             loop.create_task(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]))
 
@@ -135,9 +119,11 @@ class HitmanContext(SuperContext):
         while self.sse_running:
             try:
                 response = requests.get(f"{self.peacock_url}/checks")
-                response.raise_for_status()  # Raise an error for bad responses (4xx, 5xx)
+
+                response.raise_for_status()  # Raises on 4xx and 5xx codes
                 checks = response.json()
                 asyncio.run(self.check_locations(checks))
+
                 if self.slot_data["goal_mode"] == "level_completion" and self.slot_data["goal_location_id"] in checks:
                     asyncio.run(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]))
             except requests.RequestException as e:
@@ -145,26 +131,9 @@ class HitmanContext(SuperContext):
                 logger.error("Error while trying to get Checks, disconnecting")
                 asyncio.run(self.disconnect(False))
                 self.sse_running = False
-            if not self.sse_running:
-                time.sleep(10) #TODO: this is definetly not beeing respected, idk why 
+            if self.sse_running:
+                time.sleep(3)
 
-            
-    """
-    def recieve_sse(self):
-        while True:
-            print("connecting to SSE")
-            try:
-                with requests.get(self.peacock_url+"/sse", stream=True, timeout=6) as response:
-                    for line in response.iter_lines():
-                        if line:
-                            line_str = line.decode("utf-8")
-                            locationId: int = int(line_str)
-                            asyncio.run(self.check_locations({locationId}))
-
-            except Exception as e:
-                print("SSE: "+e)
-                self.disconnect(False)
-    """
 async def main(args):
     ctx = HitmanContext(args.connect, args.password)
     ctx.auth = args.name
@@ -172,11 +141,8 @@ async def main(args):
     import atexit
     atexit.register(ctx.disconnectOnWindowClose)
 
-    #if not ctx.exit_event.is_set:
     ctx.server_task = asyncio.create_task(server_loop(ctx), name="server loop")
 
-    if tracker_lodaded:
-        ctx.run_generator()
     if gui_enabled:
         ctx.run_gui()
     ctx.run_cli()

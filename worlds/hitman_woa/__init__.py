@@ -5,7 +5,8 @@ from Fill import FillError
 from worlds.generic.Rules import set_rule
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch as launch_component, icon_paths
-from .items import HitmanItem, item_table
+from .settings import HitmanSettings
+from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
 from .locations import HitmanLocation, location_table, goal_table
 
@@ -29,19 +30,20 @@ icon_paths[__name__] = f"ap:{__name__}/assets/icon.png"
 
 class HitmanWorld(World):
     """
-    HITMAN (TODO: write description for AP website)
+    Hitman: World of Assassination is a stealth action game developed by IO Interactive.
+    Play as Agent 47, a genetically engineered assassin, and travel the globe to eliminate high-profile targets with creativity and precision.
     """
 
     game = "HITMAN World of Assasination"
     web = HitmanWeb()
+    settings: HitmanSettings
     options_dataclass = HitmanOptions
     options: HitmanOptions
     topology_present = True
     ut_can_gen_without_yaml = True
 
-    base_id = 2023011800
-    location_name_to_id = {name: data[0] + 2023011800 for name, data in location_table.items()}
-    item_name_to_id = {name: data[0] + 2023011800 for name, data in item_table.items()} #TODO why no variable for base id working?
+    location_name_to_id = {name: data[0] + base_id for name, data in location_table.items()}
+    item_name_to_id = {name: data[0] + base_id for name, data in item_table.items()}
 
     #Keep as list with playerId to differentiate enttilements from multiple players using same world
     enabled_entitlements:Dict[int,List] = {}
@@ -155,7 +157,7 @@ class HitmanWorld(World):
             self.enabled_entitlements[self.player].append("DELUXE")
 
         if self.options.include_h2_expansion_items:
-            self.enabled_entitlements[self.player].append("H2_RACCOON_STINGRAY") #TODO what is the exact entitlemnt
+            self.enabled_entitlements[self.player].append("H2_RACCOON_STINGRAY") 
 
         if self.options.include_sins_items:
             self.enabled_entitlements[self.player].append("SINS")
@@ -202,7 +204,6 @@ class HitmanWorld(World):
         if self.options.include_winter_sports_items:
             self.enabled_entitlements[self.player].append("WINTER_SPORTS") 
         
-        print(self.enabled_entitlements[self.player])
 
     def create_regions(self) -> None:
         menu_region = Region("Menu", self.player, self.multiworld)
@@ -222,7 +223,7 @@ class HitmanWorld(World):
                          lambda state, loop_location = location: state.has_from_list(location_table[loop_location][3],self.player,1))
 
     def create_item(self, item:str) -> HitmanItem:
-        return HitmanItem(item,item_table[item][2],item_table[item][0]+self.base_id,self.player)
+        return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)
 
     def create_event(self, event: str) -> HitmanItem:
         return HitmanItem(event, ItemClassification.progression, None, self.player)
@@ -281,7 +282,6 @@ class HitmanWorld(World):
                 #Assumes that every level-unlock gives 1 check towards the goal
             case self.options.goal_mode.option_level_completion:
                 self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location(self.goal_location, self.player)
-                print(self.goal_location)
             case self.options.goal_mode.option_contract_collection:
                 self.multiworld.completion_condition[self.player] = lambda state: state.has("Contract Piece", self.player, self.options.goal_required_contract_pieces.value) 
     

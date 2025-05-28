@@ -3,7 +3,6 @@ from BaseClasses import Location
 class HitmanLocation(Location):
     game: str = "HITMAN World of Assasination"
 
-# TODO: itemsanity does not enable when goal level gets enabled
 location_table = { #id, location entitlments (one of required), settings requirement (one of required), required items (one of)
 "Itempickup - Apple":(1,["ambrose_island","chongqing","dartmoor","dubai","haven_island","hawkes_bay","isle_of_sgail","mendoza","new_york","whittleton_creek"], ["itemsanity"], ["Level - Ambrose Island", "Level - Chongqing", "Level - Dartmoor", "Level - Dubai", "Level - Haven Island", "Level - Hawkes Bay", "Level - Isle of Sgail", "Level - Mendoza", "Level - New York", "Level - Whittleton Creek"]),
 "Itempickup - Soap":(2,["ambrose_island","carpathian_mountains","chongqing","dartmoor","dubai"], ["itemsanity"], ["Level - Ambrose Island", "Level - Carpathian Mountains", "Level - Chongqing", "Level - Dartmoor", "Level - Dubai"]),

@@ -20,55 +20,6 @@ import { getHubData } from "@peacockproject/core/menus/hub"
 import { configs, getVersionedConfig } from "@peacockproject/core/configSwizzleManager"
 import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
 
-/*
-import jsonIcaFacillity from '../contractdata/FACILITY/THEFINALTEST.json';
-import jsonParis from '../contractdata/PARIS/THESHOWSTOPPER.json';
-import jsonSapienza from '../contractdata/SAPIENZA/WORLDOFTOMORROW.json';
-import jsonMarrakesh from '../contractdata/MARRAKESH/AGILDEDCAGE.json';
-import jsonBangkok from '../contractdata/BANGKOK/CLUBTWENTYSEVEN.json';
-import jsonColorado from '../contractdata/COLORADO/FREEDOMFIGHTERS.json';
-import jsonHokkaido from '../contractdata/HOKKAIDO/SITUSINVERSUS.json';
-import jsonHawkesBay from '../contractdata/HAWKESBAY/NIGHTCALL.json';
-import jsonMiami from '../contractdata/MIAMI/THEFINISHLINE.json';
-import jsonSantaFortuna from '../contractdata/SANTAFORTUNA/THREEHEADEDSERPENT.json';
-import jsonMumbai from '../contractdata/MUMBAI/CHASINGAGHOST.json';
-import jsonWhittletonCreek from '../contractdata/WHITTLETON/ANOTHERLIFE.json';
-import jsonIsleOfSgail from '../contractdata/SGAIL/THEARKSOCIETY.json';
-import jsonNewYork from '../contractdata/NEWYORK/GOLDENHANDSHAKE.json';
-import jsonHavenIsland from '../contractdata/HAVEN/THELASTRESORT.json';
-import jsonDubai from '../contractdata/DUBAI/ONTOPOFTHEWORLD.json';
-import jsonDartmoor from '../contractdata/DARTMOOR/DEATHINTHEFAMILY.json';
-import jsonBerlin from '../contractdata/BERLIN/APEXPREDATOR.json';
-import jsonChongqing from '../contractdata/CHONGQING/ENDOFANERA.json';
-import jsonMendoza from '../contractdata/MENDOZA/THEFAREWELL.json';
-import jsonCarpathianMountains from '../contractdata/CARPATHIAN/UNTOUCHABLE.json';
-import jsonAmbroseIsland from '../contractdata/AMBROSE/SHADOWSINTHEWATER.json'; 
-
-const contractMap: Record<string, Record<string,string>> = {
-    "ICA Facillity":{"contractId":"ada5f2b1-8529-48bb-a596-717f75f5eacb","contractJson":jsonIcaFacillity},
-    "Paris":{"contractId":"00000000-0000-0000-0000-000000000200","contractJson":jsonParis},
-    "Sapienza":{"contractId":"00000000-0000-0000-0000-000000000600","contractJson":jsonSapienza},
-    "Marrakesh":{"contractId":"00000000-0000-0000-0000-000000000400","contractJson":jsonMarrakesh},
-    "Bangkok":{"contractId":"db341d9f-58a4-411d-be57-0bc4ed85646b","contractJson":jsonBangkok},
-    "Colorado":{"contractId":"42bac555-bbb9-429d-a8ce-f1ffdf94211c","contractJson":jsonColorado},
-    "Hokkaido":{"contractId":"0e81a82e-b409-41e9-9e3b-5f82e57f7a12","contractJson":jsonHokkaido},
-    "Hawkes Bay":{"contractId":"c65019e5-43a8-4a33-8a2a-84c750a5eeb3","contractJson":jsonHawkesBay},
-    "Miami":{"contractId":"c1d015b4-be08-4e44-808e-ada0f387656f","contractJson":jsonMiami},
-    "Santa Fortuna":{"contractId":"422519be-ed2e-44df-9dac-18f739d44fd9","contractJson":jsonSantaFortuna},
-    "Mumbai":{"contractId":"0fad48d7-3d0f-4c66-8605-6cbe9c3a46d7", "contractJson":jsonMumbai},
-    "Whittleton Creek":{"contractId":"82f55837-e26c-41bf-bc6e-fa97b7981fbc","contractJson":jsonWhittletonCreek},
-    "Isle of Sgail":{"contractId":"0d225edf-40cd-4f20-a30f-b62a373801d3","contractJson":jsonIsleOfSgail},
-    "New York":{"contractId":"7a03a97d-238c-48bd-bda0-e5f279569cce","contractJson":jsonNewYork},
-    "Haven Island":{"contractId":"095261b5-e15b-4ca1-9bb7-001fb85c5aaa","contractJson":jsonHavenIsland},
-    "Dubai":{"contractId":"7d85f2b0-80ca-49be-a2b7-d56f67faf252","contractJson":jsonDubai},
-    "Dartmoor":{"contractId":"755984a8-fb0b-4673-8637-95cfe7d34e0f","contractJson":jsonDartmoor},
-    "Berlin":{"contractId":"ebcd14b2-0786-4ceb-a2a4-e771f60d0125","contractJson":jsonBerlin},
-    "Chongqing":{"contractId":"3d0cbb8c-2a80-442a-896b-fea00e98768c","contractJson":jsonChongqing},
-    "Mendoza":{"contractId":"d42f850f-ca55-4fc9-9766-8c6a2b5c3129","contractJson":jsonMendoza},
-    "Carpathian Mountains":{"contractId":"a3e19d55-64a6-4282-bb3c-d18c3f3e6e29","contractJson":jsonCarpathianMountains},
-    "Ambrose Island":{"contractId": "b2aac100-dfc7-4f85-b9cd-528114436f6c","contractJson":jsonAmbroseIsland}    
-}*/
-
 const contractMap: Record<string,string> = {
     "ada5f2b1-8529-48bb-a596-717f75f5eacb":"ICA Facility",
     "00000000-0000-0000-0000-000000000200":"Paris",
@@ -1305,14 +1256,7 @@ const getContractFromName = (contractName:string) =>{
 
 
 let latestUnlockedLevel = ""
-/*
-const liveSSE: ((data: string)=>void)[] = [];
-const boroadcastSSE = (data:unknown) => {
-    if(typeof data !== "string") data = JSON.stringify(data);
-    for(const send of liveSSE)
-        send(<string>data);
-}
-*/
+
 const listOfUnsentChecks:number[] = []
 const checkLocation = (id:number) =>{
     if(id != undefined){
@@ -1326,34 +1270,11 @@ const checkLocation = (id:number) =>{
     }else{
         logArchipelago("Location check is undefined")
     }
-    
-   //boroadcastSSE({type:"location_check", locationId: id})
-   //boroadcastSSE(id+baseId)
 }
-/*
-const checkForGoal = (contractId:string, archipelagoClient:Client, rating:string)=>{
-    if(slotData.goal_rating === rating){
-        if(slotData.goal_mode === "level_completion" && slotData.goal_level === contractMap[contractId]){
-            logArchipelago("Awarding goal for single completion")
-            archipelagoClient.goal()
-        }
-
-        if(slotData.goal_mode === "number_of_completions"){
-            logArchipelago("Adding mission to completedMissions")
-            completedMissions.push(contractId) // TODO: handle duplicates
-
-            if(completedMissions.length >= parseInt(slotData.goal_amount!.toString())){
-                logArchipelago("Awarding goal for number of completions") 
-                archipelagoClient.goal()
-            }
-        }
-    }
-}
-*/
 
 const removeUnusedUnlocks = (controller: Controller)=> {
     // ================ DISABLE DEFAULT UNLOCKS ===============
-    setFlag("enableMasteryProgression", false) // TODO unsure if needed, confused cuz worked without once
+    setFlag("enableMasteryProgression", false)
 
     const unlockables = controller.configManager.configs.allunlockables
 
@@ -1376,7 +1297,6 @@ const removeUnusedUnlocks = (controller: Controller)=> {
 const addModifiedMissions = (controller: Controller, difficulty: string) => {
     // add copy of contracts to the game       
     for (const contractId in contractMap){
-        // const contract = JSON.parse(contractMap[level].contractJson)
         const contract = controller.resolveContract(contractId, "h3")
         if(contract === undefined){
             log(LogLevel.ERROR, "No contract fetched for level "+contractMap[contractId],logTag)
@@ -1407,7 +1327,6 @@ let contractGoalAmount = ""
 const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
     let errorOccured = false
     for(const i in itemIds){
-        // logArchipelago("Parsing "+itemIds[i])
         const id = itemIds[i] - baseId
         
         if (apItemMap[id] === undefined){
@@ -1481,7 +1400,6 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         }
     })
     webFeaturesRouter.get("/archipelago/setGoal/:goalMode/:goalDetails/:moreGoalDetails",(req,res)=>{
-        //TODO: not 100% if it can be assumed that the first hub makeover already ran
         if(req.params.goalMode === "contract_collection"){
             contractGoalAmount = req.params.goalDetails
 
@@ -1491,7 +1409,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 
             configs.EiderDashboard.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
             res.status(200).send()
-        }else if(req.params.goalMode === "level_completion"){ //TODO: goal rating
+        }else if(req.params.goalMode === "level_completion"){
 
             configs.EiderDashboard.children.$mergearrays[5].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
 
@@ -1505,34 +1423,6 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             res.status(200).send("Invalid goal mode")
         }
     })
-    /*
-    // Inspiered by the implementation of the Mastery Tracker plugin: https://discord.com/channels/826809653181808651/1316899596852793384/1316899596852793384
-    // but had problems sooo:
-    webFeaturesRouter.get("/archipelago/sse", (req,res) =>{
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Connection', 'keep-alive');
-        res.flushHeaders();
-
-        function send(data: string) {
-            res.write(`${data}\n\n`);
-        }
-
-        liveSSE.push(send);
-
-        res.on('close', () => {
-            //logArchipelago("someone closed SSE")
-            liveSSE.splice(liveSSE.indexOf(send), 1);
-            res.end();
-          });
-    })
-    webFeaturesRouter.get("/archipelago/sse/close", (req,res) =>{
-        liveSSE.forEach((send) => send("event: close\ndata: Closing connection\n\n"));
-        liveSSE.length = 0; // Clear all SSE clients
-        res.send("SSE Clients disconnected.");
-    })
-    */
 
     // =============== COSMETICS ==================
     // TODO: everything here assumes constant order in the jsons, which I am unsure how consistent it is
@@ -1630,8 +1520,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
     menuDataRouter.get("/Hub", (req: RequestWithJwt, res) => {
         const hubInfo = getHubData(req.gameVersion, req.jwt.unique_name)
         
-        // logArchipelago(hubInfo.DestinationsData)
-        //hubInfo.DestinationsData.splice(0,hubInfo.DestinationsData.length)
+        hubInfo.DestinationsData.splice(0,hubInfo.DestinationsData.length)
 
         let template: unknown
 
@@ -1660,10 +1549,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             const myStoryData = []
             
             for (const contractId in contractMap) {
-                // TODO maybe remove if no checks
-                // logArchipelago(contractId+" "+contractMap[contractId]+" "+getFlag("Level - "+contractMap[contractId]))
-
-                if (getFlag("Level - "+contractMap[contractId])){// || contractMap[contractId] === "ICA Facillity") {
+                if (getFlag("Level - "+contractMap[contractId])){
                     myStoryData.push(
                         genSingleMissionFunc(contractId, gameVersion)
                     )
@@ -1700,7 +1586,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             _gameVersion: GameVersion,
         ): PlayNextGetCampaignsHookReturn | undefined => {
             return {
-                nextContractId: latestUnlockedLevel, // "ada5f2b1-8529-48bb-a596-717f75f5eacb",
+                nextContractId: latestUnlockedLevel,
                 campaignDetails: {
                     CampaignName: "Archipelago",
                     ParentCampaignName: undefined,
@@ -1730,13 +1616,11 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 
     // send completed mission checks
     controller.hooks.onMissionEnd.tap("awardCheckOnCompletedMission", (contractSession) => {
-        // log(LogLevel.ERROR, contractSession)
 
         const levelName = contractMap[contractSession.contractId]
         log(LogLevel.DEBUG,"Completed "+levelName, logTag)
         checkLocation(locationNameToApIdMap[levelName + " Completed"])
        
-        // TODO sometimes rewards too friveriously, but very rarely
         if(contractSession.silentAssassinLost===false){
             logArchipelago("Completed "+levelName+" as SA")
             checkLocation(locationNameToApIdMap[levelName + " Completed - Silent Assassin"])
@@ -1755,33 +1639,5 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 
     })
 
-// "POST /authentication/api/userchannel/ProfileService/UpdateUserSaveFileTable"
-
-   /* profileRouter.post(
-    "/ProfileService/UpdateUserSaveFileTable",
-    jsonMiddleware(),
-    // @ts-expect-error Has jwt props.
-    async (req: RequestWithJwt<never, UpdateUserSaveFileTableBody>, res,next) => {
-        // log(LogLevel.SILLY,req.body.clientSaveFileList)
-        req.body.clientSaveFileList = []
-        next()
-    })
-    profileRouter.stack.unshift(profileRouter.stack.pop());
-*/
-    // force error when trying to load save on non-unlocked mission
-    // TODO: disabled cuz of bodyparser issues and the general save-load situation is not ideal (remember how you felt about not loading in Starcraft All-In)
-    profileRouter.post(
-        "/ContractSessionsService/Load",
-        // @ts-expect-error Has jwt props.
-        (req: RequestWithJwt<never, LoadSaveBody>, res, next) => {
-           // const body = await parseJsonBody(res) TODO: since body-parser is illegal, just fucking reject all loads...
-            //if(isLevelUnlocked(body.contractId)){
-            //    next()
-           // }else{
-                res.status(400).send("not allowed")
-           // }
-        }
-    )
-    // profileRouter.stack.unshift(profileRouter.stack.pop()!);
     logArchipelago("Plugin Loaded.")
 }

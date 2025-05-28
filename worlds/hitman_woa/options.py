@@ -1,16 +1,18 @@
 from dataclasses import dataclass
-from Options import Choice, FreeText, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
+from Options import Choice, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
 
 class Goal(Choice):
-    """TODO description"""
+    """The victory condition for your Archipelago run.
+    -level_completion: requires beating a specific level with a specific rating 
+    -contract_collection: requires collection a certain number of Contract Pieces"""
     display_name = "Goal"
     # TODO: didnt work out right now option_number_of_completions = 1
     option_level_completion = 2
-    option_contract_collection=3
+    option_contract_collection = 3
     default = 2
     
 class GoalDifficulty(Choice):
-    """Which rating the goal level needs to comple"""
+    """When goal is set to level_completion, which rating the goal level needs to be completed with to win."""
     display_name = "Goal Level Rating"
     option_any = 1
     option_silent_assassin = 2
@@ -19,7 +21,7 @@ class GoalDifficulty(Choice):
     default = 1
 
 class GoalLevel(Choice):
-    """Which level completion is the goal. If the entered level is not included with its whole season, it will be added regardless."""
+    """When goal is set to level_completion, which level is the goal. If the entered level is not included with its whole season, it will be added regardless."""
     display_name = "Goal Level"
     option_ica_facility = 0
     option_paris = 1
@@ -53,14 +55,14 @@ class GoalLevel(Choice):
 #    default = 5
 
 class RequiredContractPieceAmount(Range):
-    """When the goal is set to contract colleciton, how many contract pieces are required to award the goal."""
+    """When the goal is set to contract_colleciton, how many contract pieces are required to award the goal."""
     display_name = "Required Contract Pieces"
     range_end = 20
     range_start = 1
     default = 10
 
 class PercentageOfAdditionalContractPieces(Range):
-    """When the goal is set to contract colleciton, percentage of additional contract pieces in the item pool."""
+    """When the goal is set to contract_colleciton, percentage of additional contract pieces in the item pool."""
     display_name = "Percentage of Additional Contract Pieces"
     range_end = 100
     range_start = 0
@@ -190,7 +192,7 @@ class IncludeLegacyItems(Toggle):
     """Include Items marked as \"Legacy\", which only affects HITMAN 2"""
     display_name = "Include Legacy Items"
     visibility = Visibility.none
-# TODO: do this properly along with other H2 support
+# TODO: do this properly along with other H2 support (should be HITMAN 1 acess pass items in H2)
 
 class IncludeGoldenItems(Toggle):
     """Include Items marked as \"LOCATION_GOLDEN\", which I don't know what it means"""

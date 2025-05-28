@@ -3,6 +3,8 @@ from BaseClasses import Item, ItemClassification
 class HitmanItem(Item):
     game: str = "HITMAN World of Assasination"
 
+base_id = 2023011800
+
 item_table= { # id, requirement, classifier
 "Pistol - The Taunton Dart Gun":(244,"DELUXE", ItemClassification.filler),
 "SMG - DAK Gold Covert":(262,"DELUXE", ItemClassification.filler),
