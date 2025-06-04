@@ -630,7 +630,7 @@ item_table= { # id, requirement, classifier
 "Pistol - Custom 5mm DTI":(239,"", ItemClassification.filler),
 "Pistol - The Ducky Gun":(240,"", ItemClassification.filler),
 "Pistol - Kalmer 1 - Tranquilizer":(243,"", ItemClassification.useful),
-"Pistol - Kalmer 2 -Tranquilizer":(245,"", ItemClassification.filler),
+"Pistol - Kalmer 2 - Tranquilizer":(245,"", ItemClassification.filler),
 "Pistol - ICA19 Goldballer":(248,"", ItemClassification.filler),
 "Pistol - HWK21 MK II":(249,"", ItemClassification.filler),
 "Pistol - ICA DTI Stealth":(250,"", ItemClassification.filler),
