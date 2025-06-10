@@ -176,6 +176,10 @@ class IncludeTomorrowlandItems(Toggle):
     """Include Items from the Drop Pack"""
     display_name = "Include Drop Pack Items"
 
+class IncludeBankerItems(Toggle):
+    """Include Items from the Banker Pack"""
+    display_name = "Include Banker Pack Items"
+
 class IncludeTrinityItems(Toggle):
     """Include Items from the Trinity Pack"""
     display_name = "Include Trinity Pack Items"
@@ -247,7 +251,8 @@ class HitmanOptions(PerGameCommonOptions):
     include_disruptor_items: IncludePenecillinItems
     include_undying_items: IncludeSambucaItems
     include_drop_items: IncludeTomorrowlandItems
-
+    include_banker_items: IncludeBankerItems
+    
     include_trinity_items: IncludeTrinityItems
     include_street_art_items: IncludeConcreteArtItems
     include_makeshift_items: IncludeMakeshiftItems

@@ -147,20 +147,32 @@ class HitmanWorld(World):
         if self.options.enable_itemsanity:
             self.enabled_entitlements[self.player].append("itemsanity")
 
-        #TODO are you REALLY sure everyone with H3 has them? But H2 definetly not always
-        self.enabled_entitlements[self.player].append("H1_GOTY_UNLOCKABLES")
-        self.enabled_entitlements[self.player].append("LEGACY")
-        self.enabled_entitlements[self.player].append("H1_GOTY_UNLOCKABLES,LEGACY")
+        self.enabled_entitlements[self.player].append("H3_SIGNITURE_PACK")#Swtich 2 Pre-order Items
+        self.enabled_entitlements[self.player].append("H3_QUACK_PACK")#Switch 2 Physical Pre-order Items
+        self.enabled_entitlements[self.player].append("LOCATION_GOLDEN") #Freelancer Items
+
+        #TODO: Currently Assume Player is on H3, so always give theese
+        self.enabled_entitlements[self.player].append("H1_GOTY")
+        self.enabled_entitlements[self.player].append("H2_LEGACY")
+        self.enabled_entitlements[self.player].append("H1_REQUIEM_PACK")
+
 
         # Check for H3 editions
         if self.options.include_deluxe_items:
-            self.enabled_entitlements[self.player].append("DELUXE")
+            self.enabled_entitlements[self.player].append("H3_DELUXE_PACK")
 
         if self.options.include_h2_expansion_items:
-            self.enabled_entitlements[self.player].append("H2_RACCOON_STINGRAY") 
+            self.enabled_entitlements[self.player].append("H2_GREEDY") 
+            self.enabled_entitlements[self.player].append("H2_STINGRAY") 
 
-        if self.options.include_sins_items:
-            self.enabled_entitlements[self.player].append("SINS")
+        if self.options.include_sins_items: #TODO: options for individual enable
+            self.enabled_entitlements[self.player].append("H3_SINS_GREED")
+            self.enabled_entitlements[self.player].append("H3_SINS_PRIDE")
+            self.enabled_entitlements[self.player].append("H3_SINS_SLOTH")
+            self.enabled_entitlements[self.player].append("H3_SINS_LUST")
+            self.enabled_entitlements[self.player].append("H3_SINS_GLUTTONY")
+            self.enabled_entitlements[self.player].append("H3_SINS_ENVY")
+            self.enabled_entitlements[self.player].append("H3_SINS_WRATH")
 
         # Check for Elusive Target DLCs
         if self.options.include_splitter_items:
@@ -175,34 +187,33 @@ class HitmanWorld(World):
         if self.options.include_drop_items:
             self.enabled_entitlements[self.player].append("H3_ET_TOMORROWLAND")
 
+        if self.options.include_banker_items:
+            self.enabled_entitlements[self.player].append("H3_ET_FRENCHMARTINI")
+
         # Check for H3 DLC
         if self.options.include_trinity_items:
-            self.enabled_entitlements[self.player].append("TRINITY")
+            self.enabled_entitlements[self.player].append("H3_TRINITY")
 
         if self.options.include_street_art_items:
             self.enabled_entitlements[self.player].append("H3_VANITY_CONCRETEART")
 
         if self.options.include_makeshift_items:
             self.enabled_entitlements[self.player].append("H3_VANITY_MAKESHIFTSCRAP")
-        
+
         # Check for H2 DLC
         if self.options.include_executive_items:
-            self.enabled_entitlements[self.player].append("EXECUTIVE")
-            self.enabled_entitlements[self.player].append("COLLECTORS_OR_EXECUTIVE")
+            self.enabled_entitlements[self.player].append("H2_EXECUTIVE")
+            self.enabled_entitlements[self.player].append("H2_COLLECTORS_OR_EXECUTIVE")
 
         if self.options.include_collectors_items:
-            self.enabled_entitlements[self.player].append("COLLECTORS")
-            self.enabled_entitlements[self.player].append("COLLECTORS_OR_EXECUTIVE")
-
+            self.enabled_entitlements[self.player].append("H2_COLLECTORS")
+            self.enabled_entitlements[self.player].append("H2_COLLECTORS_OR_EXECUTIVE")
 
         if self.options.include_smart_casual_items:
-            self.enabled_entitlements[self.player].append("SMART_CASUAL") 
-            if self.options.include_h2_expansion_items:
-                self.enabled_entitlements[self.player].append("SMART_CASUAL,H2_RACCOON_STINGRAY") 
-
+            self.enabled_entitlements[self.player].append("H2_SMART_CASUAL") 
 
         if self.options.include_winter_sports_items:
-            self.enabled_entitlements[self.player].append("WINTER_SPORTS") 
+            self.enabled_entitlements[self.player].append("H2_WINTER_SPORTS") 
         
 
     def create_regions(self) -> None:
@@ -236,7 +247,7 @@ class HitmanWorld(World):
         starting_locaiton = "Level - "+goal_table[self.options.starting_location.current_key]
 
         for item in item_table:
-            if item_table[item][1] == "" or item_table[item][1] in self.enabled_entitlements[self.player]:
+            if len(item_table[item][1]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1]):
                 if item_table[item][2] == ItemClassification.progression and item != starting_locaiton:
                     item_pool.append(self.create_item(item))
                 if item_table[item][2] == ItemClassification.filler:
