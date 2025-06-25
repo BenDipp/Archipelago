@@ -198,12 +198,6 @@ class IncludeLegacyItems(Toggle):
     visibility = Visibility.none
 # TODO: do this properly along with other H2 support (should be HITMAN 1 acess pass items in H2)
 
-class IncludeGoldenItems(Toggle):
-    """Include Items marked as \"LOCATION_GOLDEN\", which I don't know what it means"""
-    display_name = "Include LOCAITON_GOLDEN Items"
-    visibility = Visibility.none
-# TODO: LOCATION_GOLDEN is Freelancer, I think but it doesnt seem to work with disableMasteryProgression
-
 class IncludeExecutiveItems(Toggle):
     """Include Items from the HITMAN 2 Executive Pack (Included in \"HITMAN 3 Access Pass: HITMAN 2 Expansion\")"""
     display_name = "Include Executive Pack Items"
@@ -252,7 +246,7 @@ class HitmanOptions(PerGameCommonOptions):
     include_undying_items: IncludeSambucaItems
     include_drop_items: IncludeTomorrowlandItems
     include_banker_items: IncludeBankerItems
-    
+
     include_trinity_items: IncludeTrinityItems
     include_street_art_items: IncludeConcreteArtItems
     include_makeshift_items: IncludeMakeshiftItems

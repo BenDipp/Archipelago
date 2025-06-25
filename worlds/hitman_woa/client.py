@@ -52,7 +52,7 @@ class HitmanContext(CommonContext):
                 self.sse_thread.start() 
             case "ReceivedItems":
                 self.recieve_items(args["items"])
-            case "PrintJSON"| "Retrieved" | "RoomInfo" | "Bounced" | "RoomUpdate":
+            case "PrintJSON"| "Retrieved" | "RoomInfo" | "Bounced" | "RoomUpdate" | "SetReply" | "DataPackage":
                 pass
             case _:
                 print("Not implemented cmd: "+cmd+", with args: "+str(args))

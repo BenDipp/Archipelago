@@ -23,7 +23,7 @@ More information about the installation can be found on the [Peacock website](ht
 
  1. Download the latest version of [Peacock](https://github.com/thepeacockproject/Peacock/releases/latest).
  2. Unzip the files into an easily accessible place.
-    - Do not place them in the game folder or Windows' Program Files.
+    - Do not place them in the game folder or the "Program Files" folder of Windows.
  3. In that unziped folder run both `Start Server.cmd` and `PeacockPatcher.exe`.
  4. Start Hitman to verify it worked. The Main Menu should feature a Panel stating "Powered by The Peacock Project".
  5. Close `Start Server.cmd` and place `archipelago.plugin.js` in the `plugins`-folder.
@@ -35,6 +35,8 @@ To install the APworld, simply double click it or drag and drop it into the runn
 
 After installing, restart the Launcher and `HITMAN World of Assassination Client` should appear as an option in the `Client` list.
 
+If your Peacock Server is not running locally on your machine, you must change the address that the Client uses to connect to Peacock in the `host.yaml` of your Archipelago installation.
+
 ## Joining a Multiworld 
 
  1. Run both `Start Server.cmd` and `PeacockPatcher.exe` from the folder where Peacock is installed
@@ -42,6 +44,7 @@ After installing, restart the Launcher and `HITMAN World of Assassination Client
  3. Enter room's address and port (e.g. `archipelago.gg:12345`) into the top text field of the client and click Connect.
  4. Enter your slot name.
  5. Start Hitman from the Launcher of your choice. Your unlocked Levels can be found under `Campaigns > Archipelago`.
+    - If you recieved a level while in the main menu, the campaigns tab will not update unless you enter and leave a level, or click "Go Offline" and then "Go Online" in the main menu.  
 
 ## Uninstalling
 
