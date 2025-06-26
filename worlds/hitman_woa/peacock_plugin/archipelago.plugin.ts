@@ -6,6 +6,7 @@ import { getFlag, setFlag } from "@peacockproject/core/flags"
 import {
     Campaign,
     ClientToServerEvent,
+    ContractSession,
     GameVersion,
     GenSingleMissionFunc,
     GenSingleVideoFunc,
@@ -43,6 +44,8 @@ const contractMap: Record<string,string> = {
     "a3e19d55-64a6-4282-bb3c-d18c3f3e6e29":"Carpathian Mountains",
     "b2aac100-dfc7-4f85-b9cd-528114436f6c":"Ambrose Island"
 }
+let modifiedContractMap: Record<string,string> = {}
+
 const itemDepotToApIdMap: Record<string,number> = {
 "01ed6d15-e26e-4362-b1a6-363684a7d0fd":1,
 "3c24c96a-557c-472a-9d71-1a235d7383a7":2,
@@ -346,6 +349,7 @@ const locationNameToApIdMap: Record<string,number> = {
 }
 const baseId = 2023011800
 const logTag = "Archipelago Plugin"
+let currentSeed = ""
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const apItemMap: Record<string, any> = {
 "1":{apItemName:"Level - ICA Facility",unlockableId:"FACILITY"},
@@ -1261,15 +1265,15 @@ const isLevelUnlocked = (contractId:string) =>{
 }
 
 const getContractFromName = (contractName:string) =>{
-    for(const contractId in contractMap){
-        if(contractMap[contractId] === contractName){
+    for(const contractId in modifiedContractMap){
+        if(modifiedContractMap[contractId] === contractName){
             return contractId
         }
     }
     
     // if nothing was found, try snakecase
-    for(const contractId in contractMap){
-        if(contractMap[contractId].toLowerCase().replaceAll(" ","_") === contractName){
+    for(const contractId in modifiedContractMap){
+        if(modifiedContractMap[contractId].toLowerCase().replaceAll(" ","_") === contractName){
             return contractId
         }
     }
@@ -1318,7 +1322,9 @@ const removeUnusedUnlocks = (controller: Controller)=> {
     }
 }
 const addModifiedMissions = (controller: Controller, difficulty: string) => {
-    // add copy of contracts to the game       
+    // add copy of contracts to the game  
+    let eightDigitSeed = currentSeed.slice(0,8)
+    eightDigitSeed = eightDigitSeed.padEnd(8,"0")     
     for (const contractId in contractMap){
         const contract = controller.resolveContract(contractId, "h3")
         if(contract === undefined){
@@ -1341,7 +1347,13 @@ const addModifiedMissions = (controller: Controller, difficulty: string) => {
             }else{
                 log(LogLevel.ERROR, "No difficulty was saved for level "+contractMap[contractId],logTag)
             }
-        }           
+        }    
+
+
+        let newContractId = eightDigitSeed+"-0000-0000-0000-"+contractId.split("-")[4]
+        modifiedContractMap[newContractId] = contractMap[contractId]  
+        contract.Metadata.Id = newContractId
+
         controller.addMission(contract); 
     }
 }
@@ -1388,7 +1400,6 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
 
 module.exports = function archipelagoCampaign(controller: Controller) {
     logArchipelago("Plugin Loading.")
-
     removeUnusedUnlocks(controller)
 
     // ================ SETUP LEVEL FLAGS ================
@@ -1409,9 +1420,18 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             res.status(500).contentType("text").send("Error while recieving item, see console for details")
         }
     })
-    webFeaturesRouter.get("/archipelago/setDifficulty/:difficulty", (req,res)=>{
-        //TODO: cant be called twice, since the other difficulties are removed the first time
+    webFeaturesRouter.get("/archipelago/setDifficulty/:difficulty/:seed", (req,res)=>{
         const difficulty = req.params.difficulty
+        currentSeed = req.params.seed
+
+        collectedContractPieces = 0
+        controller.configManager.configs.allunlockables.splice(0, controller.configManager.configs.allunlockables.length)
+        clearInventoryCache()
+        for (const contractId in contractMap){
+            setFlag("Level - "+contractMap[contractId], false)
+        }   
+        modifiedContractMap = {}
+         
         addModifiedMissions(controller, difficulty)
         res.status(200).send()
     })
@@ -1571,8 +1591,8 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         ) => {
             const myStoryData = []
             
-            for (const contractId in contractMap) {
-                if (getFlag("Level - "+contractMap[contractId])){
+            for (const contractId in modifiedContractMap) {
+                if (getFlag("Level - "+modifiedContractMap[contractId])){
                     myStoryData.push(
                         genSingleMissionFunc(contractId, gameVersion)
                     )
@@ -1618,20 +1638,21 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             }
         }
     )
-
     controller.hooks.newEvent.tap("awardCheckOnItemPickup",(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         event: ClientToServerEvent<any>
-        /*
         , details: {
             gameVersion: GameVersion;
             userId: string;
         }, session: ContractSession
-        */
         )=>{
             if(event.Name === "ItemPickedUp"){
-                logArchipelago("Sending check for "+event.Value.ItemName +";"+event.Value.RepositoryId+";"+itemDepotToApIdMap[event.Value.RepositoryId])
-                checkLocation(itemDepotToApIdMap[event.Value.RepositoryId])
+                if(modifiedContractMap[session.contractId]!=undefined){
+                    logArchipelago("Sending check for "+event.Value.ItemName +";"+event.Value.RepositoryId+";"+itemDepotToApIdMap[event.Value.RepositoryId])
+                    checkLocation(itemDepotToApIdMap[event.Value.RepositoryId])
+                }else{
+                    log(LogLevel.ERROR,"Save from diffrent Archipelago Seed was loaded, not sending check "+event.Value.ItemName)
+                }
             }      
         }
     )
@@ -1640,7 +1661,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
     // send completed mission checks
     controller.hooks.onMissionEnd.tap("awardCheckOnCompletedMission", (contractSession) => {
 
-        const levelName = contractMap[contractSession.contractId]
+        const levelName = modifiedContractMap[contractSession.contractId]
         log(LogLevel.DEBUG,"Completed "+levelName, logTag)
         checkLocation(locationNameToApIdMap[levelName + " Completed"])
        

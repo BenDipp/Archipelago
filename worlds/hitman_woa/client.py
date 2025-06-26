@@ -24,6 +24,7 @@ class HitmanContext(CommonContext):
     sse_thread = None
     sse_running = False
     peacock_url = "http://"+get_settings().hitman_woa_options.peacock_url+ "/_wf/archipelago"
+    current_seed = None
 
     async def server_auth(self, password_requested: bool = False):
         # check if Peacock is running
@@ -52,8 +53,10 @@ class HitmanContext(CommonContext):
                 self.sse_thread.start() 
             case "ReceivedItems":
                 self.recieve_items(args["items"])
-            case "PrintJSON"| "Retrieved" | "RoomInfo" | "Bounced" | "RoomUpdate" | "SetReply" | "DataPackage":
+            case "PrintJSON"| "Retrieved" |  "Bounced" | "RoomUpdate" | "SetReply" | "DataPackage":
                 pass
+            case "RoomInfo":
+                self.current_seed = args["seed_name"]
             case _:
                 print("Not implemented cmd: "+cmd+", with args: "+str(args))
 
@@ -74,7 +77,7 @@ class HitmanContext(CommonContext):
 
     def set_difficulty(self):
         try:
-            r = requests.get(self.peacock_url+"/setDifficulty/"+self.slot_data["difficulty"])
+            r = requests.get(self.peacock_url+"/setDifficulty/"+self.slot_data["difficulty"]+"/"+str(self.current_seed))
             r.raise_for_status()
         except Exception as e:
                 logger.error("Error occured while attempting to set difficulty, disconnecting!")
