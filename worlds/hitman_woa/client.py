@@ -64,6 +64,9 @@ class HitmanContext(CommonContext):
         if self.sse_thread != None:
             self.sse_running = False
 
+        self.collected_contract_pieces = 0
+        self.current_seed = None
+        self.slot_data = None
         await super().disconnect(allow_autoreconnect)
 
     async def disconnectOnWindowClose(self):

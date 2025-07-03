@@ -47,215 +47,215 @@ const contractMap: Record<string,string> = {
 let modifiedContractMap: Record<string,string> = {}
 
 const itemDepotToApIdMap: Record<string,number> = {
-"01ed6d15-e26e-4362-b1a6-363684a7d0fd":1,
-"3c24c96a-557c-472a-9d71-1a235d7383a7":2,
-"dda002e9-02b1-4208-82a5-cf059f3c79cf":3,
-"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9":4,
-"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae":5,
-"7aeb740f-3d60-4e49-8d27-15a98067ce9f":6,
-"95d1c5bd-72de-4236-97c0-b96fc5d92fa8":7,
-"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059":8,
-"31f36818-623f-4c92-892f-d7b19bb325e1":9,  "97d74fa2-4832-4186-a447-c4b2e37d537a":9,
-"6ecf1f15-453c-4783-9c70-8777c83934d7":10,
-"12cb6b51-a6dd-4bf5-9653-0ab727820cac":11,
-"f1f89faf-a441-4492-b442-9a923b5ecfd1":12,
-"a8bc4325-718e-45ba-b0e4-000729c70ce4":13,
-"d8aa6eba-0cb7-4ed4-ab99-975f2793d731":14,
-"7c691c03-7c6b-4eb4-9a68-898efe5eedaa":15,
-"d64eb5f2-1e9b-402d-855b-c714cfde50db":16,
-"55ed7196-2303-4af6-9fa3-45b691134561":17,
-"901a3b51-51a0-4236-bdf2-23d20696b358":18,
-"e17172cc-bf70-4df6-9828-d9856b1a24fd":19,
-"a8a0c154-c36f-413e-8f29-b83a1b7a22f0":20,
-"1bbf0ed5-0515-4599-a4c9-454ce59cff44":21,
-"bce6ce09-6ead-4d72-8438-2c7780770e70":22,
-"987d9c9f-203d-44d9-bbf8-bf703f349565":23,
-"3a8207bb-84f5-438f-8f30-5c83aef2af80":24,
-"94f52181-b9ec-4363-baef-d53b4e424b74":25,
-"58dceb1c-d7db-41dc-9750-55e3ab87fdf0":26,
-"17615866-32e7-4e1e-951d-7ef2ada796e9":27,
-"510c62c2-1f40-4a4d-9e42-da677bd116e7":28,
-"1066917f-2e04-4c54-b8cb-55cb1dcc2f26":29,
-"e312a416-5b56-4cb5-8994-1d4bc82fbb84":30,
-"62c2ac2e-329e-4648-822a-e45a29a93cd0":31,
-"ce8e7099-e60d-47e8-bfd6-4918777f2c8b":32,
-"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb":33,
-"afd1f201-d2a5-4d40-80b1-d81b0d9d2541":34, "c19f796e-e23f-4429-a046-47ed3d324359":34,   "de69ce1e-a24d-4acc-895f-4c3a71f47ba8":34, "004ecac9-6aee-4b30-a073-4399a94535d8":34,
-"2953e9ac-e25b-41ae-afbf-4a47f86c4f54":35,
-"22f8ffdb-073d-48a1-abb9-13075800008e":36,
-"2c037ef5-a01b-4532-8216-1d535193a837":37,
-"c21f558b-2935-41e5-88ff-642eb1761ccc":38,
-"c95c55aa-34e5-42bd-bf27-32be3978b269":39,
-"a2c56798-026f-4d0b-9480-de0d2525a119":40,
-"369c68f7-cbef-4e45-83c7-8acd0dc2d237":41,
-"25a4d780-3123-448d-a6e7-3dfdbb8c8260":42,
-"e65953cb-f954-4d21-9f11-52b454cac15e":43,
-"b86b9ece-c929-44f6-8903-8f2c817e2a19":44,
-"7f31d897-a62f-448c-be0d-79d565e2faa7":45,
-"5631dace-7f4a-4df8-8e97-b47373b815ff":46,
-"6e4afb04-417e-4cfc-aaa2-43f3ecca9037":47,
-"16edb112-58cc-4069-a7dd-ebd258b14044":48,
-"a1f89118-d345-4367-9423-620c3ef5dfba":49,
-"aa532e88-2430-432f-9818-ddb8ad80615e":50, "01048280-0358-4f0a-95b7-1f9f665c1648":50,
-"22183fd3-d837-47c6-9c44-05637300af93":51,
-"d2a7fa04-2cac-45d8-b696-47c566bb95ff":52,
-"e755471f-e6fd-438f-b343-7c98fbb50107":53,
-"ce633778-7424-4784-8bc2-f9d717a23709":54,
-"c86ce2f4-7bd1-4949-acc4-54e5428d9396":55,
-"ee25fc91-e42e-4044-99b4-b3c4206d250d":56,
-"af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc":57,
-"af9ad679-6a7c-4f8e-9700-ceb5e6887666":58,
-"e206ed81-0559-4289-9fec-e6a3e9d4ee7c":59,
-"51f6ed96-4985-4d09-8218-e3b912d025b9":60,
-"8d937ed4-dc85-476b-8048-e96a8900e7bf":61,
-"3fd9825d-8aa5-48e0-97a9-ec8f541f871a":62,
-"5d8ca32a-fe4c-4597-b074-51e36c3de898":63,
-"e45c295d-60dd-4cba-a01b-0dc1b6f1b17c":64,
-"35efd6dc-0387-4b56-83f0-4e6609bac93f":65,
-"26b5496d-9a8c-4059-9d69-d8712078a33c":66,
-"3cf48e44-6e0f-4e4d-9d21-6a4af476118c":67,
-"c664eb1a-41d8-4d0a-a393-d5f66f055e5e":68,
-"e55eb9a4-e79c-43c7-970b-79e94e7683b7":69,
-"1973ae7e-538c-4a43-98af-208b9893d246":70,
-"59b5731d-2de8-4175-9be0-92fbc2c3e603":71,
-"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f":72,
-"dac32c27-4c49-4933-bccb-56c8f526515f":73,
-"0ff22cf7-a472-48d6-87eb-1b307bc5c576":74,
-"3f9cf03f-b84f-4419-b831-4704cff9775c":75,
-"c82fefa7-febe-46c8-90ec-c945fbef0cb4":76,
-"74b04d1f-8ac9-46a0-9a6c-8579cf03276f":77,
-"d1f29c76-5751-4e06-b534-e6eb7522b128":78,
-"45c0ccfe-1ac3-4747-9571-fe7588fe6971":79,
-"4d0d6b2a-dd81-474c-a412-3bf19af8233d":80,
-"606a9606-8c05-4dcd-93fa-ec9cdc13f357":81,
-"53284129-c50a-47a7-9efa-caa3b7503826":82,
-"c6e9414e-e2ce-470a-95bd-14cd25225878":83,
-"cad726d7-331d-4601-9723-6b8a17e5f91b":84,
-"ac1f44ac-0542-4e3e-9805-81ceeb499804":85,
-"ec31f55f-6109-4f97-9286-8f59fae666f6":86,
-"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543":87,
-"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a":88,
-"4cc1765e-939e-4a5a-bee2-44403b47822b":89, "aa62586e-d463-494e-b55f-177bcdf8c08c":89,
-"cbf40151-cb96-435a-b683-6430370a07f2":90,
-"e887e8ea-4554-41e1-b37d-d002dad04fed":91, "963123fd-8a53-41b6-8950-335495b3f3af":91,
-"30fa1ade-386f-49b7-bddd-a23cd912611d":92,
-"248cbd89-9923-452a-8cda-a5f76d8930dc":93,
-"3e3819ca-4d19-4e0a-a238-4bd16c730e61":94,
-"c4747fa2-4958-4a02-926e-3b069cf218dc":95,
-"79b48d90-26aa-4b17-9332-599ed8e0bd7f":96,
-"4b0def3b-7378-494d-b885-92c334f2f8cb":97,
-"b2321154-4520-4911-9d94-9256b85e0983":98,
-"5ce2f842-e091-4ead-a51c-1cc406309c8d":99,
-"77ecaad6-652f-480d-b365-cdf90820a5ec":100,
-"d2f4e54f-1eb8-482d-9732-a9159b1a9229":101,
-"b153112f-9cd1-4a49-a9c6-ba1a34f443ab":102,
-"7268dbea-7a1c-47f5-b846-f0445404ec14":103,
-"cf4838bf-2417-4baf-ad40-50b7793040c6":104,
-"cbc38627-a3c4-4116-8731-ace217a831e7":105,
-"c008f9ce-4029-4ab4-a9c3-52868fe810ff":106,
-"40e96ed0-7668-4d65-b88a-f44bfff5f537":107,
-"a804e004-7d45-42c8-87bd-b7cbcffa56cc":108,
-"f5d0b800-bf37-41ff-bd19-4c04e3b69754":109,
-"81654161-7711-4985-8056-8651a381d3ca":110,
-"e638b949-9b96-4c41-bec4-0a8fbfb05c75":111,
-"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca":112,
-"5952b621-fee9-4699-809c-8889abadfdb8":113,
-"a96cdbd8-9657-416a-87bf-d2ed21840794":114,
-"ef63eda6-6411-4ce0-b35b-143fc5767fc0":115,
-"c5ec6168-2e5e-4340-b71a-c60f2ee6bd66":116,
-"092f6514-c34e-4d04-8d28-7ebbe14230d1":117,
-"ccdd6689-092d-49b2-85f8-416a02e25566":118,
-"2f6eec38-45ea-49df-83a2-0b98a858e60a":119,
-"a15af673-8e21-47e3-bdfa-f5dea7b5f9e9":120,
-"6b93848c-8f1d-42eb-816f-bab61b56d8a5":121,
-"0705964d-dab5-45b6-96ae-30cd4c2f0dec":122,
-"bad168bb-3629-42b3-bc57-604b03a81d30":123,
-"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f":124,
-"2147b6cd-5a42-4cd6-b366-2c5c50d97db7":125,
-"94c2b206-d011-4358-a6b3-c8a6042ab2c2":126,
-"1a105af8-fd30-447f-8b2c-f908f702e81c":127,
-"3a359494-ee05-4fea-beac-8726233a55bf":128,
-"5ad01c38-244a-4b75-94d6-624850d2dc92":129,
-"1050c8d3-43d6-4bcf-a5d3-0ca994121871":130,
-"84f50c4c-de1d-41f3-8021-1cba7df987cd":131,
-"903d273c-c750-441d-916a-31557fea3382":132,
-"72cb6124-36eb-4c25-8da0-78d4c5fac459":133,
-"66024572-7838-42d3-8c7b-c651e259438e":134,
-"5db9cefd-391e-4c35-a4c4-bb672ac9b996":135,
-"7bc45270-83fe-4cf6-ad10-7d1b0cf3a3fd":136,
-"7d668011-77f9-4cae-97f1-e3eda5e0c8b2":137,
-"af82349c-259f-4bdd-8be7-d5ff61695c29":138,
-"b5481de5-6446-46b3-903f-e0040f46b7f0":139,
-"58a036dc-79d4-4d64-8bf5-3faafa3cfead":140,
-"79f8c0e9-4690-4ebf-b2b3-fd8411a1407f":141,
-"a83349bf-3d9c-43ec-92ee-c8c98cbeabc1":142,
-"8f1bae41-3570-40cc-be87-77cb6a4af86c":143,
-"3dbbbb5e-61a7-4cae-8df0-0e911e744dca":144,
-"d73251b4-4860-4b5b-8376-7c9cf2a054a2":145,
-"e98f44fd-7f36-46a8-ae3c-bf080e8454d3":146,
-"42c7bb52-a71b-489c-8a74-7db0c09ba313":147,
-"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa":148,
-"6738e8ad-b8d0-496a-9749-d27a93b40113":149,
-"fc715a9a-3bf1-4768-bd67-0def61b92551":150,
-"dc10958c-e3dc-447b-b9f4-8c4bde86d108":151,
-"fba6e133-78d1-4af1-8450-1ff30466c553":152,
-"23b8ad17-1913-40ce-b3bc-2c92317801dd":153,
-"12200bd8-9605-4111-8b26-4e73cb07d816":154,
-"9a7711c7-ede9-4230-853e-ab94c65fc0c9":155,
-"e0de34ce-f8d1-428b-8b37-0dae7398bde3":156,
-"92d68841-8552-40b1-b8a5-c36c6efdb6b1":157,
-"c88a59cd-d5cc-4435-a3f1-2312abcc817e":158,
-"cb34f363-3534-46ff-b036-d49f1329f300":159,
-"1e11fbea-cd51-48bf-8316-a050772d6135":160,
-"da6ae60b-092d-4ad9-aa3c-322c8cb21985":161,
-"25bc1a6d-c618-43ee-9c1f-81347ed430a6":162,
-"54b1ffd7-5290-4b58-8e1c-53fd038a08f5":163,
-"4fad7437-59e9-4ca9-9b31-a6d97484216b":164,
-"7685be69-ff8f-479c-91b9-7347253f8bf1":165,
-"9488fa1e-10e1-49c9-bb24-6635d2e5bd49":166,
-"6d4c88f3-9a09-453c-9a6e-a081f1136bf3":167,
-"8598ae82-53ac-43ba-9f43-30140d6ba7ee":168,
-"59e407df-c49b-4abe-a1be-0806b026e47e":169,
-"0576a20c-581b-4705-8b9d-464e077d117e":170,
-"5c211971-235a-4856-9eea-fe890940f63a":171,
-"4292fe64-aac6-4bbe-be73-31671640172a":172,
-"6b87c27d-0d73-4c63-b852-5a9c7a9ffb90":173,
-"280739c7-9d93-48b9-840e-694883e76700":174,
-"1c50d6e0-11c8-4cbc-be05-f51a8e5013be":175,
-"9c649932-7329-4cc3-a8cb-a32cae5dd7ca":176,
-"a2fce6cb-7b4a-4d2e-81b7-919bf7c5b7ad":177,
-"b4d4ed1a-0687-48a9-a731-0e3b99494eb6":178,
-"706cb615-e66d-49f3-86bb-899fa7117bcf":179,
-"98bf7fc1-7857-4999-bc99-586c49f24017":180,
-"4eede7ee-582b-49a4-b438-2418d82671d9":181,
-"58769c58-3e70-4746-be8e-4c7114f8c2bb":182,
-"785c3c6b-1272-4853-94f0-a41d52f64795":183,
-"c45e59f4-d8e1-4c37-b079-8b74b1fe9b24":184,
-"719ba201-3688-4984-afb0-81dc2cc95ec1":185,
-"fb5319c4-f3ff-4ce6-9a78-2fc2c33bd19c":186,
-"8ee26350-67f9-48bd-983e-8f276eea04cc":187,
-"e30a5b15-ce4d-41d5-a2a5-08dec9c4fe79":188,
-"407bf3c3-6319-4573-b193-2611b0ee397e":189,
-"0f9608e9-6e42-49b9-b4cd-9aaebba8458f":190,
-"8a30c788-049a-4b83-b148-1a6db49d2ae5":191,
-"f6f525d2-a28c-4548-825b-f7ce93f6577c":192,
-"299eae90-4744-4557-b30b-71382cba2839":193,
-"2b1bd2af-554e-4ea7-a717-3f6d0eb0215f":194,
-"3fbd6da4-c61c-40d6-9494-8277d2e172e4":195,
-"40766e9d-eb46-474e-b5ce-927e3e70f0c6":196,
-"3f9ed406-8de0-4466-b393-38a7f905d859":197,
-"2d960bf0-217c-400d-a1ee-f721e18f2926":198,
-"a8309099-1b89-4492-bf37-37d4312b6615":199,
-"7d64d9df-5d30-4e98-9af0-7562ee145d5c":200,
-"b1b40b14-eded-404f-b933-c4da15e85644":201,"d689f87e-c3b1-4018-8e78-2f0025cde2a9":201,
-"6294f1c4-68db-477f-b7c9-8c9825c077a1":202,
-"a494c3c8-9a41-4398-9542-559e6a5dc1cb":203,
-"c716ebb8-cc0e-4e60-9335-844a0d7e645d":204,
-"ecf022db-ecfd-48c0-97b5-2258e4e89a65":205,
-"4e92b3c5-3358-44aa-8a87-f7f349f46f44":206,
-"a02af9a5-aefb-47e0-9d67-51cc9ec89774":207,
-"1a11a060-358c-4054-98ec-d3491af1d7c6":208,
-"f93b99a3-aef6-419f-b303-59470577696d":209
+    "01ed6d15-e26e-4362-b1a6-363684a7d0fd":1, //Crowbar
+    "3c24c96a-557c-472a-9d71-1a235d7383a7":2, //Hammer
+    "dda002e9-02b1-4208-82a5-cf059f3c79cf":3, //Coin
+    "8b37a3a8-8a20-4262-81c5-0fcd15f4bba9":4, //Emetic Rat Poison
+    "6adddf7e-6879-4d51-a7e2-6a25ffdca6ae":5, //Wrench
+    "7aeb740f-3d60-4e49-8d27-15a98067ce9f":6, //Lead Pipe
+    "95d1c5bd-72de-4236-97c0-b96fc5d92fa8":7, //Pool Ball
+    "5cc4d1ea-b4fa-4667-ba3a-b6e859f03059":8, //Brick
+    "31f36818-623f-4c92-892f-d7b19bb325e1":9,   "97d74fa2-4832-4186-a447-c4b2e37d537a":9, //Bust
+    "6ecf1f15-453c-4783-9c70-8777c83934d7":10, //Scissors
+    "12cb6b51-a6dd-4bf5-9653-0ab727820cac":11, //Screwdriver
+    "f1f89faf-a441-4492-b442-9a923b5ecfd1":12, //Letter Opener
+    "a8bc4325-718e-45ba-b0e4-000729c70ce4":13, //Fire Axe
+    "d8aa6eba-0cb7-4ed4-ab99-975f2793d731":14, //Fusil G2
+    "7c691c03-7c6b-4eb4-9a68-898efe5eedaa":15, //Remote Explosive
+    "d64eb5f2-1e9b-402d-855b-c714cfde50db":16, //Fire Extinguisher
+    "55ed7196-2303-4af6-9fa3-45b691134561":17, //Bartoli 75R
+    "901a3b51-51a0-4236-bdf2-23d20696b358":18, //Tactical Bartoli 12G
+    "e17172cc-bf70-4df6-9828-d9856b1a24fd":19, //Kitchen Knife
+    "a8a0c154-c36f-413e-8f29-b83a1b7a22f0":20, //Propane Flask
+    "1bbf0ed5-0515-4599-a4c9-454ce59cff44":21, //Cleaver
+    "bce6ce09-6ead-4d72-8438-2c7780770e70":22, //Frying Pan
+    "987d9c9f-203d-44d9-bbf8-bf703f349565":23, //Fire Poker
+    "3a8207bb-84f5-438f-8f30-5c83aef2af80":24, //Hatchet
+    "94f52181-b9ec-4363-baef-d53b4e424b74":25, //Saber
+    "58dceb1c-d7db-41dc-9750-55e3ab87fdf0":26, //Battle Axe
+    "17615866-32e7-4e1e-951d-7ef2ada796e9":27, //Golf Club
+    "510c62c2-1f40-4a4d-9e42-da677bd116e7":28, //Police Baton
+    "1066917f-2e04-4c54-b8cb-55cb1dcc2f26":29, //Shovel
+    "e312a416-5b56-4cb5-8994-1d4bc82fbb84":30, //Circumcision Knife
+    "62c2ac2e-329e-4648-822a-e45a29a93cd0":31, //Amputation Knife
+    "ce8e7099-e60d-47e8-bfd6-4918777f2c8b":32, //Toy Tank
+    "ac77e98d-4ffa-4755-80fc-cd6e7adc63fb":33, //Expired Can of Spaghetti Sauce
+    "afd1f201-d2a5-4d40-80b1-d81b0d9d2541":34,  "c19f796e-e23f-4429-a046-47ed3d324359":34,    "de69ce1e-a24d-4acc-895f-4c3a71f47ba8":34,  "004ecac9-6aee-4b30-a073-4399a94535d8":34, //Soda Can
+    "2953e9ac-e25b-41ae-afbf-4a47f86c4f54":35, //Bartoli 75S
+    "22f8ffdb-073d-48a1-abb9-13075800008e":36, //Virus Prototype
+    "2c037ef5-a01b-4532-8216-1d535193a837":37, //Combat Knife
+    "c21f558b-2935-41e5-88ff-642eb1761ccc":38, //Baseball Bat
+    "c95c55aa-34e5-42bd-bf27-32be3978b269":39, //Explosive Golf Ball
+    "a2c56798-026f-4d0b-9480-de0d2525a119":40, //Folding Knife
+    "369c68f7-cbef-4e45-83c7-8acd0dc2d237":41, //Old Axe
+    "25a4d780-3123-448d-a6e7-3dfdbb8c8260":42, //Radio
+    "e65953cb-f954-4d21-9f11-52b454cac15e":43, //Bag of Gunpowder
+    "b86b9ece-c929-44f6-8903-8f2c817e2a19":44, //Cannonball
+    "7f31d897-a62f-448c-be0d-79d565e2faa7":45, //Bartoli 12G
+    "5631dace-7f4a-4df8-8e97-b47373b815ff":46, //Katana
+    "6e4afb04-417e-4cfc-aaa2-43f3ecca9037":47, //Shashka A33
+    "16edb112-58cc-4069-a7dd-ebd258b14044":48, //Fusil G1-4
+    "a1f89118-d345-4367-9423-620c3ef5dfba":49, //Lethal Poison Pill Jar
+    "aa532e88-2430-432f-9818-ddb8ad80615e":50,  "01048280-0358-4f0a-95b7-1f9f665c1648":50, //Insecticide
+    "22183fd3-d837-47c6-9c44-05637300af93":51, //Coconut
+    "d2a7fa04-2cac-45d8-b696-47c566bb95ff":52, //Sapper's Axe
+    "e755471f-e6fd-438f-b343-7c98fbb50107":53, //Apricot
+    "ce633778-7424-4784-8bc2-f9d717a23709":54, //Baseball
+    "c86ce2f4-7bd1-4949-acc4-54e5428d9396":55, //Cowboy Bust
+    "ee25fc91-e42e-4044-99b4-b3c4206d250d":56, //Explosive Watch Battery
+    "af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc":57, //Nitroglycerin
+    "af9ad679-6a7c-4f8e-9700-ceb5e6887666":58, //Modern Lethal Syringe
+    "e206ed81-0559-4289-9fec-e6a3e9d4ee7c":59, //HX-10
+    "51f6ed96-4985-4d09-8218-e3b912d025b9":60, //Branding Iron
+    "8d937ed4-dc85-476b-8048-e96a8900e7bf":61, //Mannequin Arm
+    "3fd9825d-8aa5-48e0-97a9-ec8f541f871a":62, //HX-7
+    "5d8ca32a-fe4c-4597-b074-51e36c3de898":63, //Scalpel
+    "e45c295d-60dd-4cba-a01b-0dc1b6f1b17c":64, //Botulinum Toxin
+    "35efd6dc-0387-4b56-83f0-4e6609bac93f":65, //Hackl 9S Covert
+    "26b5496d-9a8c-4059-9d69-d8712078a33c":66, //Kalmer 1 - Tranquilizer
+    "3cf48e44-6e0f-4e4d-9d21-6a4af476118c":67, //Chloroform Flask
+    "c664eb1a-41d8-4d0a-a393-d5f66f055e5e":68, //Squeaky Toy
+    "e55eb9a4-e79c-43c7-970b-79e94e7683b7":69, //Shuriken
+    "1973ae7e-538c-4a43-98af-208b9893d246":70, //Maori Paddle
+    "59b5731d-2de8-4175-9be0-92fbc2c3e603":71, //Wristwatch Alarm
+    "ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f":72, //Driftwood Log
+    "dac32c27-4c49-4933-bccb-56c8f526515f":73, //Car Battery
+    "0ff22cf7-a472-48d6-87eb-1b307bc5c576":74, //Apple
+    "3f9cf03f-b84f-4419-b831-4704cff9775c":75, //Fragmentation Grenade
+    "c82fefa7-febe-46c8-90ec-c945fbef0cb4":76, //Kronstadt Octane Booster
+    "74b04d1f-8ac9-46a0-9a6c-8579cf03276f":77, //Didgeridoo
+    "d1f29c76-5751-4e06-b534-e6eb7522b128":78, //Android Arm
+    "45c0ccfe-1ac3-4747-9571-fe7588fe6971":79, //Bag of Sugar
+    "1f11f901-2dbe-4e48-a77a-74c110b93da0":80,  "4d0d6b2a-dd81-474c-a412-3bf19af8233d":80, //Fish
+    "606a9606-8c05-4dcd-93fa-ec9cdc13f357":81, //Pneumatic Wrench
+    "53284129-c50a-47a7-9efa-caa3b7503826":82, //Car Bomb
+    "c6e9414e-e2ce-470a-95bd-14cd25225878":83, //Cocaine Brick
+    "cad726d7-331d-4601-9723-6b8a17e5f91b":84, //Starfish
+    "ac1f44ac-0542-4e3e-9805-81ceeb499804":85, //Cannabis Joint
+    "ec31f55f-6109-4f97-9286-8f59fae666f6":86, //The Big One
+    "acc9d7b8-80f1-4bb0-ba81-3a69b09e0543":87, //Meaty Bone
+    "d75bef38-8a65-45f6-9cd1-ca5e23e2f79a":88, //DAK X2
+    "4cc1765e-939e-4a5a-bee2-44403b47822b":89,  "aa62586e-d463-494e-b55f-177bcdf8c08c":89, //Poisonous Flower (Emetic)
+    "cbf40151-cb96-435a-b683-6430370a07f2":90, //Poisonous Flower (Lethal)
+    "e887e8ea-4554-41e1-b37d-d002dad04fed":91,  "963123fd-8a53-41b6-8950-335495b3f3af":91, //Lethal Poisonous Frog
+    "30fa1ade-386f-49b7-bddd-a23cd912611d":92, //Letterbomb Parcel
+    "248cbd89-9923-452a-8cda-a5f76d8930dc":93, //Collectors Baseball Bat
+    "3e3819ca-4d19-4e0a-a238-4bd16c730e61":94, //Machete
+    "c4747fa2-4958-4a02-926e-3b069cf218dc":95, //Claw Hammer
+    "79b48d90-26aa-4b17-9332-599ed8e0bd7f":96, //Shashka A33 Gold
+    "4b0def3b-7378-494d-b885-92c334f2f8cb":97, //Gold Idol
+    "b2321154-4520-4911-9d94-9256b85e0983":98, //Sacrificial Knife
+    "5ce2f842-e091-4ead-a51c-1cc406309c8d":99, //Barber Razor
+    "77ecaad6-652f-480d-b365-cdf90820a5ec":100, //\"El Matador\"
+    "d2f4e54f-1eb8-482d-9732-a9159b1a9229":101, //Cocaine Souvenir
+    "b153112f-9cd1-4a49-a9c6-ba1a34f443ab":102, //Beak Staff
+    "7268dbea-7a1c-47f5-b846-f0445404ec14":103, //Iron
+    "cf4838bf-2417-4baf-ad40-50b7793040c6":104, //Chennai Cricket Ball
+    "cbc38627-a3c4-4116-8731-ace217a831e7":105, //Lever
+    "c008f9ce-4029-4ab4-a9c3-52868fe810ff":106, //Colored Smoke
+    "40e96ed0-7668-4d65-b88a-f44bfff5f537":107, //Khatvanga
+    "a804e004-7d45-42c8-87bd-b7cbcffa56cc":108, //Measuring Tape
+    "43d15bea-d282-4a91-b625-8b7ba85c0ad5":109, //Druzhina 34
+    "81654161-7711-4985-8056-8651a381d3ca":110, //Rake
+    "e638b949-9b96-4c41-bec4-0a8fbfb05c75":111, //DAK X2 Covert Special
+    "042fae7b-fe9e-4a83-ac7b-5c914a71b2ca":112, //Flash Grenade
+    "5952b621-fee9-4699-809c-8889abadfdb8":113, //Blueberry Muffin
+    "a96cdbd8-9657-416a-87bf-d2ed21840794":114, //Newspaper
+    "ef63eda6-6411-4ce0-b35b-143fc5767fc0":115, //Lethal Pills
+    "c5ec6168-2e5e-4340-b71a-c60f2ee6bd66":116, //Emetic Pills
+    "092f6514-c34e-4d04-8d28-7ebbe14230d1":117, //\"Rude Ruby\"
+    "ccdd6689-092d-49b2-85f8-416a02e25566":118, //Remote CX Demo Block
+    "2f6eec38-45ea-49df-83a2-0b98a858e60a":119, //RS-15
+    "a15af673-8e21-47e3-bdfa-f5dea7b5f9e9":120, //TAC-4 AR Auto
+    "6b93848c-8f1d-42eb-816f-bab61b56d8a5":121, //Fusil G1-4|C
+    "0705964d-dab5-45b6-96ae-30cd4c2f0dec":122, //Paddle
+    "bad168bb-3629-42b3-bc57-604b03a81d30":123, //Package
+    "0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f":124, //Cigar Box
+    "2147b6cd-5a42-4cd6-b366-2c5c50d97db7":125, //Fishing Line
+    "94c2b206-d011-4358-a6b3-c8a6042ab2c2":126, //Wooden Torch
+    "1a105af8-fd30-447f-8b2c-f908f702e81c":127, //Garden Fork
+    "3a359494-ee05-4fea-beac-8726233a55bf":128, //Whiskey Bottle
+    "5ad01c38-244a-4b75-94d6-624850d2dc92":129, //Spray Can
+    "1050c8d3-43d6-4bcf-a5d3-0ca994121871":130, //Vodka Bottle
+    "84f50c4c-de1d-41f3-8021-1cba7df987cd":131, //Soap
+    "903d273c-c750-441d-916a-31557fea3382":132, //Banana
+    "72cb6124-36eb-4c25-8da0-78d4c5fac459":133, //Durian
+    "66024572-7838-42d3-8c7b-c651e259438e":134, //Meat Fork
+    "5db9cefd-391e-4c35-a4c4-bb672ac9b996":135, //Kukri Machete
+    "7bc45270-83fe-4cf6-ad10-7d1b0cf3a3fd":136, //Seashell
+    "7d668011-77f9-4cae-97f1-e3eda5e0c8b2":137, //Lethal Poison Vial
+    "af82349c-259f-4bdd-8be7-d5ff61695c29":138, //Emetic Gas Grenade
+    "b5481de5-6446-46b3-903f-e0040f46b7f0":139, //Sawed-Off Bartoli 12G
+    "58a036dc-79d4-4d64-8bf5-3faafa3cfead":140, //Hook
+    "79f8c0e9-4690-4ebf-b2b3-fd8411a1407f":141, //Brine-Damaged SMG
+    "a83349bf-3d9c-43ec-92ee-c8c98cbeabc1":142, //Molotov Cocktail
+    "8f1bae41-3570-40cc-be87-77cb6a4af86c":143, //Makeshift Explosive
+    "3dbbbb5e-61a7-4cae-8df0-0e911e744dca":144, //Remote CX Demo Block MK II
+    "d73251b4-4860-4b5b-8376-7c9cf2a054a2":145, //Scrap Sword
+    "e98f44fd-7f36-46a8-ae3c-bf080e8454d3":146, //Umbrella
+    "42c7bb52-a71b-489c-8a74-7db0c09ba313":147, //Shears
+    "9e728dc1-3344-4615-be7a-1bcbdd7ad4aa":148, //Hobby Knife
+    "6738e8ad-b8d0-496a-9749-d27a93b40113":149, //Militia-Issued HX-10 SMG
+    "fc715a9a-3bf1-4768-bd67-0def61b92551":150, //Remote Breaching Charge
+    "dc10958c-e3dc-447b-b9f4-8c4bde86d108":151, //Doubloon
+    "fba6e133-78d1-4af1-8450-1ff30466c553":152, //Jarl's Pirate Saber
+    "23b8ad17-1913-40ce-b3bc-2c92317801dd":153, //Mace
+    "12200bd8-9605-4111-8b26-4e73cb07d816":154, //Broadsword
+    "9a7711c7-ede9-4230-853e-ab94c65fc0c9":155, //Viking Axe
+    "e0de34ce-f8d1-428b-8b37-0dae7398bde3":156, //HX-7 Covert
+    "92d68841-8552-40b1-b8a5-c36c6efdb6b1":157, //Aztec Necklace
+    "c88a59cd-d5cc-4435-a3f1-2312abcc817e":158, //Imperial Filigree Egg
+    "cb34f363-3534-46ff-b036-d49f1329f300":159, //Torch
+    "1e11fbea-cd51-48bf-8316-a050772d6135":160, //Hackl 9S
+    "da6ae60b-092d-4ad9-aa3c-322c8cb21985":161, //Commemorative Token
+    "25bc1a6d-c618-43ee-9c1f-81347ed430a6":162, //Cheeseburger
+    "54b1ffd7-5290-4b58-8e1c-53fd038a08f5":163, //Small Goldbar
+    "4fad7437-59e9-4ca9-9b31-a6d97484216b":164, //Violin
+    "7685be69-ff8f-479c-91b9-7347253f8bf1":165, //Earphones
+    "9488fa1e-10e1-49c9-bb24-6635d2e5bd49":166, //Tanto
+    "6d4c88f3-9a09-453c-9a6e-a081f1136bf3":167, //Burial Dagger
+    "8598ae82-53ac-43ba-9f43-30140d6ba7ee":168, //Golden Sawed Off Bartoli 12G
+    "59e407df-c49b-4abe-a1be-0806b026e47e":169, //Concussion Grenade
+    "0576a20c-581b-4705-8b9d-464e077d117e":170, //Wet Floor Sign
+    "5c211971-235a-4856-9eea-fe890940f63a":171, //Antique Carved Knife
+    "4292fe64-aac6-4bbe-be73-31671640172a":172, //Goldbar
+    "6b87c27d-0d73-4c63-b852-5a9c7a9ffb90":173, //Feather Duster
+    "280739c7-9d93-48b9-840e-694883e76700":174, //Stethoscope
+    "1c50d6e0-11c8-4cbc-be05-f51a8e5013be":175, //Modern Emetic Syringe
+    "9c649932-7329-4cc3-a8cb-a32cae5dd7ca":176, //Kettlebell
+    "a2fce6cb-7b4a-4d2e-81b7-919bf7c5b7ad":177, //Pearl
+    "b4d4ed1a-0687-48a9-a731-0e3b99494eb6":178, //Ornate Scimitar
+    "706cb615-e66d-49f3-86bb-899fa7117bcf":179, //Model of the Sceptre
+    "98bf7fc1-7857-4999-bc99-586c49f24017":180, //Classic Coin
+    "4eede7ee-582b-49a4-b438-2418d82671d9":181, //Walking Cane
+    "58769c58-3e70-4746-be8e-4c7114f8c2bb":182, //Unicorn Horn
+    "785c3c6b-1272-4853-94f0-a41d52f64795":183, //Bartoli Hunting Shotgun
+    "c45e59f4-d8e1-4c37-b079-8b74b1fe9b24":184, //Modern Sedative Syringe
+    "719ba201-3688-4984-afb0-81dc2cc95ec1":185, //Bartoli Woodsman Hunting Rifle
+    "fb5319c4-f3ff-4ce6-9a78-2fc2c33bd19c":186, //Bird's Egg
+    "8ee26350-67f9-48bd-983e-8f276eea04cc":187, //Poisonous (Emetic) Mushroom
+    "e30a5b15-ce4d-41d5-a2a5-08dec9c4fe79":188, //Concealable Knife
+    "407bf3c3-6319-4573-b193-2611b0ee397e":189, //ICA Remote Audio Distraction Mk III
+    "0f9608e9-6e42-49b9-b4cd-9aaebba8458f":190, //Hackl Leviathan Sniper Rifle Covert
+    "8a30c788-049a-4b83-b148-1a6db49d2ae5":191, //ICA SMG Raptor Covert
+    "f6f525d2-a28c-4548-825b-f7ce93f6577c":192, //Fusil X2000 Stealth
+    "299eae90-4744-4557-b30b-71382cba2839":193, //Cabernet Sauvignon
+    "2b1bd2af-554e-4ea7-a717-3f6d0eb0215f":194, //Grape Knife
+    "3fbd6da4-c61c-40d6-9494-8277d2e172e4":195, //Grapevine
+    "40766e9d-eb46-474e-b5ce-927e3e70f0c6":196, //Pinot Noir
+    "3f9ed406-8de0-4466-b393-38a7f905d859":197, //Malbec
+    "2d960bf0-217c-400d-a1ee-f721e18f2926":198, //1945 Grand Paladin
+    "a8309099-1b89-4492-bf37-37d4312b6615":199, //Sieger AR552 Tactical
+    "7d64d9df-5d30-4e98-9af0-7562ee145d5c":200, //Sieger 300 Tactical
+    "b1b40b14-eded-404f-b933-c4da15e85644":201, "d689f87e-c3b1-4018-8e78-2f0025cde2a9":201, //Icicle
+    "6294f1c4-68db-477f-b7c9-8c9825c077a1":202, //Rusty Crowbar
+    "a494c3c8-9a41-4398-9542-559e6a5dc1cb":203, //ICA SMG White Raptor Covert
+    "c716ebb8-cc0e-4e60-9335-844a0d7e645d":204, //HWK21 Pale
+    "ecf022db-ecfd-48c0-97b5-2258e4e89a65":205, //Rusty Screwdriver
+    "4e92b3c5-3358-44aa-8a87-f7f349f46f44":206, //ICA Tactical Shotgun Covert
+    "a02af9a5-aefb-47e0-9d67-51cc9ec89774":207, //Flash Grenade Mk III
+    "1a11a060-358c-4054-98ec-d3491af1d7c6":208, //Fiber Wire
+    "f93b99a3-aef6-419f-b303-59470577696d":209, //ICA19 Black Lily
 }
 const locationNameToApIdMap: Record<string,number> = {
     "ICA Facility Completed":1000,

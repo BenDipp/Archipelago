@@ -124,7 +124,7 @@ location_table = { #id, location entitlments (one of required), settings require
 "Itempickup - Remote CX Demo Block":(118,["whittleton_creek"], ["itemsanity"], ["Level - Whittleton Creek"]),
 "Itempickup - RS-15":(119,["whittleton_creek"], ["itemsanity"], ["Level - Whittleton Creek"]),
 "Itempickup - TAC-4 AR Auto":(120,["whittleton_creek"], ["itemsanity"], ["Level - Whittleton Creek"]),
-"Itempickup - Fusil G1-4/C":(121,["whittleton_creek"], ["itemsanity"], ["Level - Whittleton Creek"]),
+"Itempickup - Fusil G1-4|C":(121,["whittleton_creek"], ["itemsanity"], ["Level - Whittleton Creek"]),
 "Itempickup - Paddle":(122,["whittleton_creek","ambrose_island","isle_of_sgail","haven_island"], ["itemsanity"], ["Level - Whittleton Creek", "Level - Ambrose Island", "Level - Isle of Sgail", "Level - Haven Island"]),
 "Itempickup - Package":(123,["whittleton_creek","new_york","chongqing"], ["itemsanity"], ["Level - Whittleton Creek", "Level - New York", "Level - Chongqing"]),
 "Itempickup - Cigar Box":(124,["whittleton_creek","ambrose_island","isle_of_sgail","dartmoor","chongqing"], ["itemsanity"], ["Level - Whittleton Creek", "Level - Ambrose Island", "Level - Isle of Sgail", "Level - Dartmoor", "Level - Chongqing"]),
