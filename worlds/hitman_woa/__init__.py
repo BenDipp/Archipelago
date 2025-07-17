@@ -225,13 +225,29 @@ class HitmanWorld(World):
         menu_region.connect(map_region)
 
         for location in location_table:
-            location_entitlements_fulfilled = len(location_table[location][1]) == 0 or any(x in location_table[location][1] for x in self.enabled_entitlements[self.player]) 
+
+            #if game is not in master-difficulty, some items appear in additional levels
+            if self.options.game_difficulty.value != self.options.game_difficulty.option_master: 
+                entitlement_appendex =  location_table[location][4]
+            else:
+                entitlement_appendex = []
+            
+            location_entitlements_fulfilled = any(x in (location_table[location][1] + entitlement_appendex) for x in self.enabled_entitlements[self.player])
+
             settings_entitlements_fulfilled = len(location_table[location][2]) == 0 or any(x in location_table[location][2] for x in self.enabled_entitlements[self.player])
     
             if location_entitlements_fulfilled and settings_entitlements_fulfilled:
+
+                if self.options.game_difficulty.value != self.options.game_difficulty.option_master: 
+                    required_item_appendex = location_table[location][5]
+                else:
+                    required_item_appendex = []
+
+                all_required_items = location_table[location][3]+required_item_appendex # resolve late binding of "location" inside the following lambda by making copy
+
                 map_region.add_locations({location :self.location_name_to_id[location]},HitmanLocation)
                 set_rule(self.multiworld.get_location(location, self.player),
-                         lambda state, loop_location = location: state.has_from_list(location_table[loop_location][3],self.player,1))
+                        lambda state, required_items = all_required_items: state.has_from_list(required_items,self.player,1))
 
     def create_item(self, item:str) -> HitmanItem:
         return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)

@@ -62,8 +62,8 @@ const itemDepotToApIdMap: Record<string,number> = {
     "a8bc4325-718e-45ba-b0e4-000729c70ce4":13, //Fire Axe
     "d8aa6eba-0cb7-4ed4-ab99-975f2793d731":14, //Fusil G2
     "7c691c03-7c6b-4eb4-9a68-898efe5eedaa":15, //Remote Explosive
-    "d64eb5f2-1e9b-402d-855b-c714cfde50db":16, //Fire Extinguisher
-    "55ed7196-2303-4af6-9fa3-45b691134561":17, //Bartoli 75R
+    "55ed7196-2303-4af6-9fa3-45b691134561":16, //Bartoli 75R
+    "d64eb5f2-1e9b-402d-855b-c714cfde50db":17, //Fire Extinguisher
     "901a3b51-51a0-4236-bdf2-23d20696b358":18, //Tactical Bartoli 12G
     "e17172cc-bf70-4df6-9828-d9856b1a24fd":19, //Kitchen Knife
     "a8a0c154-c36f-413e-8f29-b83a1b7a22f0":20, //Propane Flask
@@ -71,31 +71,31 @@ const itemDepotToApIdMap: Record<string,number> = {
     "bce6ce09-6ead-4d72-8438-2c7780770e70":22, //Frying Pan
     "987d9c9f-203d-44d9-bbf8-bf703f349565":23, //Fire Poker
     "3a8207bb-84f5-438f-8f30-5c83aef2af80":24, //Hatchet
-    "94f52181-b9ec-4363-baef-d53b4e424b74":25, //Saber
-    "58dceb1c-d7db-41dc-9750-55e3ab87fdf0":26, //Battle Axe
+    "58dceb1c-d7db-41dc-9750-55e3ab87fdf0":25, //Battle Axe
+    "94f52181-b9ec-4363-baef-d53b4e424b74":26, //Saber
     "17615866-32e7-4e1e-951d-7ef2ada796e9":27, //Golf Club
     "510c62c2-1f40-4a4d-9e42-da677bd116e7":28, //Police Baton
-    "1066917f-2e04-4c54-b8cb-55cb1dcc2f26":29, //Shovel
-    "e312a416-5b56-4cb5-8994-1d4bc82fbb84":30, //Circumcision Knife
-    "62c2ac2e-329e-4648-822a-e45a29a93cd0":31, //Amputation Knife
-    "ce8e7099-e60d-47e8-bfd6-4918777f2c8b":32, //Toy Tank
-    "ac77e98d-4ffa-4755-80fc-cd6e7adc63fb":33, //Expired Can of Spaghetti Sauce
-    "afd1f201-d2a5-4d40-80b1-d81b0d9d2541":34,  "c19f796e-e23f-4429-a046-47ed3d324359":34,    "de69ce1e-a24d-4acc-895f-4c3a71f47ba8":34,  "004ecac9-6aee-4b30-a073-4399a94535d8":34, //Soda Can
-    "2953e9ac-e25b-41ae-afbf-4a47f86c4f54":35, //Bartoli 75S
-    "22f8ffdb-073d-48a1-abb9-13075800008e":36, //Virus Prototype
-    "2c037ef5-a01b-4532-8216-1d535193a837":37, //Combat Knife
-    "c21f558b-2935-41e5-88ff-642eb1761ccc":38, //Baseball Bat
-    "c95c55aa-34e5-42bd-bf27-32be3978b269":39, //Explosive Golf Ball
-    "a2c56798-026f-4d0b-9480-de0d2525a119":40, //Folding Knife
-    "369c68f7-cbef-4e45-83c7-8acd0dc2d237":41, //Old Axe
-    "25a4d780-3123-448d-a6e7-3dfdbb8c8260":42, //Radio
-    "e65953cb-f954-4d21-9f11-52b454cac15e":43, //Bag of Gunpowder
-    "b86b9ece-c929-44f6-8903-8f2c817e2a19":44, //Cannonball
-    "7f31d897-a62f-448c-be0d-79d565e2faa7":45, //Bartoli 12G
-    "5631dace-7f4a-4df8-8e97-b47373b815ff":46, //Katana
-    "6e4afb04-417e-4cfc-aaa2-43f3ecca9037":47, //Shashka A33
-    "16edb112-58cc-4069-a7dd-ebd258b14044":48, //Fusil G1-4
-    "a1f89118-d345-4367-9423-620c3ef5dfba":49, //Lethal Poison Pill Jar
+    "a1f89118-d345-4367-9423-620c3ef5dfba":29, //Lethal Poison Pill Jar
+    "1066917f-2e04-4c54-b8cb-55cb1dcc2f26":30, //Shovel
+    "e312a416-5b56-4cb5-8994-1d4bc82fbb84":31, //Circumcision Knife
+    "62c2ac2e-329e-4648-822a-e45a29a93cd0":32, //Amputation Knife
+    "ce8e7099-e60d-47e8-bfd6-4918777f2c8b":33, //Toy Tank
+    "ac77e98d-4ffa-4755-80fc-cd6e7adc63fb":34, //Expired Can of Spaghetti Sauce
+    "afd1f201-d2a5-4d40-80b1-d81b0d9d2541":35,  "c19f796e-e23f-4429-a046-47ed3d324359":35,    "de69ce1e-a24d-4acc-895f-4c3a71f47ba8":35,  "004ecac9-6aee-4b30-a073-4399a94535d8":35, //Soda Can
+    "2953e9ac-e25b-41ae-afbf-4a47f86c4f54":36, //Bartoli 75S
+    "22f8ffdb-073d-48a1-abb9-13075800008e":37, //Virus Prototype
+    "2c037ef5-a01b-4532-8216-1d535193a837":38, //Combat Knife
+    "c21f558b-2935-41e5-88ff-642eb1761ccc":39, //Baseball Bat
+    "c95c55aa-34e5-42bd-bf27-32be3978b269":40, //Explosive Golf Ball
+    "a2c56798-026f-4d0b-9480-de0d2525a119":41, //Folding Knife
+    "369c68f7-cbef-4e45-83c7-8acd0dc2d237":42, //Old Axe
+    "25a4d780-3123-448d-a6e7-3dfdbb8c8260":43, //Radio
+    "e65953cb-f954-4d21-9f11-52b454cac15e":44, //Bag of Gunpowder
+    "b86b9ece-c929-44f6-8903-8f2c817e2a19":45, //Cannonball
+    "7f31d897-a62f-448c-be0d-79d565e2faa7":46, //Bartoli 12G
+    "5631dace-7f4a-4df8-8e97-b47373b815ff":47, //Katana
+    "6e4afb04-417e-4cfc-aaa2-43f3ecca9037":48, //Shashka A33
+    "16edb112-58cc-4069-a7dd-ebd258b14044":49, //Fusil G1-4
     "aa532e88-2430-432f-9818-ddb8ad80615e":50,  "01048280-0358-4f0a-95b7-1f9f665c1648":50, //Insecticide
     "22183fd3-d837-47c6-9c44-05637300af93":51, //Coconut
     "d2a7fa04-2cac-45d8-b696-47c566bb95ff":52, //Sapper's Axe
@@ -255,7 +255,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "4e92b3c5-3358-44aa-8a87-f7f349f46f44":206, //ICA Tactical Shotgun Covert
     "a02af9a5-aefb-47e0-9d67-51cc9ec89774":207, //Flash Grenade Mk III
     "1a11a060-358c-4054-98ec-d3491af1d7c6":208, //Fiber Wire
-    "f93b99a3-aef6-419f-b303-59470577696d":209, //ICA19 Black Lily
+    "f93b99a3-aef6-419f-b303-59470577696d":209 //ICA19 Black Lily
 }
 const locationNameToApIdMap: Record<string,number> = {
     "ICA Facility Completed":1000,
