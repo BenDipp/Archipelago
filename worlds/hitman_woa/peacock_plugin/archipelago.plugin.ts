@@ -1398,8 +1398,49 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
     return !errorOccured
 }
 
+function printApIcon(){
+    // Generated with Charc0al's cowsay file converter http://charc0al.github.io/cowsay-files/converter
+    // Inspired by Pixel 47 Plugin by charc0al https://discord.com/channels/826809653181808651/1386531733222195291/
+    const x = "\x1b[49m  ";
+    const r = "\x1b[48;5;174m  ";
+    const y = "\x1b[48;5;222m  ";
+    const g = "\x1b[48;5;108m  ";
+    const b = "\x1b[48;5;103m  ";
+    const p = "\x1b[48;5;175m  ";
+    const o = "\x1b[48;5;180m  ";
+
+    logArchipelago(`\n
+                     ${r}        ${x}
+                   ${r}            ${x}
+                 ${r}                ${x}
+                 ${r}                ${x}
+       ${y}        ${x}  ${r}        ${x}  ${g}        ${x}
+     ${y}            ${x}  ${r}    ${x}  ${g}            ${x}
+   ${y}                ${x}${r}    ${x}${g}                ${x}
+   ${y}                ${x}${r}    ${x}${g}                ${x}
+ ${y}                  ${x}  ${r}${x}  ${g}                  ${x}
+ ${y}                  ${x}  ${r}${x}  ${g}                  ${x}
+   ${y}${x}          ${y}  ${x}        ${g}  ${x}          ${g}${x}
+       ${b}        ${x}                ${p}        ${x}
+     ${b}            ${x}            ${p}            ${x}
+   ${b}                ${x}        ${p}                ${x}
+   ${b}                ${x}        ${p}                ${x}
+ ${b}              ${x}    ${o}    ${x}    ${p}              ${x}
+ ${b}            ${x}  ${o}            ${x}  ${p}            ${x}
+   ${b}          ${x}${o}                ${x}${p}          ${x}
+   ${b}        ${x}  ${o}                ${x}  ${p}        ${x}
+     ${b}      ${x}  ${o}                ${x}  ${p}      ${x}
+       ${b}    ${x}  ${o}                ${x}  ${p}    ${x}
+                 ${o}                ${x}
+                 ${o}                ${x}
+                   ${o}            ${x}
+                     ${o}        ${x}`)
+}
+
 module.exports = function archipelagoCampaign(controller: Controller) {
     logArchipelago("Plugin Loading.")
+    printApIcon()
+    
     removeUnusedUnlocks(controller)
 
     // ================ SETUP LEVEL FLAGS ================
