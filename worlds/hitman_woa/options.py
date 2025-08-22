@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from Options import Choice, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
+from Options import Choice, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
 
 class Goal(Choice):
     """The victory condition for your Archipelago run.
@@ -21,7 +21,7 @@ class GoalDifficulty(Choice):
     default = 1
 
 class GoalLevel(Choice):
-    """When goal is set to level_completion, which level is the goal. If the entered level is not included with its whole season, it will be added regardless."""
+    """When goal is set to level_completion, which level is the goal. If the selected level is not included in the "included_x_locations" options, it will be added to it."""
     display_name = "Goal Level"
     option_ica_facility = 0
     option_paris = 1
@@ -69,7 +69,7 @@ class PercentageOfAdditionalContractPieces(Range):
     default = 20
 
 class StartingLevel(Choice):
-    """Which level is unlocked from the start. If the entered level is not included with its whole season, it will be added regardless."""
+    """Which level is unlocked from the start. If the selected level is not included in the "included_x_locations" options, it will be added to it."""
     display_name = "Starting Level"
     option_ica_facility = 0 
     option_paris = 1
@@ -95,21 +95,41 @@ class StartingLevel(Choice):
     option_ambrose_island = 21
     default = 0
 
-class IncludeH1Option(DefaultOnToggle):
-    """Include Locations from Hitman 1 in the Location Pool (Sapienza, Marrakesh, Bangkok, Colorado, Hokkaido)"""
-    display_name = "Include Hitman 1 Locations"
+class IncludedH1Levels(OptionSet):
+    """
+    Include Locations from the following Hitman 1 Levels in the Location Pool
+    valid options: ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido
+    """
+    display_name = "Included Hitman 1 Levels"
+    valid_keys = ["ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido"]
+    default = ["ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido"]
 
-class IncludeH2Option(DefaultOnToggle):
-    """Include Locations from Hitman 2 in the Location Pool (Hawkes Bay, Miami, Santa Fortuna, Mumbai, Whittleton Creek, Isle of Sgail)"""
-    display_name = "Include Hitman 2 Locations"
+class IncludedH2Levels(OptionSet):
+    """
+    Include Locations from the following Hitman 2 Levels in the Location Pool
+    valid options: hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail
+    """
+    display_name = "Included Hitman 2 Levels"
+    valid_keys = ["hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail"]
+    default = ["hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail"]
 
-class IncludeH2DLCOption(Toggle):
-    """Include Locations from the Hitman 2 Expansion in the Location Pool (New York, Haven Island)"""
-    display_name = "Include Hitman 2 Expansion Locations"
+class IncludedH2DLCLevels(OptionSet):
+    """
+    Include Locations from the following Hitman 2 Expansion Levels in the Location Pool
+    valid options: new_york, haven_island
+    """
+    display_name = "Included Hitman 2 Levels"
+    valid_keys = ["new_york", "haven_island"]
+    default = []
 
-class IncludeH3Option(DefaultOnToggle):
-    """Include Locations from Hitman 3 in the Location Pool (Dubai, Dartmoor, Berlin, Chongqing, Mendoza, Carpathian Mountains, Ambrose Island)"""
-    display_name = "Include Hitman 3 Locations"
+class IncludedH3Levels(OptionSet):
+    """
+    Include Locations from the following Hitman 3 Levels in the Location Pool
+    valid options: dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island
+    """
+    display_name = "Included Hitman 2 Levels"
+    valid_keys = ["dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
+    default = ["dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
 class CheckForCompletion(DefaultOnToggle):
     """Add a check for beating each level, regardless of Rating"""
@@ -217,6 +237,13 @@ class IncludeWinterSportsItems(Toggle):
 @dataclass
 class HitmanOptions(PerGameCommonOptions):
     game_difficulty: GameDifficulty
+    enable_itemsanity: Itemsanity
+
+    included_s1_locations: IncludedH1Levels
+    included_s2_locations: IncludedH2Levels
+    included_s2_dlc_locations: IncludedH2DLCLevels
+    included_s3_locations: IncludedH3Levels
+
     starting_location: StartingLevel
     goal_mode: Goal
     goal_rating: GoalDifficulty
@@ -225,17 +252,10 @@ class HitmanOptions(PerGameCommonOptions):
     goal_required_contract_pieces: RequiredContractPieceAmount
     goal_additional_contract_pieces_percent: PercentageOfAdditionalContractPieces
 
-    include_s1_locations: IncludeH1Option
-    include_s2_locations: IncludeH2Option
-    include_s2_dlc_locations: IncludeH2DLCOption
-    include_s3_locations: IncludeH3Option
-
     check_for_completion: CheckForCompletion
     check_for_sa: CheckForSA
     check_for_so: CheckForSO
     check_for_saso: CheckForSASO
-
-    enable_itemsanity: Itemsanity
 
     include_deluxe_items: IncludeDeluxeItems
     include_h2_expansion_items: IncludeExpansionItems

@@ -56,7 +56,6 @@ class HitmanWorld(World):
 
     def generate_early(self):
         self.enabled_entitlements[self.player] = []
-        self.enabled_entitlements[self.player].append("free")
 
         # Universal Tracker support:
         if hasattr(self.multiworld, "generation_is_fake"):
@@ -64,10 +63,10 @@ class HitmanWorld(World):
                 if self.game in self.multiworld.re_gen_passthrough:
                     slot_data = self.multiworld.re_gen_passthrough[self.game]
                     self.options.enable_itemsanity.value = slot_data["enable_itemsanity"]
-                    self.options.include_s1_locations.value = slot_data["include_s1_locations"]
-                    self.options.include_s2_locations.value = slot_data["include_s2_locations"]
-                    self.options.include_s2_dlc_locations.value = slot_data["include_s2_dlc_locations"]
-                    self.options.include_s3_locations.value = slot_data["include_s3_locations" ]
+                    self.options.included_s1_locations.value = slot_data["included_s1_locations"]
+                    self.options.included_s2_locations.value = slot_data["included_s2_locations"]
+                    self.options.included_s2_dlc_locations.value = slot_data["included_s2_dlc_locations"]
+                    self.options.included_s3_locations.value = slot_data["included_s3_locations" ]
                     self.options.check_for_completion.value = slot_data["check_for_completion"]
                     self.options.check_for_sa.value = slot_data["check_for_sa"]
                     self.options.check_for_so.value = slot_data["check_for_so"]
@@ -95,41 +94,10 @@ class HitmanWorld(World):
         # make sure the start Level is added as location
         self.enabled_entitlements[self.player].append(self.options.starting_location.current_key)
 
-        self.enabled_entitlements[self.player].append("ica_facility")
-
-        # save enables map entitlements to array
-        if self.options.include_s1_locations:
-            #self.enabled_entitlements[self.player].append("h1")
-            self.enabled_entitlements[self.player].append("paris")
-            self.enabled_entitlements[self.player].append("sapienza")
-            self.enabled_entitlements[self.player].append("marrakesh")
-            self.enabled_entitlements[self.player].append("bangkok")
-            self.enabled_entitlements[self.player].append("colorado")
-            self.enabled_entitlements[self.player].append("hokkaido")
-
-        if self.options.include_s2_locations:
-            #self.enabled_entitlements[self.player].append("h2")
-            self.enabled_entitlements[self.player].append("hawkes_bay")
-            self.enabled_entitlements[self.player].append("miami")
-            self.enabled_entitlements[self.player].append("santa_fortuna")
-            self.enabled_entitlements[self.player].append("mumbai")
-            self.enabled_entitlements[self.player].append("whittleton_creek")
-            self.enabled_entitlements[self.player].append("isle_of_sgail")
-
-        if self.options.include_s2_dlc_locations:
-            #self.enabled_entitlements[self.player].append("h2_dlc")
-            self.enabled_entitlements[self.player].append("new_york")
-            self.enabled_entitlements[self.player].append("haven_island")
-
-        if self.options.include_s3_locations:
-            #self.enabled_entitlements[self.player].append("h3")
-            self.enabled_entitlements[self.player].append("dubai")
-            self.enabled_entitlements[self.player].append("dartmoor")
-            self.enabled_entitlements[self.player].append("berlin")
-            self.enabled_entitlements[self.player].append("chongqing")
-            self.enabled_entitlements[self.player].append("mendoza")
-            self.enabled_entitlements[self.player].append("carpathian_mountains")
-            self.enabled_entitlements[self.player].append("ambrose_island")
+        self.enabled_entitlements[self.player].extend(self.options.included_s1_locations.value)
+        self.enabled_entitlements[self.player].extend(self.options.included_s2_locations.value)
+        self.enabled_entitlements[self.player].extend(self.options.included_s2_dlc_locations.value)
+        self.enabled_entitlements[self.player].extend(self.options.included_s3_locations.value)
 
         # enable completion checks
         if self.options.check_for_completion:
@@ -214,7 +182,6 @@ class HitmanWorld(World):
 
         if self.options.include_winter_sports_items:
             self.enabled_entitlements[self.player].append("H2_WINTER_SPORTS") 
-        
 
     def create_regions(self) -> None:
         menu_region = Region("Menu", self.player, self.multiworld)
@@ -315,7 +282,7 @@ class HitmanWorld(World):
     def fill_slot_data(self):
         slotdata = self.options.as_dict( # copy options for yaml-less Universal Tracker
             "enable_itemsanity", 
-            "include_s1_locations", "include_s2_locations", "include_s2_dlc_locations", "include_s3_locations", 
+            "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations", 
             "check_for_completion", "check_for_sa", "check_for_so", "check_for_saso",
             "starting_location", "goal_level"
         )
