@@ -286,6 +286,7 @@ class HitmanWorld(World):
             "check_for_completion", "check_for_sa", "check_for_so", "check_for_saso",
             "starting_location", "goal_level"
         )
+        slotdata["starting_location_name"] = self.options.starting_location.current_key
 
         match self.options.game_difficulty.value:
             case self.options.game_difficulty.option_casual:
