@@ -200,6 +200,10 @@ class IncludeBankerItems(Toggle):
     """Include Items from the Banker Pack"""
     display_name = "Include Banker Pack Items"
 
+class IncludeBruceLeeItems(Toggle):
+    """Include Items from the Bruce Lee Pack"""
+    display_name = "Include Bruce Lee Pack Items"
+
 class IncludeTrinityItems(Toggle):
     """Include Items from the Trinity Pack"""
     display_name = "Include Trinity Pack Items"
@@ -266,6 +270,7 @@ class HitmanOptions(PerGameCommonOptions):
     include_undying_items: IncludeSambucaItems
     include_drop_items: IncludeTomorrowlandItems
     include_banker_items: IncludeBankerItems
+    include_bruce_lee_items: IncludeBruceLeeItems
 
     include_trinity_items: IncludeTrinityItems
     include_street_art_items: IncludeConcreteArtItems

@@ -158,6 +158,9 @@ class HitmanWorld(World):
         if self.options.include_banker_items:
             self.enabled_entitlements[self.player].append("H3_ET_FRENCHMARTINI")
 
+        if self.options.include_bruce_lee_items:
+            self.enabled_entitlements[self.player].append("H3_ET_BAIJU")
+
         # Check for H3 DLC
         if self.options.include_trinity_items:
             self.enabled_entitlements[self.player].append("H3_TRINITY")

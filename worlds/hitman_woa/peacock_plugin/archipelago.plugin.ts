@@ -1251,7 +1251,19 @@ const apItemMap: Record<string, any> = {
 "897":{apItemName:"Distraction - The \"Casino Monarchique\" Chip (1.000.000)",unlockableId:"TOKEN_PROP_TOOL_COIN_POKERCHIP_FRENCHMARTINI"},
 "898":{apItemName:"Pistol - The Banker Silenced Pistol",unlockableId:"FIREARMS_HERO_PISTOL_HWK_99_FRENCHMARTINI"},
 "899":{apItemName:"Explosive - The Party Cracker",unlockableId:"PROP_EXPLOSIVE_FIREWORKS_FLASH"},
-"900":{apItemName:"Melee - Cocktail Shaker",unlockableId:"PROP_MELEE_COCKTAILSHAKER"}
+"900":{apItemName:"Melee - Cocktail Shaker",unlockableId:"PROP_MELEE_COCKTAILSHAKER"},
+"901":{apItemName:"Starting Location - Bangkok - STARTING_LOCATION_BANGKOK_BAIJU",unlockableId:"STARTING_LOCATION_BANGKOK_BAIJU"},
+"902":{apItemName:"Suit - The Black Turtle Streak Suit",unlockableId:"TOKEN_OUTFIT_HERO_BLACKTURTLESPECIAL_SUIT"},
+"903":{apItemName:"Tool - The Purple Streak Crowbar",unlockableId:"TOKEN_PROP_TOOL_CROWBAR_PURPLE_T"},
+"904":{apItemName:"Melee - Pretzel",unlockableId:"TOKEN_PROP_MELEE_PRETZEL"},
+"905":{apItemName:"Distraction - Star Apple",unlockableId:"TOKEN_PROP_TOOL_APPLE_T"},
+"906":{apItemName:"Explosive - The Dragon Duck",unlockableId:"TOKEN_PROP_DEVICE_DRAGON_RUBBERDUCK_REMOTE_EXPLOSIVE"},
+"907":{apItemName:"Melee - Jade Dagger",unlockableId:"TOKEN_PROP_MELEE_JADE_DAGGER"},
+"908":{apItemName:"Melee - Golden Dragon Scissors",unlockableId:"TOKEN_PROP_MELEE_SCISSORS_BAIJU"},
+"909":{apItemName:"Suit - The Yellow Tracksuit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_YELLOW_TRACKSUIT"},
+"910":{apItemName:"Suit - The Sangfroid Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_BURGUNDY_SUIT"},
+"911":{apItemName:"Suit - The Master Martial Artist Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_BAIJU_SUIT"},
+"912":{apItemName:"Melee - Kali Sticks",unlockableId:"TOKEN_PROP_MELEE_KALI_STICKS"}
 }
 
 const unlockablesToKeep:Record<string,Unlockable> = {} // TODO: use less destructive code
@@ -1440,7 +1452,7 @@ function printApIcon(){
 module.exports = function archipelagoCampaign(controller: Controller) {
     logArchipelago("Plugin Loading.")
     printApIcon()
-    
+
     removeUnusedUnlocks(controller)
 
     // ================ SETUP LEVEL FLAGS ================
