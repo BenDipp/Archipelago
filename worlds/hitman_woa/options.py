@@ -118,7 +118,7 @@ class IncludedH2DLCLevels(OptionSet):
     Include Locations from the following Hitman 2 Expansion Levels in the Location Pool
     valid options: new_york, haven_island
     """
-    display_name = "Included Hitman 2 Levels"
+    display_name = "Included Hitman 2 DLC Levels"
     valid_keys = ["new_york", "haven_island"]
     default = []
 
@@ -127,7 +127,7 @@ class IncludedH3Levels(OptionSet):
     Include Locations from the following Hitman 3 Levels in the Location Pool
     valid options: dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island
     """
-    display_name = "Included Hitman 2 Levels"
+    display_name = "Included Hitman 3 Levels"
     valid_keys = ["dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
     default = ["dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
