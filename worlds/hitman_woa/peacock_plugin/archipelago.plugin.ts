@@ -11,13 +11,10 @@ import {
     GenSingleMissionFunc,
     GenSingleVideoFunc,
     PlayNextGetCampaignsHookReturn,
-    RequestWithJwt,
     Unlockable,
 } from "@peacockproject/core/types/types"
 
-import { menuDataRouter } from "@peacockproject/core/menuData"
-import { getHubData } from "@peacockproject/core/menus/hub"
-import { configs, getVersionedConfig } from "@peacockproject/core/configSwizzleManager"
+import { configs } from "@peacockproject/core/configSwizzleManager"
 import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
 
 const contractMap: Record<string,string> = {
@@ -1272,10 +1269,6 @@ const logArchipelago = (msg: string) => {
     log(LogLevel.INFO, msg, logTag)
 }
 
-const isLevelUnlocked = (contractId:string) =>{
-    return getFlag("Level - "+contractMap[contractId])
-}
-
 const getContractFromName = (contractName:string) =>{
     for(const contractId in modifiedContractMap){
         if(modifiedContractMap[contractId] === contractName){
@@ -1307,7 +1300,7 @@ const checkLocation = (id:number) =>{
             logArchipelago("Id: "+id+" already in list to send-")
         }
     }else{
-        logArchipelago("Location check is undefined")
+        log(LogLevel.ERROR,"Completed Level was not from Archipelago, not sending any checks",logTag)
     }
 }
 
@@ -1608,32 +1601,6 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         }
     }
 
-    // Remove other Gamemodes from topbar (Arcade, Contracts and Freelancer would mess with itemsanity)
-    configs.HubPageData.$datacontext.do.children[5].children!.splice(3,1) 
-    
-    // Remove destinations (removing the destination tab itself is forbidden per HubPageData.json:222)
-    // @ts-expect-error Jwt props.
-    menuDataRouter.get("/Hub", (req: RequestWithJwt, res) => {
-        const hubInfo = getHubData(req.gameVersion, req.jwt.unique_name)
-        
-        hubInfo.DestinationsData.splice(0,hubInfo.DestinationsData.length)
-
-        let template: unknown
-
-        if (req.gameVersion === "h3" || req.gameVersion === "h2") {
-            template = null
-        } else {
-            // scpc hub will need to be contributed by a plugin
-            template = getVersionedConfig("HubTemplate", req.gameVersion, false)
-        }
-
-        res.json({
-            template,
-            data: hubInfo,
-        })
-    })
-    menuDataRouter.stack.unshift(menuDataRouter.stack.pop()!);
-
     // =============== CAMPAIGN SETUP ==================
     controller.hooks.contributeCampaigns.tap("addArchipelagoCampaign",
         (
@@ -1666,12 +1633,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
                 campaignTemplate.BackgroundImage = "Images/Challenges/profile_challenges/classics_location_normal.jpg"
             }
 
-            // Remove all other campaigns
-            while (campaigns.length !== 0) {
-                campaigns.pop()
-            }
-
-            campaigns.push(campaignTemplate)
+            campaigns.unshift(campaignTemplate)
         }
     )
     controller.hooks.getNextCampaignMission.tap("setNextCampaignToLatestUnlocked",
@@ -1704,7 +1666,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
                     logArchipelago("Sending check for "+event.Value.ItemName +";"+event.Value.RepositoryId+";"+itemDepotToApIdMap[event.Value.RepositoryId])
                     checkLocation(itemDepotToApIdMap[event.Value.RepositoryId])
                 }else{
-                    log(LogLevel.ERROR,"Save from diffrent Archipelago Seed was loaded, not sending check "+event.Value.ItemName)
+                    log(LogLevel.ERROR,"Save from diffrent Archipelago Seed was loaded, not sending check \"Itempickup - "+event.Value.ItemName+"\"")
                 }
             }      
         }
