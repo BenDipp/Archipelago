@@ -46,7 +46,6 @@ class HitmanContext(CommonContext):
         match cmd:
             case "Connected":
                 self.collected_contract_pieces = 0
-                self.current_seed = None
                 self.slot_data = None
 
                 self.game = self.slot_info[self.slot].game
