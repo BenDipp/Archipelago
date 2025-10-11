@@ -50,7 +50,7 @@ class HitmanContext(CommonContext):
 
                 self.game = self.slot_info[self.slot].game
                 self.slot_data = args["slot_data"]
-                self.set_difficulty()
+                self.set_slot_data()
                 self.set_goal()
                 self.sse_thread = threading.Thread(name="SSE-Thread",target=self.periodically_get_checks, daemon=True)
                 self.sse_thread.start() 
@@ -78,9 +78,9 @@ class HitmanContext(CommonContext):
         ui.base_title = "Archipelago HITMAN Client"
         return ui
 
-    def set_difficulty(self):
+    def set_slot_data(self):
         try:
-            r = requests.get(self.peacock_url+"/setDifficulty/"+self.slot_data["difficulty"]+"/"+str(self.current_seed))
+            r = requests.get(self.peacock_url+"/setData/"+self.slot_data["difficulty"]+"/"+str(self.current_seed)+"/"+self.slot_data["targets"])
             r.raise_for_status()
         except Exception as e:
                 logger.error("Error occured while attempting to set difficulty, disconnecting!")

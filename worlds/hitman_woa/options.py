@@ -163,6 +163,13 @@ class GameDifficulty(Choice):
     option_master = 2
     default = 1
 
+class RandomTargets(Range):
+    """How many random Targets are assigned to each Level. 0 Targets results in vanilla targets beeing chosen for each map. (Note: Carpathian Mountains will always remain vanilla)""" #TODO: does logic need to be considered?
+    display_name = "Number of Random Targets"
+    range_end = 5
+    range_start = 0
+    default = 0
+
 class IncludeDeluxeItems(Toggle):
     """Include Items from the HITMAN 3 Deluxe Pack"""
     display_name = "Include Deluxe Pack Items"
@@ -260,6 +267,8 @@ class HitmanOptions(PerGameCommonOptions):
     check_for_sa: CheckForSA
     check_for_so: CheckForSO
     check_for_saso: CheckForSASO
+
+    number_of_targets: RandomTargets
 
     include_deluxe_items: IncludeDeluxeItems
     include_h2_expansion_items: IncludeExpansionItems

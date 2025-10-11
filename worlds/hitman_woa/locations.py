@@ -333,3 +333,28 @@ goal_table = {
 "carpathian_mountains":"Carpathian Mountains",
 "ambrose_island":"Ambrose Island"
 }
+
+target_table = {
+    "ica_facility":46,
+    "paris":300,
+    "sapienza":299,
+    "marrakesh":290,
+    "bangkok":294,
+    "colorado":136,
+    "hokkaido":169,
+    "hawkes_bay":31,
+    "miami":300,
+    "santa_fortuna":306,
+    "mumbai":296,
+    "whittleton_creek":106,
+    "isle_of_sgail":365,
+    "new_york":138,
+    "haven_island":215,
+    "dubai":211,
+    "dartmoor":111,
+    "berlin":212,
+    "chongqing":179,
+    "mendoza":321,
+    "carpathian_mountains":-1, #no contracts allowed in train
+    "ambrose_island":176
+}

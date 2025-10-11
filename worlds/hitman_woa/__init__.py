@@ -8,7 +8,7 @@ from worlds.LauncherComponents import Component, Type, components, launch as lau
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, goal_table
+from .locations import HitmanLocation, location_table, goal_table, target_table
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -310,5 +310,19 @@ class HitmanWorld(World):
                 slotdata["goal_rating"] = self.options.goal_rating.current_key
             case self.options.goal_mode.option_contract_collection:
                 slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
+
+        if self.options.number_of_targets.value > 0:
+            targets = ""
+            for map in target_table:
+                if target_table[map] != -1:
+                    for i in range(0, self.options.number_of_targets.value): #TODO: skip dups
+                        chosen_target = self.random.randint(0,target_table[map])
+                        targets += str(chosen_target)+"_"
+                targets+="-"
+
+            slotdata["targets"] = targets
+        else:
+            slotdata["targets"] = "vanilla"
+        
 
         return slotdata
