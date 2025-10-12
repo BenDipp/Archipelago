@@ -6023,10 +6023,15 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
             if(id === 1000){ // exception for Contract Pieces
                 collectedContractPieces++;
 
-                configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+				//H3
+				configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
 
                 configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
 
+				//H2
+				configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+                configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
                 continue;
             }
             errArchipelago("Recived ItemId "+id+" is not in ItemMap!")
@@ -6123,6 +6128,9 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 
         collectedContractPieces = 0
         controller.configManager.configs.allunlockables.splice(0, controller.configManager.configs.allunlockables.length)
+
+		controller.configManager.configs.H2allunlockables.splice(0, controller.configManager.configs.H2allunlockables.length)
+
         clearInventoryCache()
         for (const contractId in contractMap){
             setFlag("Level - "+contractMap[contractId], false)
@@ -6143,19 +6151,36 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         if(req.params.goalMode === "contract_collection"){
             contractGoalAmount = req.params.goalDetails
 
+			//H3
             configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
 
             configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
 
             configs.EiderDashboard.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
+
+			//H2
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
+
             res.status(200).send()
         }else if(req.params.goalMode === "level_completion"){
 
+			//H3
             configs.EiderDashboard.children.$mergearrays[5].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
 
             configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
 
             configs.EiderDashboard.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.goalDetails), "h3")!.Metadata.TileImage;
+
+			//H2
+			configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.goalDetails), "h3")!.Metadata.TileImage;
 
             res.status(200).send()
         }else{
@@ -6167,7 +6192,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
     // =============== COSMETICS ==================
     // TODO: everything here assumes constant order in the jsons, which I am unsure how consistent it is
     
-    // replace Freelancer with goal (or elusive targets in H2)
+    // replace Freelancer with goal (H3)
     configs.EiderDashboard.children.$mergearrays[5].data = {
         "title": "NO GOAL LOADED",
         "header": "Current Goal Progress",
@@ -6193,31 +6218,15 @@ module.exports = function archipelagoCampaign(controller: Controller) {
     }
     configs.EiderDashboard.children.$mergearrays[5].actions!.accept = {}
     configs.EiderDashboard.children.$mergearrays[5].actions!.actiony = {}
-    configs.H2DashboardTemplate.children.$mergearrays.pop() 
-    // Replace escalations with HITMAPS attribution
-    configs.EiderDashboard.children.$mergearrays[4].data = {
-        "title": "HITMAPS",
-        "header": "Item information provided by",
-        "icon": "story",
-        "image": "$res images/challenges/marrakech/story_evacuation_spider.jpg"
+
+	// replace Elisive Targets with goal (H2)
+	configs.H2DashboardTemplate.children.$mergearrays[5].data = {
+        "title": "NO GOAL LOADED",
+        "header": "Current Goal Progress",
+        "icon": "54",
+        "image": "$res images/challenges/hokkaido/snowcrane_opp_sabotage_mainframe.jpg"
     }
-    configs.H2DashboardTemplate.children.$mergearrays[4].data = {
-        "title": "HITMAPS",
-        "header": "Item information provided by",
-        "icon": "story",
-        "image": "$res images/challenges/marrakech/story_evacuation_spider.jpg"
-    }
-    configs.EiderDashboard.children.$mergearrays[4].actions!.accept = {
-        "open-url": {
-            "url": "https://www.hitmaps.com/"
-        }
-    }
-    configs.H2DashboardTemplate.children.$mergearrays[4].actions!.accept = {
-        "open-url": {
-            "url": "https://www.hitmaps.com/"
-        }
-    }
-    configs.EiderDashboard.children.$mergearrays[4].actions!.select = {
+    configs.H2DashboardTemplate.children.$mergearrays[5].actions!.select = {
         "replace-children": {
             "target": "headline_container",
             "children": [
@@ -6226,12 +6235,55 @@ module.exports = function archipelagoCampaign(controller: Controller) {
                     "selectable": false,
                     "pressable": false,
                     "data": {
-                        "header": "Item information provided by",
+                        "header": "Current Goal Progress",
+                        "title": "NO GOAL LOADED",
+                        "typeicon": "54"
+                    }
+                }
+            ]
+        }
+    }
+    configs.H2DashboardTemplate.children.$mergearrays[5].actions!.accept = {}
+    configs.H2DashboardTemplate.children.$mergearrays[5].actions!.actiony = {}
+
+    // Replace escalations with HITMAPS attribution
+    configs.EiderDashboard.children.$mergearrays[4].data = {
+        "title": "HITMAPS",
+        "header": "Item information provided by",
+        "icon": "story",
+        "image": "$res images/challenges/marrakech/story_evacuation_spider.jpg"
+    }
+    configs.EiderDashboard.children.$mergearrays[4].actions!.accept = {
+		"open-url": {
+			"url": "https://www.hitmaps.com/"
+        }
+    }
+    configs.EiderDashboard.children.$mergearrays[4].actions!.select = {
+		"replace-children": {
+			"target": "headline_container",
+            "children": [
+				{
+					"view": "menu3.basic.HeadlineElement",
+                    "selectable": false,
+                    "pressable": false,
+                    "data": {
+						"header": "Item information provided by",
                         "title": "HITMAPS",
                         "typeicon": "story"
                     }
                 }
             ]
+        }
+    }
+	configs.H2DashboardTemplate.children.$mergearrays[4].data = {
+		"title": "HITMAPS",
+		"header": "Item information provided by",
+		"icon": "story",
+		"image": "$res images/challenges/marrakech/story_evacuation_spider.jpg"
+	}
+	configs.H2DashboardTemplate.children.$mergearrays[4].actions!.accept = {
+		"open-url": {
+			"url": "https://www.hitmaps.com/"
         }
     }
     configs.H2DashboardTemplate.children.$mergearrays[4].actions!.select = {
