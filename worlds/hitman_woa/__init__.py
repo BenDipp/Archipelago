@@ -34,6 +34,7 @@ class HitmanWeb(WebWorld):
         ]),
         OptionGroup("Enabled Checks",[
             options.Itemsanity,
+            options.SplitItemsanity,
             options.CheckForCompletion,
             options.CheckForSA,
             options.CheckForSO,
@@ -109,6 +110,7 @@ class HitmanWorld(World):
                 if self.game in self.multiworld.re_gen_passthrough:
                     slot_data = self.multiworld.re_gen_passthrough[self.game]
                     self.options.enable_itemsanity.value = slot_data["enable_itemsanity"]
+                    self.options.split_itemsanity.value = slot_data["split_itemsanity"]
                     self.options.included_s1_locations.value = slot_data["included_s1_locations"]
                     self.options.included_s2_locations.value = slot_data["included_s2_locations"]
                     self.options.included_s2_dlc_locations.value = slot_data["included_s2_dlc_locations"]
@@ -159,7 +161,10 @@ class HitmanWorld(World):
             self.enabled_entitlements[self.player].append("saso")
 
         if self.options.enable_itemsanity:
-            self.enabled_entitlements[self.player].append("itemsanity")
+            if self.options.split_itemsanity:
+                self.enabled_entitlements[self.player].append("split_itemsanity")
+            else:
+                self.enabled_entitlements[self.player].append("itemsanity")
 
         self.enabled_entitlements[self.player].append("H3_SIGNITURE_PACK")#Swtich 2 Pre-order Items
         self.enabled_entitlements[self.player].append("H3_QUACK_PACK")#Switch 2 Physical Pre-order Items
@@ -305,8 +310,8 @@ class HitmanWorld(World):
                 item_pool.append(self.create_item(choosenItem))
                 valid_filler.remove(choosenItem)
             else:
-                raise FillError("Not enough items to fill locations")
-            # TODO: add new filler item incase more locations then even all available fillers
+                item_pool.append(self.create_item("Nothing"))
+            # TODO: add better filler items to remove Nothings
         
         self.multiworld.push_precollected(self.create_item(starting_locaiton))
         self.multiworld.itempool.extend(item_pool)
@@ -330,7 +335,7 @@ class HitmanWorld(World):
     
     def fill_slot_data(self):
         slotdata = self.options.as_dict( # copy options for yaml-less Universal Tracker
-            "enable_itemsanity", 
+            "enable_itemsanity", "split_itemsanity",
             "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations", 
             "check_for_completion", "check_for_sa", "check_for_so", "check_for_saso",
             "starting_location", "goal_level"

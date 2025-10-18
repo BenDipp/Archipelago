@@ -920,4 +920,5 @@ item_table= { # id, required entitlement (all), classifier
 	"Melee - Kali Sticks":(912,["H3_ET_BAIJU"], ItemClassification.filler)
 }
 
-item_table["Contract Piece"] = (1000,"contract_mode",ItemClassification.progression)
+item_table["Contract Piece"] = (1000,["contract_mode"],ItemClassification.progression)
+item_table["Nothing"] = (1001,[],ItemClassification.filler)

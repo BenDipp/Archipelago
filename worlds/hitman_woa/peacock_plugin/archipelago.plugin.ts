@@ -278,6 +278,923 @@ const itemDepotToApIdMap: Record<string,number> = {
     "1a11a060-358c-4054-98ec-d3491af1d7c6":208, //Fiber Wire
     "f93b99a3-aef6-419f-b303-59470577696d":209 //ICA19 Black Lily
 }
+const itempDepotAndLevelToApIdMap: Record<string,number> = {
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|ICA Facility":1500, //ICA Facility;Crowbar
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|ICA Facility":1501, //ICA Facility;Hammer
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|ICA Facility":1502, //ICA Facility;Coin
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|ICA Facility":1503, //ICA Facility;Emetic Rat Poison
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|ICA Facility":1504, //ICA Facility;Wrench
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|ICA Facility":1505, //ICA Facility;Lead Pipe
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|ICA Facility":1506, //ICA Facility;Pool Ball
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|ICA Facility":1507, //ICA Facility;Brick
+	"31f36818-623f-4c92-892f-d7b19bb325e1|ICA Facility":1508, "97d74fa2-4832-4186-a447-c4b2e37d537a|ICA Facility":1508, //ICA Facility;Bust
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Paris":1509, //Paris;Scissors
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Paris":1510, //Paris;Screwdriver
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Paris":1511, //Paris;Letter Opener
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Paris":1512, //Paris;Hammer
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Paris":1513, "97d74fa2-4832-4186-a447-c4b2e37d537a|Paris":1513, //Paris;Bust
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Paris":1514, //Paris;Emetic Rat Poison
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Paris":1515, //Paris;Fire Axe
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Paris":1516, //Paris;Crowbar
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Paris":1517, //Paris;Wrench
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Paris":1518, //Paris;Fusil G2
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Paris":1519, //Paris;Remote Explosive
+	"55ed7196-2303-4af6-9fa3-45b691134561|Paris":1520, //Paris;Bartoli 75R
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Paris":1521, //Paris;Fire Extinguisher
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Paris":1522, //Paris;Tactical Bartoli 12G
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Paris":1523, //Paris;Kitchen Knife
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Paris":1524, //Paris;Lead Pipe
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Paris":1525, //Paris;Propane Flask
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Paris":1526, //Paris;Cleaver
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Paris":1527, //Paris;Frying Pan
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Paris":1528, //Paris;Fire Poker
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Paris":1529, //Paris;Hatchet
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Paris":1530, //Paris;Coin
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Paris":1531, //Paris;Battle Axe
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Paris":1532, //Paris;Saber
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Paris":1533, //Paris;Brick
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Paris":1534, //Paris;Golf Club
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Paris":1535, //Paris;Police Baton
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Paris":1536, //Paris;Lethal Poison Pill Jar
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Sapienza":1537, //Sapienza;Wrench
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Sapienza":1538, //Sapienza;Crowbar
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Sapienza":1539, //Sapienza;Fire Extinguisher
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Sapienza":1540, "97d74fa2-4832-4186-a447-c4b2e37d537a|Sapienza":1540, //Sapienza;Bust
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Sapienza":1541, //Sapienza;Coin
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Sapienza":1542, //Sapienza;Lead Pipe
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Sapienza":1543, //Sapienza;Brick
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Sapienza":1544, //Sapienza;Shovel
+	"e312a416-5b56-4cb5-8994-1d4bc82fbb84|Sapienza":1545, //Sapienza;Circumcision Knife
+	"62c2ac2e-329e-4648-822a-e45a29a93cd0|Sapienza":1546, //Sapienza;Amputation Knife
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Sapienza":1547, //Sapienza;Fire Axe
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Sapienza":1548, //Sapienza;Propane Flask
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Sapienza":1549, //Sapienza;Letter Opener
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Sapienza":1550, //Sapienza;Toy Tank
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Sapienza":1551, //Sapienza;Expired Can of Spaghetti Sauce
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Sapienza":1552, "c19f796e-e23f-4429-a046-47ed3d324359|Sapienza":1552, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Sapienza":1552, "004ecac9-6aee-4b30-a073-4399a94535d8|Sapienza":1552, //Sapienza;Soda Can
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Sapienza":1553, //Sapienza;Fire Poker
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Sapienza":1554, //Sapienza;Emetic Rat Poison
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Sapienza":1555, //Sapienza;Screwdriver
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Sapienza":1556, //Sapienza;Hatchet
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Sapienza":1557, //Sapienza;Kitchen Knife
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Sapienza":1558, //Sapienza;Saber
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Sapienza":1559, //Sapienza;Bartoli 75S
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Sapienza":1560, //Sapienza;Scissors
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Sapienza":1561, //Sapienza;Golf Club
+	"22f8ffdb-073d-48a1-abb9-13075800008e|Sapienza":1562, //Sapienza;Virus Prototype
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Sapienza":1563, //Sapienza;Hammer
+	"2c037ef5-a01b-4532-8216-1d535193a837|Sapienza":1564, //Sapienza;Combat Knife
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Sapienza":1565, //Sapienza;Tactical Bartoli 12G
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Sapienza":1566, //Sapienza;Remote Explosive
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Sapienza":1567, //Sapienza;Baseball Bat
+	"55ed7196-2303-4af6-9fa3-45b691134561|Sapienza":1568, //Sapienza;Bartoli 75R
+	"c95c55aa-34e5-42bd-bf27-32be3978b269|Sapienza":1569, //Sapienza;Explosive Golf Ball
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Sapienza":1570, //Sapienza;Folding Knife
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Sapienza":1571, //Sapienza;Police Baton
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Sapienza":1572, //Sapienza;Old Axe
+	"25a4d780-3123-448d-a6e7-3dfdbb8c8260|Sapienza":1573, //Sapienza;Radio
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Sapienza":1574, //Sapienza;Bag of Gunpowder
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Sapienza":1575, //Sapienza;Cannonball
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Sapienza":1576, //Sapienza;Battle Axe
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Sapienza":1577, //Sapienza;Bartoli 12G
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Sapienza":1578, //Sapienza;Katana
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Sapienza":1579, //Sapienza;Cleaver
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Marrakesh":1580, //Marrakesh;Brick
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Marrakesh":1581, //Marrakesh;Screwdriver
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Marrakesh":1582, "c19f796e-e23f-4429-a046-47ed3d324359|Marrakesh":1582, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Marrakesh":1582, "004ecac9-6aee-4b30-a073-4399a94535d8|Marrakesh":1582, //Marrakesh;Soda Can
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Marrakesh":1583, //Marrakesh;Wrench
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Marrakesh":1584, //Marrakesh;Kitchen Knife
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Marrakesh":1585, //Marrakesh;Propane Flask
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Marrakesh":1586, //Marrakesh;Hammer
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Marrakesh":1587, //Marrakesh;Cleaver
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Marrakesh":1588, //Marrakesh;Scissors
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Marrakesh":1589, //Marrakesh;Fire Extinguisher
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Marrakesh":1590, //Marrakesh;Crowbar
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Marrakesh":1591, //Marrakesh;Emetic Rat Poison
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Marrakesh":1592, //Marrakesh;Letter Opener
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Marrakesh":1593, //Marrakesh;Remote Explosive
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Marrakesh":1594, //Marrakesh;Fire Axe
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Marrakesh":1595, //Marrakesh;Tactical Bartoli 12G
+	"55ed7196-2303-4af6-9fa3-45b691134561|Marrakesh":1596, //Marrakesh;Bartoli 75R
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Marrakesh":1597, //Marrakesh;Shashka A33
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Marrakesh":1598, //Marrakesh;Saber
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Marrakesh":1599, //Marrakesh;Coin
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Marrakesh":1600, //Marrakesh;Toy Tank
+	"16edb112-58cc-4069-a7dd-ebd258b14044|Marrakesh":1601, //Marrakesh;Fusil G1-4
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Marrakesh":1602, //Marrakesh;Pool Ball
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Marrakesh":1603, //Marrakesh;Lethal Poison Pill Jar
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Marrakesh":1604, //Marrakesh;Battle Axe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Bangkok":1605, //Bangkok;Fire Extinguisher
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Bangkok":1606, //Bangkok;Hammer
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Bangkok":1607, //Bangkok;Coin
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Bangkok":1608, //Bangkok;Shovel
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Bangkok":1609, //Bangkok;Hatchet
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Bangkok":1610, //Bangkok;Emetic Rat Poison
+	"aa532e88-2430-432f-9818-ddb8ad80615e|Bangkok":1611, "01048280-0358-4f0a-95b7-1f9f665c1648|Bangkok":1611, //Bangkok;Insecticide
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Bangkok":1612, "c19f796e-e23f-4429-a046-47ed3d324359|Bangkok":1612, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Bangkok":1612, "004ecac9-6aee-4b30-a073-4399a94535d8|Bangkok":1612, //Bangkok;Soda Can
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Bangkok":1613, //Bangkok;Fusil G2
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Bangkok":1614, //Bangkok;Lead Pipe
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Bangkok":1615, //Bangkok;Propane Flask
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Bangkok":1616, //Bangkok;Crowbar
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Bangkok":1617, //Bangkok;Wrench
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Bangkok":1618, //Bangkok;Fire Axe
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Bangkok":1619, //Bangkok;Screwdriver
+	"22183fd3-d837-47c6-9c44-05637300af93|Bangkok":1620, //Bangkok;Coconut
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Bangkok":1621, //Bangkok;Cleaver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Bangkok":1622, //Bangkok;Kitchen Knife
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Bangkok":1623, //Bangkok;Lethal Poison Pill Jar
+	"55ed7196-2303-4af6-9fa3-45b691134561|Bangkok":1624, //Bangkok;Bartoli 75R
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Bangkok":1625, //Bangkok;Police Baton
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Bangkok":1626, //Bangkok;Pool Ball
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Bangkok":1627, //Bangkok;Letter Opener
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Bangkok":1628, //Bangkok;Baseball Bat
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Bangkok":1629, //Bangkok;Katana
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Bangkok":1630, //Bangkok;Golf Club
+	"d2a7fa04-2cac-45d8-b696-47c566bb95ff|Bangkok":1631, //Bangkok;Sapper's Axe
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Bangkok":1632, //Bangkok;Tactical Bartoli 12G
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Colorado":1633, //Colorado;Apricot
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Colorado":1634, //Colorado;Wrench
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Colorado":1635, //Colorado;Screwdriver
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Colorado":1636, //Colorado;Crowbar
+	"ce633778-7424-4784-8bc2-f9d717a23709|Colorado":1637, //Colorado;Baseball
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Colorado":1638, //Colorado;Cowboy Bust
+	"ee25fc91-e42e-4044-99b4-b3c4206d250d|Colorado":1639, //Colorado;Explosive Watch Battery
+	"af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc|Colorado":1640, //Colorado;Nitroglycerin
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Colorado":1641, "c19f796e-e23f-4429-a046-47ed3d324359|Colorado":1641, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Colorado":1641, "004ecac9-6aee-4b30-a073-4399a94535d8|Colorado":1641, //Colorado;Soda Can
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Colorado":1642, //Colorado;Baseball Bat
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Colorado":1643, //Colorado;Emetic Rat Poison
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Colorado":1644, //Colorado;Hammer
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Colorado":1645, //Colorado;Bartoli 12G
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Colorado":1646, //Colorado;Fire Extinguisher
+	"af9ad679-6a7c-4f8e-9700-ceb5e6887666|Colorado":1647, //Colorado;Modern Lethal Syringe
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Colorado":1648, //Colorado;Shovel
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Colorado":1649, //Colorado;Propane Flask
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Colorado":1650, //Colorado;Coin
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Colorado":1651, //Colorado;Lead Pipe
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Colorado":1652, //Colorado;Brick
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Colorado":1653, //Colorado;Fusil G2
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Colorado":1654, //Colorado;Tactical Bartoli 12G
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Colorado":1655, //Colorado;Cleaver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Colorado":1656, //Colorado;Kitchen Knife
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Colorado":1657, //Colorado;HX-10
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Colorado":1658, //Colorado;Lethal Poison Pill Jar
+	"51f6ed96-4985-4d09-8218-e3b912d025b9|Colorado":1659, //Colorado;Branding Iron
+	"8d937ed4-dc85-476b-8048-e96a8900e7bf|Colorado":1660, //Colorado;Mannequin Arm
+	"3fd9825d-8aa5-48e0-97a9-ec8f541f871a|Colorado":1661, //Colorado;HX-7
+	"55ed7196-2303-4af6-9fa3-45b691134561|Colorado":1662, //Colorado;Bartoli 75R
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Colorado":1663, //Colorado;Old Axe
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Hokkaido":1664, //Hokkaido;Cowboy Bust
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Hokkaido":1665, "c19f796e-e23f-4429-a046-47ed3d324359|Hokkaido":1665, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Hokkaido":1665, "004ecac9-6aee-4b30-a073-4399a94535d8|Hokkaido":1665, //Hokkaido;Soda Can
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Hokkaido":1666, //Hokkaido;Fire Extinguisher
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Hokkaido":1667, //Hokkaido;Tactical Bartoli 12G
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Hokkaido":1668, //Hokkaido;Police Baton
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Hokkaido":1669, //Hokkaido;Wrench
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Hokkaido":1670, //Hokkaido;Hammer
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Hokkaido":1671, //Hokkaido;Emetic Rat Poison
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Hokkaido":1672, //Hokkaido;Fire Axe
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Hokkaido":1673, //Hokkaido;Fire Poker
+	"5d8ca32a-fe4c-4597-b074-51e36c3de898|Hokkaido":1674, //Hokkaido;Scalpel
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Hokkaido":1675, //Hokkaido;Screwdriver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Hokkaido":1676, //Hokkaido;Kitchen Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Hokkaido":1677, //Hokkaido;Cleaver
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Hokkaido":1678, //Hokkaido;Frying Pan
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Hokkaido":1679, //Hokkaido;Baseball Bat
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Hokkaido":1680, //Hokkaido;Crowbar
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Hokkaido":1681, //Hokkaido;Katana
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Hokkaido":1682, //Hokkaido;Coin
+	"3fd9825d-8aa5-48e0-97a9-ec8f541f871a|Hokkaido":1683, //Hokkaido;HX-7
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Hokkaido":1684, "97d74fa2-4832-4186-a447-c4b2e37d537a|Hokkaido":1684, //Hokkaido;Bust
+	"e45c295d-60dd-4cba-a01b-0dc1b6f1b17c|Hokkaido":1685, //Hokkaido;Botulinum Toxin
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Hokkaido":1686, //Hokkaido;Shovel
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Hokkaido":1687, //Hokkaido;Propane Flask
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Hokkaido":1688, //Hokkaido;Scissors
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Hokkaido":1689, //Hokkaido;Lead Pipe
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Hawkes Bay":1690, //Hawkes Bay;Screwdriver
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Hawkes Bay":1691, //Hawkes Bay;Tactical Bartoli 12G
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Hawkes Bay":1692, //Hawkes Bay;Bartoli 75S
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Hawkes Bay":1693, //Hawkes Bay;Hackl 9S Covert
+	"26b5496d-9a8c-4059-9d69-d8712078a33c|Hawkes Bay":1694, //Hawkes Bay;Kalmer 1 - Tranquilizer
+	"3fd9825d-8aa5-48e0-97a9-ec8f541f871a|Hawkes Bay":1695, //Hawkes Bay;HX-7
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Hawkes Bay":1696, "c19f796e-e23f-4429-a046-47ed3d324359|Hawkes Bay":1696, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Hawkes Bay":1696, "004ecac9-6aee-4b30-a073-4399a94535d8|Hawkes Bay":1696, //Hawkes Bay;Soda Can
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|Hawkes Bay":1697, //Hawkes Bay;Chloroform Flask
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Hawkes Bay":1698, //Hawkes Bay;Propane Flask
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Hawkes Bay":1699, //Hawkes Bay;Expired Can of Spaghetti Sauce
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Hawkes Bay":1700, //Hawkes Bay;Emetic Rat Poison
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Hawkes Bay":1701, //Hawkes Bay;Lethal Poison Pill Jar
+	"c664eb1a-41d8-4d0a-a393-d5f66f055e5e|Hawkes Bay":1702, //Hawkes Bay;Squeaky Toy
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Hawkes Bay":1703, //Hawkes Bay;Katana
+	"e55eb9a4-e79c-43c7-970b-79e94e7683b7|Hawkes Bay":1704, //Hawkes Bay;Shuriken
+	"1973ae7e-538c-4a43-98af-208b9893d246|Hawkes Bay":1705, //Hawkes Bay;Maori Paddle
+	"59b5731d-2de8-4175-9be0-92fbc2c3e603|Hawkes Bay":1706, //Hawkes Bay;Wristwatch Alarm
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Hawkes Bay":1707, //Hawkes Bay;Folding Knife
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Hawkes Bay":1708, //Hawkes Bay;Driftwood Log
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Hawkes Bay":1709, //Hawkes Bay;Kitchen Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Hawkes Bay":1710, //Hawkes Bay;Cleaver
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Hawkes Bay":1711, //Hawkes Bay;Wrench
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Hawkes Bay":1712, //Hawkes Bay;Car Battery
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Hawkes Bay":1713, //Hawkes Bay;Lead Pipe
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Hawkes Bay":1714, //Hawkes Bay;Apple
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Hawkes Bay":1715, //Hawkes Bay;Scissors
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Hawkes Bay":1716, //Hawkes Bay;Coin
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Hawkes Bay":1717, //Hawkes Bay;Fire Poker
+	"3f9cf03f-b84f-4419-b831-4704cff9775c|Hawkes Bay":1718, //Hawkes Bay;Fragmentation Grenade
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Hawkes Bay":1719, "97d74fa2-4832-4186-a447-c4b2e37d537a|Hawkes Bay":1719, //Hawkes Bay;Bust
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Hawkes Bay":1720, //Hawkes Bay;Shovel
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Miami":1721, //Miami;Shovel
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Miami":1722, //Miami;Crowbar
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Miami":1723, //Miami;Hammer
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Miami":1724, //Miami;Screwdriver
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Miami":1725, //Miami;Fire Axe
+	"c82fefa7-febe-46c8-90ec-c945fbef0cb4|Miami":1726, //Miami;Kronstadt Octane Booster
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Miami":1727, "c19f796e-e23f-4429-a046-47ed3d324359|Miami":1727, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Miami":1727, "004ecac9-6aee-4b30-a073-4399a94535d8|Miami":1727, //Miami;Soda Can
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Miami":1728, //Miami;Coin
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Miami":1729, //Miami;Lead Pipe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Miami":1730, //Miami;Fire Extinguisher
+	"74b04d1f-8ac9-46a0-9a6c-8579cf03276f|Miami":1731, //Miami;Didgeridoo
+	"d1f29c76-5751-4e06-b534-e6eb7522b128|Miami":1732, //Miami;Android Arm
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Miami":1733, //Miami;Wrench
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Miami":1734, //Miami;Emetic Rat Poison
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Miami":1735, //Miami;Scissors
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Miami":1736, //Miami;Propane Flask
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Miami":1737, //Miami;Apricot
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Miami":1738, //Miami;Police Baton
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Miami":1739, //Miami;Tactical Bartoli 12G
+	"55ed7196-2303-4af6-9fa3-45b691134561|Miami":1740, //Miami;Bartoli 75R
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Miami":1741, //Miami;Bag of Sugar
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Miami":1742, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Miami":1742, //Miami;Fish
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Miami":1743, //Miami;Frying Pan
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Miami":1744, //Miami;Kitchen Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Miami":1745, //Miami;Cleaver
+	"ce633778-7424-4784-8bc2-f9d717a23709|Miami":1746, //Miami;Baseball
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Miami":1747, //Miami;Baseball Bat
+	"606a9606-8c05-4dcd-93fa-ec9cdc13f357|Miami":1748, //Miami;Pneumatic Wrench
+	"53284129-c50a-47a7-9efa-caa3b7503826|Miami":1749, //Miami;Car Bomb
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Miami":1750, //Miami;Old Axe
+	"22183fd3-d837-47c6-9c44-05637300af93|Miami":1751, //Miami;Coconut
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Miami":1752, //Miami;Lethal Poison Pill Jar
+	"62c2ac2e-329e-4648-822a-e45a29a93cd0|Miami":1753, //Miami;Amputation Knife
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Miami":1754, //Miami;Brick
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Miami":1755, "97d74fa2-4832-4186-a447-c4b2e37d537a|Miami":1755, //Miami;Bust
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Miami":1756, //Miami;Golf Club
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Miami":1757, //Miami;Cocaine Brick
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Miami":1758, //Miami;Starfish
+	"af9ad679-6a7c-4f8e-9700-ceb5e6887666|Miami":1759, //Miami;Modern Lethal Syringe
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Miami":1760, //Miami;Battle Axe
+	"ac1f44ac-0542-4e3e-9805-81ceeb499804|Miami":1761, //Miami;Cannabis Joint
+	"ec31f55f-6109-4f97-9286-8f59fae666f6|Miami":1762, //Miami;The Big One
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Santa Fortuna":1763, //Santa Fortuna;Coin
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Santa Fortuna":1764, "c19f796e-e23f-4429-a046-47ed3d324359|Santa Fortuna":1764, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Santa Fortuna":1764, "004ecac9-6aee-4b30-a073-4399a94535d8|Santa Fortuna":1764, //Santa Fortuna;Soda Can
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Santa Fortuna":1765, //Santa Fortuna;Car Battery
+	"22183fd3-d837-47c6-9c44-05637300af93|Santa Fortuna":1766, //Santa Fortuna;Coconut
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Santa Fortuna":1767, //Santa Fortuna;Propane Flask
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Santa Fortuna":1768, //Santa Fortuna;Brick
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Santa Fortuna":1769, //Santa Fortuna;Lead Pipe
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Santa Fortuna":1770, //Santa Fortuna;Emetic Rat Poison
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Santa Fortuna":1771, //Santa Fortuna;Crowbar
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Santa Fortuna":1772, //Santa Fortuna;Screwdriver
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Santa Fortuna":1773, //Santa Fortuna;Hammer
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Santa Fortuna":1774, //Santa Fortuna;Apricot
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Santa Fortuna":1775, //Santa Fortuna;Kitchen Knife
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Santa Fortuna":1776, //Santa Fortuna;Baseball Bat
+	"ce633778-7424-4784-8bc2-f9d717a23709|Santa Fortuna":1777, //Santa Fortuna;Baseball
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Santa Fortuna":1778, //Santa Fortuna;Frying Pan
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Santa Fortuna":1779, //Santa Fortuna;Wrench
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Santa Fortuna":1780, //Santa Fortuna;Shovel
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Santa Fortuna":1781, //Santa Fortuna;Letter Opener
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Santa Fortuna":1782, //Santa Fortuna;Scissors
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Santa Fortuna":1783, //Santa Fortuna;Cleaver
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Santa Fortuna":1784, //Santa Fortuna;Meaty Bone
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Santa Fortuna":1785, //Santa Fortuna;Lethal Poison Pill Jar
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|Santa Fortuna":1786, //Santa Fortuna;DAK X2
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Santa Fortuna":1787, //Santa Fortuna;Bartoli 12G
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Santa Fortuna":1788, //Santa Fortuna;Shashka A33
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Santa Fortuna":1789, //Santa Fortuna;Bartoli 75S
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Santa Fortuna":1790, "aa62586e-d463-494e-b55f-177bcdf8c08c|Santa Fortuna":1790, //Santa Fortuna;Poisonous Flower (Emetic)
+	"cbf40151-cb96-435a-b683-6430370a07f2|Santa Fortuna":1791, //Santa Fortuna;Poisonous Flower (Lethal)
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Santa Fortuna":1792, "963123fd-8a53-41b6-8950-335495b3f3af|Santa Fortuna":1792, //Santa Fortuna;Lethal Poisonous Frog
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Santa Fortuna":1793, //Santa Fortuna;Fire Extinguisher
+	"30fa1ade-386f-49b7-bddd-a23cd912611d|Santa Fortuna":1794, //Santa Fortuna;Letterbomb Parcel
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Santa Fortuna":1795, //Santa Fortuna;Pool Ball
+	"248cbd89-9923-452a-8cda-a5f76d8930dc|Santa Fortuna":1796, //Santa Fortuna;Collectors Baseball Bat
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Santa Fortuna":1797, //Santa Fortuna;Driftwood Log
+	"3e3819ca-4d19-4e0a-a238-4bd16c730e61|Santa Fortuna":1798, //Santa Fortuna;Machete
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Santa Fortuna":1799, //Santa Fortuna;Cocaine Brick
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Santa Fortuna":1800, //Santa Fortuna;Remote Explosive
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Santa Fortuna":1801, //Santa Fortuna;Bag of Gunpowder
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|Santa Fortuna":1802, //Santa Fortuna;Claw Hammer
+	"79b48d90-26aa-4b17-9332-599ed8e0bd7f|Santa Fortuna":1803, //Santa Fortuna;Shashka A33 Gold
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Santa Fortuna":1804, //Santa Fortuna;Hackl 9S Covert
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Santa Fortuna":1805, //Santa Fortuna;Gold Idol
+	"b2321154-4520-4911-9d94-9256b85e0983|Santa Fortuna":1806, //Santa Fortuna;Sacrificial Knife
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Santa Fortuna":1807, //Santa Fortuna;Folding Knife
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Santa Fortuna":1808, //Santa Fortuna;Barber Razor
+	"77ecaad6-652f-480d-b365-cdf90820a5ec|Santa Fortuna":1809, //Santa Fortuna;\"El Matador\"
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Santa Fortuna":1810, //Santa Fortuna;Cowboy Bust
+	"d2f4e54f-1eb8-482d-9732-a9159b1a9229|Santa Fortuna":1811, //Santa Fortuna;Cocaine Souvenir
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Santa Fortuna":1812, //Santa Fortuna;Expired Can of Spaghetti Sauce
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Mumbai":1813, //Mumbai;Kitchen Knife
+	"b153112f-9cd1-4a49-a9c6-ba1a34f443ab|Mumbai":1814, //Mumbai;Beak Staff
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Mumbai":1815, //Mumbai;Brick
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Mumbai":1816, //Mumbai;Bartoli 12G
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Mumbai":1817, //Mumbai;Emetic Rat Poison
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Mumbai":1818, //Mumbai;Iron
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Mumbai":1819, //Mumbai;Expired Can of Spaghetti Sauce
+	"cf4838bf-2417-4baf-ad40-50b7793040c6|Mumbai":1820, //Mumbai;Chennai Cricket Ball
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Mumbai":1821, //Mumbai;Baseball Bat
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Mumbai":1822, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Mumbai":1822, //Mumbai;Fish
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Mumbai":1823, //Mumbai;Shovel
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Mumbai":1824, //Mumbai;Wrench
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Mumbai":1825, //Mumbai;Crowbar
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Mumbai":1826, //Mumbai;Propane Flask
+	"cbc38627-a3c4-4116-8731-ace217a831e7|Mumbai":1827, //Mumbai;Lever
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Mumbai":1828, //Mumbai;Car Battery
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Mumbai":1829, //Mumbai;Coin
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Mumbai":1830, //Mumbai;Old Axe
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Mumbai":1831, //Mumbai;Lead Pipe
+	"c008f9ce-4029-4ab4-a9c3-52868fe810ff|Mumbai":1832, //Mumbai;Colored Smoke
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Mumbai":1833, //Mumbai;Shashka A33
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Mumbai":1834, //Mumbai;Frying Pan
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Mumbai":1835, "c19f796e-e23f-4429-a046-47ed3d324359|Mumbai":1835, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Mumbai":1835, "004ecac9-6aee-4b30-a073-4399a94535d8|Mumbai":1835, //Mumbai;Soda Can
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Mumbai":1836, //Mumbai;Lethal Poison Pill Jar
+	"40e96ed0-7668-4d65-b88a-f44bfff5f537|Mumbai":1837, //Mumbai;Khatvanga
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Mumbai":1838, //Mumbai;Scissors
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Mumbai":1839, //Mumbai;Screwdriver
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Mumbai":1840, //Mumbai;Hammer
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Mumbai":1841, //Mumbai;Fire Extinguisher
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Mumbai":1842, //Mumbai;Barber Razor
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Mumbai":1843, //Mumbai;Fire Axe
+	"62c2ac2e-329e-4648-822a-e45a29a93cd0|Mumbai":1844, //Mumbai;Amputation Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Mumbai":1845, //Mumbai;Cleaver
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Mumbai":1846, //Mumbai;Folding Knife
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Mumbai":1847, //Mumbai;Bartoli 75S
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Mumbai":1848, //Mumbai;Letter Opener
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|Mumbai":1849, //Mumbai;DAK X2
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Mumbai":1850, //Mumbai;Saber
+	"a804e004-7d45-42c8-87bd-b7cbcffa56cc|Mumbai":1851, //Mumbai;Measuring Tape
+	"43d15bea-d282-4a91-b625-8b7ba85c0ad5|Mumbai":1852, //Mumbai;Druzhina 34
+	"81654161-7711-4985-8056-8651a381d3ca|Mumbai":1853, //Mumbai;Rake
+	"e638b949-9b96-4c41-bec4-0a8fbfb05c75|Whittleton Creek":1854, //Whittleton Creek;DAK X2 Covert Special
+	"55ed7196-2303-4af6-9fa3-45b691134561|Whittleton Creek":1855, //Whittleton Creek;Bartoli 75R
+	"53284129-c50a-47a7-9efa-caa3b7503826|Whittleton Creek":1856, //Whittleton Creek;Car Bomb
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|Whittleton Creek":1857, //Whittleton Creek;Flash Grenade
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Whittleton Creek":1858, //Whittleton Creek;Kitchen Knife
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Whittleton Creek":1859, //Whittleton Creek;Apple
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Whittleton Creek":1860, //Whittleton Creek;Screwdriver
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Whittleton Creek":1861, //Whittleton Creek;Shovel
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Whittleton Creek":1862, "c19f796e-e23f-4429-a046-47ed3d324359|Whittleton Creek":1862, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Whittleton Creek":1862, "004ecac9-6aee-4b30-a073-4399a94535d8|Whittleton Creek":1862, //Whittleton Creek;Soda Can
+	"5952b621-fee9-4699-809c-8889abadfdb8|Whittleton Creek":1863, //Whittleton Creek;Blueberry Muffin
+	"ce633778-7424-4784-8bc2-f9d717a23709|Whittleton Creek":1864, //Whittleton Creek;Baseball
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Whittleton Creek":1865, //Whittleton Creek;Wrench
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Whittleton Creek":1866, //Whittleton Creek;Hammer
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Whittleton Creek":1867, //Whittleton Creek;Propane Flask
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Whittleton Creek":1868, //Whittleton Creek;Golf Club
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Whittleton Creek":1869, //Whittleton Creek;Fire Extinguisher
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Whittleton Creek":1870, //Whittleton Creek;Coin
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Whittleton Creek":1871, //Whittleton Creek;Newspaper
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Whittleton Creek":1872, //Whittleton Creek;Fire Axe
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Whittleton Creek":1873, "963123fd-8a53-41b6-8950-335495b3f3af|Whittleton Creek":1873, //Whittleton Creek;Lethal Poisonous Frog
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Whittleton Creek":1874, //Whittleton Creek;Emetic Rat Poison
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Whittleton Creek":1875, "97d74fa2-4832-4186-a447-c4b2e37d537a|Whittleton Creek":1875, //Whittleton Creek;Bust
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Whittleton Creek":1876, //Whittleton Creek;Car Battery
+	"ef63eda6-6411-4ce0-b35b-143fc5767fc0|Whittleton Creek":1877, //Whittleton Creek;Lethal Pills
+	"c5ec6168-2e5e-4340-b71a-c60f2ee6bd66|Whittleton Creek":1878, //Whittleton Creek;Emetic Pills
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Whittleton Creek":1879, //Whittleton Creek;Scissors
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Whittleton Creek":1880, //Whittleton Creek;Letter Opener
+	"092f6514-c34e-4d04-8d28-7ebbe14230d1|Whittleton Creek":1881, //Whittleton Creek;\"Rude Ruby\"
+	"ccdd6689-092d-49b2-85f8-416a02e25566|Whittleton Creek":1882, //Whittleton Creek;Remote CX Demo Block
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Whittleton Creek":1883, //Whittleton Creek;Crowbar
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|Whittleton Creek":1884, //Whittleton Creek;DAK X2
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Whittleton Creek":1885, //Whittleton Creek;Hackl 9S Covert
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Whittleton Creek":1886, //Whittleton Creek;Remote Explosive
+	"2f6eec38-45ea-49df-83a2-0b98a858e60a|Whittleton Creek":1887, //Whittleton Creek;RS-15
+	"a15af673-8e21-47e3-bdfa-f5dea7b5f9e9|Whittleton Creek":1888, //Whittleton Creek;TAC-4 AR Auto
+	"6b93848c-8f1d-42eb-816f-bab61b56d8a5|Whittleton Creek":1889, //Whittleton Creek;Fusil G1-4|C
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Whittleton Creek":1890, //Whittleton Creek;Fusil G2
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Whittleton Creek":1891, //Whittleton Creek;Lead Pipe
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Whittleton Creek":1892, //Whittleton Creek;Baseball Bat
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Whittleton Creek":1893, //Whittleton Creek;Meaty Bone
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Whittleton Creek":1894, //Whittleton Creek;Battle Axe
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Whittleton Creek":1895, //Whittleton Creek;Expired Can of Spaghetti Sauce
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Whittleton Creek":1896, //Whittleton Creek;Hatchet
+	"aa532e88-2430-432f-9818-ddb8ad80615e|Whittleton Creek":1897, "01048280-0358-4f0a-95b7-1f9f665c1648|Whittleton Creek":1897, //Whittleton Creek;Insecticide
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Whittleton Creek":1898, //Whittleton Creek;Paddle
+	"bad168bb-3629-42b3-bc57-604b03a81d30|Whittleton Creek":1899, //Whittleton Creek;Package
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Whittleton Creek":1900, //Whittleton Creek;Brick
+	"b153112f-9cd1-4a49-a9c6-ba1a34f443ab|Whittleton Creek":1901, //Whittleton Creek;Beak Staff
+	"ac1f44ac-0542-4e3e-9805-81ceeb499804|Whittleton Creek":1902, //Whittleton Creek;Cannabis Joint
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Whittleton Creek":1903, //Whittleton Creek;Cigar Box
+	"81654161-7711-4985-8056-8651a381d3ca|Whittleton Creek":1904, //Whittleton Creek;Rake
+	"2147b6cd-5a42-4cd6-b366-2c5c50d97db7|Ambrose Island":1905, //Ambrose Island;Fishing Line
+	"94c2b206-d011-4358-a6b3-c8a6042ab2c2|Ambrose Island":1906, //Ambrose Island;Wooden Torch
+	"22183fd3-d837-47c6-9c44-05637300af93|Ambrose Island":1907, //Ambrose Island;Coconut
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Ambrose Island":1908, //Ambrose Island;Driftwood Log
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Ambrose Island":1909, //Ambrose Island;Lead Pipe
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Ambrose Island":1910, //Ambrose Island;Garden Fork
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Ambrose Island":1911, //Ambrose Island;Brick
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Ambrose Island":1912, //Ambrose Island;Hammer
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Ambrose Island":1913, //Ambrose Island;Fire Extinguisher
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Ambrose Island":1914, //Ambrose Island;Crowbar
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Ambrose Island":1915, //Ambrose Island;Car Battery
+	"3a359494-ee05-4fea-beac-8726233a55bf|Ambrose Island":1916, //Ambrose Island;Whiskey Bottle
+	"5ad01c38-244a-4b75-94d6-624850d2dc92|Ambrose Island":1917, //Ambrose Island;Spray Can
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Ambrose Island":1918, //Ambrose Island;Apple
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Ambrose Island":1919, //Ambrose Island;Paddle
+	"1050c8d3-43d6-4bcf-a5d3-0ca994121871|Ambrose Island":1920, //Ambrose Island;Vodka Bottle
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Ambrose Island":1921, //Ambrose Island;Starfish
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Ambrose Island":1922, "c19f796e-e23f-4429-a046-47ed3d324359|Ambrose Island":1922, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Ambrose Island":1922, "004ecac9-6aee-4b30-a073-4399a94535d8|Ambrose Island":1922, //Ambrose Island;Soda Can
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Ambrose Island":1923, //Ambrose Island;Scissors
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Ambrose Island":1924, //Ambrose Island;Wrench
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Ambrose Island":1925, //Ambrose Island;Soap
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Ambrose Island":1926, //Ambrose Island;Cleaver
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Ambrose Island":1927, //Ambrose Island;Frying Pan
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Ambrose Island":1928, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Ambrose Island":1928, //Ambrose Island;Fish
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Ambrose Island":1929, //Ambrose Island;Bag of Sugar
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Ambrose Island":1930, //Ambrose Island;Emetic Rat Poison
+	"903d273c-c750-441d-916a-31557fea3382|Ambrose Island":1931, //Ambrose Island;Banana
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Ambrose Island":1932, //Ambrose Island;Shovel
+	"72cb6124-36eb-4c25-8da0-78d4c5fac459|Ambrose Island":1933, //Ambrose Island;Durian
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Ambrose Island":1934, //Ambrose Island;Kitchen Knife
+	"66024572-7838-42d3-8c7b-c651e259438e|Ambrose Island":1935, //Ambrose Island;Meat Fork
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Ambrose Island":1936, //Ambrose Island;Letter Opener
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Ambrose Island":1937, "963123fd-8a53-41b6-8950-335495b3f3af|Ambrose Island":1937, //Ambrose Island;Lethal Poisonous Frog
+	"5db9cefd-391e-4c35-a4c4-bb672ac9b996|Ambrose Island":1938, //Ambrose Island;Kukri Machete
+	"7bc45270-83fe-4cf6-ad10-7d1b0cf3a3fd|Ambrose Island":1939, //Ambrose Island;Seashell
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Ambrose Island":1940, "aa62586e-d463-494e-b55f-177bcdf8c08c|Ambrose Island":1940, //Ambrose Island;Poisonous Flower (Emetic)
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Ambrose Island":1941, //Ambrose Island;Cannonball
+	"40e96ed0-7668-4d65-b88a-f44bfff5f537|Ambrose Island":1942, //Ambrose Island;Khatvanga
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Ambrose Island":1943, //Ambrose Island;Screwdriver
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Ambrose Island":1944, //Ambrose Island;Apricot
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Ambrose Island":1945, //Ambrose Island;Propane Flask
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Ambrose Island":1946, //Ambrose Island;Folding Knife
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Ambrose Island":1947, //Ambrose Island;Coin
+	"7d668011-77f9-4cae-97f1-e3eda5e0c8b2|Ambrose Island":1948, //Ambrose Island;Lethal Poison Vial
+	"af82349c-259f-4bdd-8be7-d5ff61695c29|Ambrose Island":1949, //Ambrose Island;Emetic Gas Grenade
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Ambrose Island":1950, //Ambrose Island;Old Axe
+	"b5481de5-6446-46b3-903f-e0040f46b7f0|Ambrose Island":1951, //Ambrose Island;Sawed-Off Bartoli 12G
+	"58a036dc-79d4-4d64-8bf5-3faafa3cfead|Ambrose Island":1952, //Ambrose Island;Hook
+	"79f8c0e9-4690-4ebf-b2b3-fd8411a1407f|Ambrose Island":1953, //Ambrose Island;Brine-Damaged SMG
+	"a83349bf-3d9c-43ec-92ee-c8c98cbeabc1|Ambrose Island":1954, //Ambrose Island;Molotov Cocktail
+	"8f1bae41-3570-40cc-be87-77cb6a4af86c|Ambrose Island":1955, //Ambrose Island;Makeshift Explosive
+	"3dbbbb5e-61a7-4cae-8df0-0e911e744dca|Ambrose Island":1956, //Ambrose Island;Remote CX Demo Block MK II
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Ambrose Island":1957, //Ambrose Island;Shashka A33
+	"d73251b4-4860-4b5b-8376-7c9cf2a054a2|Ambrose Island":1958, //Ambrose Island;Scrap Sword
+	"e98f44fd-7f36-46a8-ae3c-bf080e8454d3|Ambrose Island":1959, //Ambrose Island;Umbrella
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Ambrose Island":1960, //Ambrose Island;Gold Idol
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Ambrose Island":1961, //Ambrose Island;Newspaper
+	"42c7bb52-a71b-489c-8a74-7db0c09ba313|Ambrose Island":1962, //Ambrose Island;Shears
+	"79b48d90-26aa-4b17-9332-599ed8e0bd7f|Ambrose Island":1963, //Ambrose Island;Shashka A33 Gold
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Ambrose Island":1964, //Ambrose Island;Barber Razor
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Ambrose Island":1965, //Ambrose Island;Cigar Box
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Ambrose Island":1966, //Ambrose Island;Iron
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Ambrose Island":1967, //Ambrose Island;Meaty Bone
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Ambrose Island":1968, //Ambrose Island;Hobby Knife
+	"6738e8ad-b8d0-496a-9749-d27a93b40113|Ambrose Island":1969, //Ambrose Island;Militia-Issued HX-10 SMG
+	"fc715a9a-3bf1-4768-bd67-0def61b92551|Ambrose Island":1970, //Ambrose Island;Remote Breaching Charge
+	"dc10958c-e3dc-447b-b9f4-8c4bde86d108|Ambrose Island":1971, //Ambrose Island;Doubloon
+	"fba6e133-78d1-4af1-8450-1ff30466c553|Ambrose Island":1972, //Ambrose Island;Jarl's Pirate Saber
+	"af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc|Ambrose Island":1973, //Ambrose Island;Nitroglycerin
+	"23b8ad17-1913-40ce-b3bc-2c92317801dd|Isle of Sgail":1974, //Isle of Sgail;Mace
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Isle of Sgail":1975, //Isle of Sgail;Battle Axe
+	"d2a7fa04-2cac-45d8-b696-47c566bb95ff|Isle of Sgail":1976, //Isle of Sgail;Sapper's Axe
+	"12200bd8-9605-4111-8b26-4e73cb07d816|Isle of Sgail":1977, //Isle of Sgail;Broadsword
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Isle of Sgail":1978, //Isle of Sgail;Cigar Box
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Isle of Sgail":1979, //Isle of Sgail;Old Axe
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Isle of Sgail":1980, "97d74fa2-4832-4186-a447-c4b2e37d537a|Isle of Sgail":1980, //Isle of Sgail;Bust
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Isle of Sgail":1981, //Isle of Sgail;Saber
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Isle of Sgail":1982, //Isle of Sgail;Cannonball
+	"9a7711c7-ede9-4230-853e-ab94c65fc0c9|Isle of Sgail":1983, //Isle of Sgail;Viking Axe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Isle of Sgail":1984, //Isle of Sgail;Fire Extinguisher
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Isle of Sgail":1985, //Isle of Sgail;Fire Poker
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Isle of Sgail":1986, //Isle of Sgail;Bartoli 75S
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Isle of Sgail":1987, //Isle of Sgail;Hatchet
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Isle of Sgail":1988, //Isle of Sgail;Car Battery
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Isle of Sgail":1989, //Isle of Sgail;Propane Flask
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Isle of Sgail":1990, //Isle of Sgail;Baseball Bat
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Isle of Sgail":1991, //Isle of Sgail;Emetic Rat Poison
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Isle of Sgail":1992, //Isle of Sgail;Shovel
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|Isle of Sgail":1993, //Isle of Sgail;Chloroform Flask
+	"5d8ca32a-fe4c-4597-b074-51e36c3de898|Isle of Sgail":1994, //Isle of Sgail;Scalpel
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Isle of Sgail":1995, //Isle of Sgail;Paddle
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Isle of Sgail":1996, //Isle of Sgail;Crowbar
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Isle of Sgail":1997, //Isle of Sgail;Screwdriver
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Isle of Sgail":1998, //Isle of Sgail;Letter Opener
+	"22183fd3-d837-47c6-9c44-05637300af93|Isle of Sgail":1999, //Isle of Sgail;Coconut
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Isle of Sgail":2000, //Isle of Sgail;Cowboy Bust
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Isle of Sgail":2001, //Isle of Sgail;Coin
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Isle of Sgail":2002, //Isle of Sgail;Tactical Bartoli 12G
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Isle of Sgail":2003, "c19f796e-e23f-4429-a046-47ed3d324359|Isle of Sgail":2003, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Isle of Sgail":2003, "004ecac9-6aee-4b30-a073-4399a94535d8|Isle of Sgail":2003, //Isle of Sgail;Soda Can
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Isle of Sgail":2004, //Isle of Sgail;Wrench
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Isle of Sgail":2005, //Isle of Sgail;Hammer
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Isle of Sgail":2006, //Isle of Sgail;Apple
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Isle of Sgail":2007, //Isle of Sgail;Brick
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Isle of Sgail":2008, //Isle of Sgail;Expired Can of Spaghetti Sauce
+	"51f6ed96-4985-4d09-8218-e3b912d025b9|Isle of Sgail":2009, //Isle of Sgail;Branding Iron
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Isle of Sgail":2010, //Isle of Sgail;Meaty Bone
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Isle of Sgail":2011, //Isle of Sgail;Lead Pipe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Isle of Sgail":2012, //Isle of Sgail;Frying Pan
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Isle of Sgail":2013, //Isle of Sgail;Cleaver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Isle of Sgail":2014, //Isle of Sgail;Kitchen Knife
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Isle of Sgail":2015, //Isle of Sgail;Apricot
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Isle of Sgail":2016, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Isle of Sgail":2016, //Isle of Sgail;Fish
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Isle of Sgail":2017, //Isle of Sgail;Fire Axe
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Isle of Sgail":2018, //Isle of Sgail;Bag of Gunpowder
+	"e0de34ce-f8d1-428b-8b37-0dae7398bde3|Isle of Sgail":2019, //Isle of Sgail;HX-7 Covert
+	"e312a416-5b56-4cb5-8994-1d4bc82fbb84|Isle of Sgail":2020, //Isle of Sgail;Circumcision Knife
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Isle of Sgail":2021, //Isle of Sgail;Scissors
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Isle of Sgail":2022, //Isle of Sgail;Newspaper
+	"e45c295d-60dd-4cba-a01b-0dc1b6f1b17c|Isle of Sgail":2023, //Isle of Sgail;Botulinum Toxin
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Isle of Sgail":2024, //Isle of Sgail;Gold Idol
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Isle of Sgail":2025, //Isle of Sgail;Katana
+	"92d68841-8552-40b1-b8a5-c36c6efdb6b1|Isle of Sgail":2026, //Isle of Sgail;Aztec Necklace
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Isle of Sgail":2027, //Isle of Sgail;Imperial Filigree Egg
+	"40e96ed0-7668-4d65-b88a-f44bfff5f537|Isle of Sgail":2028, //Isle of Sgail;Khatvanga
+	"cb34f363-3534-46ff-b036-d49f1329f300|Isle of Sgail":2029, //Isle of Sgail;Torch
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Isle of Sgail":2030, //Isle of Sgail;Fusil G2
+	"1e11fbea-cd51-48bf-8316-a050772d6135|Isle of Sgail":2031, //Isle of Sgail;Hackl 9S
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Isle of Sgail":2032, //Isle of Sgail;HX-10
+	"5952b621-fee9-4699-809c-8889abadfdb8|Isle of Sgail":2033, //Isle of Sgail;Blueberry Muffin
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Isle of Sgail":2034, //Isle of Sgail;Iron
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Isle of Sgail":2035, //Isle of Sgail;Hackl 9S Covert
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Isle of Sgail":2036, //Isle of Sgail;Cocaine Brick
+	"da6ae60b-092d-4ad9-aa3c-322c8cb21985|Isle of Sgail":2037, //Isle of Sgail;Commemorative Token
+	"af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc|Isle of Sgail":2038, //Isle of Sgail;Nitroglycerin
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|Isle of Sgail":2039, //Isle of Sgail;Flash Grenade
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Isle of Sgail":2040, //Isle of Sgail;Driftwood Log
+	"25bc1a6d-c618-43ee-9c1f-81347ed430a6|Isle of Sgail":2041, //Isle of Sgail;Cheeseburger
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Isle of Sgail":2042, //Isle of Sgail;Starfish
+	"b2321154-4520-4911-9d94-9256b85e0983|Isle of Sgail":2043, //Isle of Sgail;Sacrificial Knife
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|New York":2044, //New York;Fire Extinguisher
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|New York":2045, //New York;Letter Opener
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|New York":2046, //New York;Screwdriver
+	"31f36818-623f-4c92-892f-d7b19bb325e1|New York":2047, "97d74fa2-4832-4186-a447-c4b2e37d537a|New York":2047, //New York;Bust
+	"bad168bb-3629-42b3-bc57-604b03a81d30|New York":2048, //New York;Package
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|New York":2049, //New York;Fire Axe
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|New York":2050, //New York;Wrench
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|New York":2051, //New York;Iron
+	"54b1ffd7-5290-4b58-8e1c-53fd038a08f5|New York":2052, //New York;Small Goldbar
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|New York":2053, //New York;Imperial Filigree Egg
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|New York":2054, //New York;Emetic Rat Poison
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|New York":2055, //New York;Propane Flask
+	"4fad7437-59e9-4ca9-9b31-a6d97484216b|New York":2056, //New York;Violin
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|New York":2057, //New York;Police Baton
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|New York":2058, //New York;Scissors
+	"7685be69-ff8f-479c-91b9-7347253f8bf1|New York":2059, //New York;Earphones
+	"9488fa1e-10e1-49c9-bb24-6635d2e5bd49|New York":2060, //New York;Tanto
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|New York":2061, //New York;Hobby Knife
+	"6d4c88f3-9a09-453c-9a6e-a081f1136bf3|New York":2062, //New York;Burial Dagger
+	"8598ae82-53ac-43ba-9f43-30140d6ba7ee|New York":2063, //New York;Golden Sawed Off Bartoli 12G
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|New York":2064, //New York;Crowbar
+	"59b5731d-2de8-4175-9be0-92fbc2c3e603|New York":2065, //New York;Wristwatch Alarm
+	"a1f89118-d345-4367-9423-620c3ef5dfba|New York":2066, //New York;Lethal Poison Pill Jar
+	"59e407df-c49b-4abe-a1be-0806b026e47e|New York":2067, //New York;Concussion Grenade
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|New York":2068, "c19f796e-e23f-4429-a046-47ed3d324359|New York":2068, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|New York":2068, "004ecac9-6aee-4b30-a073-4399a94535d8|New York":2068, //New York;Soda Can
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|New York":2069, //New York;Newspaper
+	"0576a20c-581b-4705-8b9d-464e077d117e|New York":2070, //New York;Wet Floor Sign
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|New York":2071, //New York;Kitchen Knife
+	"dac32c27-4c49-4933-bccb-56c8f526515f|New York":2072, //New York;Car Battery
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|New York":2073, //New York;Flash Grenade
+	"901a3b51-51a0-4236-bdf2-23d20696b358|New York":2074, //New York;Tactical Bartoli 12G
+	"25bc1a6d-c618-43ee-9c1f-81347ed430a6|New York":2075, //New York;Cheeseburger
+	"5c211971-235a-4856-9eea-fe890940f63a|New York":2076, //New York;Antique Carved Knife
+	"30fa1ade-386f-49b7-bddd-a23cd912611d|New York":2077, //New York;Letterbomb Parcel
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|New York":2078, //New York;Gold Idol
+	"55ed7196-2303-4af6-9fa3-45b691134561|New York":2079, //New York;Bartoli 75R
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|New York":2080, //New York;Chloroform Flask
+	"26b5496d-9a8c-4059-9d69-d8712078a33c|New York":2081, //New York;Kalmer 1 - Tranquilizer
+	"da6ae60b-092d-4ad9-aa3c-322c8cb21985|New York":2082, //New York;Commemorative Token
+	"4292fe64-aac6-4bbe-be73-31671640172a|New York":2083, //New York;Goldbar
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|New York":2084, //New York;Coin
+	"a2c56798-026f-4d0b-9480-de0d2525a119|New York":2085, //New York;Folding Knife
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|New York":2086, //New York;Apple
+	"5952b621-fee9-4699-809c-8889abadfdb8|New York":2087, //New York;Blueberry Muffin
+	"e755471f-e6fd-438f-b343-7c98fbb50107|New York":2088, //New York;Apricot
+	"6b87c27d-0d73-4c63-b852-5a9c7a9ffb90|New York":2089, //New York;Feather Duster
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|New York":2090, //New York;Golf Club
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|New York":2091, //New York;Pool Ball
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|New York":2092, //New York;Lead Pipe
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|New York":2093, //New York;DAK X2
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|New York":2094, //New York;Claw Hammer
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|New York":2095, //New York;Toy Tank
+	"7685be69-ff8f-479c-91b9-7347253f8bf1|Haven Island":2096, //Haven Island;Earphones
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Haven Island":2097, "c19f796e-e23f-4429-a046-47ed3d324359|Haven Island":2097, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Haven Island":2097, "004ecac9-6aee-4b30-a073-4399a94535d8|Haven Island":2097, //Haven Island;Soda Can
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Haven Island":2098, //Haven Island;Fire Extinguisher
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Haven Island":2099, //Haven Island;Barber Razor
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Haven Island":2100, //Haven Island;Apple
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Haven Island":2101, //Haven Island;Coin
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Haven Island":2102, //Haven Island;Golf Club
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Haven Island":2103, //Haven Island;Scissors
+	"280739c7-9d93-48b9-840e-694883e76700|Haven Island":2104, //Haven Island;Stethoscope
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Haven Island":2105, //Haven Island;Iron
+	"ce633778-7424-4784-8bc2-f9d717a23709|Haven Island":2106, //Haven Island;Baseball
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Haven Island":2107, //Haven Island;Baseball Bat
+	"1c50d6e0-11c8-4cbc-be05-f51a8e5013be|Haven Island":2108, //Haven Island;Modern Emetic Syringe
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Haven Island":2109, //Haven Island;Lethal Poison Pill Jar
+	"5d8ca32a-fe4c-4597-b074-51e36c3de898|Haven Island":2110, //Haven Island;Scalpel
+	"3e3819ca-4d19-4e0a-a238-4bd16c730e61|Haven Island":2111, //Haven Island;Machete
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Haven Island":2112, //Haven Island;Emetic Rat Poison
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Haven Island":2113, //Haven Island;Shovel
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Haven Island":2114, //Haven Island;Bartoli 75S
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Haven Island":2115, //Haven Island;Remote Explosive
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Haven Island":2116, //Haven Island;Police Baton
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Haven Island":2117, //Haven Island;Crowbar
+	"5952b621-fee9-4699-809c-8889abadfdb8|Haven Island":2118, //Haven Island;Blueberry Muffin
+	"0576a20c-581b-4705-8b9d-464e077d117e|Haven Island":2119, //Haven Island;Wet Floor Sign
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Haven Island":2120, //Haven Island;Folding Knife
+	"903d273c-c750-441d-916a-31557fea3382|Haven Island":2121, //Haven Island;Banana
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Haven Island":2122, //Haven Island;Screwdriver
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Haven Island":2123, //Haven Island;Wrench
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Haven Island":2124, //Haven Island;Starfish
+	"9c649932-7329-4cc3-a8cb-a32cae5dd7ca|Haven Island":2125, //Haven Island;Kettlebell
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Haven Island":2126, //Haven Island;Lead Pipe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Haven Island":2127, //Haven Island;Frying Pan
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Haven Island":2128, //Haven Island;Meaty Bone
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Haven Island":2129, //Haven Island;Cleaver
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Haven Island":2130, //Haven Island;Propane Flask
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Haven Island":2131, //Haven Island;Kitchen Knife
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Haven Island":2132, //Haven Island;Paddle
+	"a2fce6cb-7b4a-4d2e-81b7-919bf7c5b7ad|Haven Island":2133, //Haven Island;Pearl
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Haven Island":2134, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Haven Island":2134, //Haven Island;Fish
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Haven Island":2135, //Haven Island;Hackl 9S Covert
+	"22183fd3-d837-47c6-9c44-05637300af93|Haven Island":2136, //Haven Island;Coconut
+	"25bc1a6d-c618-43ee-9c1f-81347ed430a6|Haven Island":2137, //Haven Island;Cheeseburger
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Haven Island":2138, //Haven Island;Gold Idol
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Haven Island":2139, //Haven Island;Tactical Bartoli 12G
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Haven Island":2140, //Haven Island;Hatchet
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Haven Island":2141, //Haven Island;Fusil G2
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Haven Island":2142, //Haven Island;HX-10
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Haven Island":2143, //Haven Island;Hammer
+	"6b87c27d-0d73-4c63-b852-5a9c7a9ffb90|Haven Island":2144, //Haven Island;Feather Duster
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Haven Island":2145, //Haven Island;Letter Opener
+	"7bc45270-83fe-4cf6-ad10-7d1b0cf3a3fd|Haven Island":2146, //Haven Island;Seashell
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Haven Island":2147, "963123fd-8a53-41b6-8950-335495b3f3af|Haven Island":2147, //Haven Island;Lethal Poisonous Frog
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Haven Island":2148, //Haven Island;Newspaper
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Haven Island":2149, //Haven Island;Imperial Filigree Egg
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Haven Island":2150, "aa62586e-d463-494e-b55f-177bcdf8c08c|Haven Island":2150, //Haven Island;Poisonous Flower (Emetic)
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Haven Island":2151, //Haven Island;Driftwood Log
+	"fba6e133-78d1-4af1-8450-1ff30466c553|Haven Island":2152, //Haven Island;Jarl's Pirate Saber
+	"dc10958c-e3dc-447b-b9f4-8c4bde86d108|Haven Island":2153, //Haven Island;Doubloon
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Haven Island":2154, //Haven Island;Fire Axe
+	"1973ae7e-538c-4a43-98af-208b9893d246|Haven Island":2155, //Haven Island;Maori Paddle
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Dubai":2156, //Dubai;Golf Club
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Dubai":2157, //Dubai;Apple
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Dubai":2158, //Dubai;Coin
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Dubai":2159, //Dubai;Crowbar
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Dubai":2160, //Dubai;Car Battery
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Dubai":2161, //Dubai;Letter Opener
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Dubai":2162, //Dubai;Gold Idol
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Dubai":2163, //Dubai;Imperial Filigree Egg
+	"b4d4ed1a-0687-48a9-a731-0e3b99494eb6|Dubai":2164, //Dubai;Ornate Scimitar
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Dubai":2165, //Dubai;HX-10
+	"3a359494-ee05-4fea-beac-8726233a55bf|Dubai":2166, //Dubai;Whiskey Bottle
+	"4292fe64-aac6-4bbe-be73-31671640172a|Dubai":2167, //Dubai;Goldbar
+	"706cb615-e66d-49f3-86bb-899fa7117bcf|Dubai":2168, //Dubai;Model of the Sceptre
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Dubai":2169, //Dubai;Kitchen Knife
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Dubai":2170, //Dubai;Frying Pan
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Dubai":2171, //Dubai;Meaty Bone
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Dubai":2172, //Dubai;Emetic Rat Poison
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Dubai":2173, //Dubai;Screwdriver
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Dubai":2174, //Dubai;Soap
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Dubai":2175, //Dubai;Propane Flask
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Dubai":2176, //Dubai;Fire Axe
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Dubai":2177, //Dubai;Hammer
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Dubai":2178, //Dubai;Cleaver
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Dubai":2179, "c19f796e-e23f-4429-a046-47ed3d324359|Dubai":2179, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Dubai":2179, "004ecac9-6aee-4b30-a073-4399a94535d8|Dubai":2179, //Dubai;Soda Can
+	"c5ec6168-2e5e-4340-b71a-c60f2ee6bd66|Dubai":2180, //Dubai;Emetic Pills
+	"0576a20c-581b-4705-8b9d-464e077d117e|Dubai":2181, //Dubai;Wet Floor Sign
+	"55ed7196-2303-4af6-9fa3-45b691134561|Dubai":2182, //Dubai;Bartoli 75R
+	"903d273c-c750-441d-916a-31557fea3382|Dubai":2183, //Dubai;Banana
+	"16edb112-58cc-4069-a7dd-ebd258b14044|Dubai":2184, //Dubai;Fusil G1-4
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Dubai":2185, //Dubai;Fire Extinguisher
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Dubai":2186, //Dubai;Wrench
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Dubai":2187, //Dubai;Scissors
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Dubai":2188, //Dubai;Shovel
+	"22183fd3-d837-47c6-9c44-05637300af93|Dubai":2189, //Dubai;Coconut
+	"c95c55aa-34e5-42bd-bf27-32be3978b269|Dubai":2190, //Dubai;Explosive Golf Ball
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Dubai":2191, //Dubai;Folding Knife
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Dubai":2192, //Dubai;Lethal Poison Pill Jar
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Dubai":2193, //Dubai;Hackl 9S Covert
+	"5952b621-fee9-4699-809c-8889abadfdb8|Dubai":2194, //Dubai;Blueberry Muffin
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Dubai":2195, //Dubai;Iron
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Dartmoor":2196, //Dartmoor;Hatchet
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Dartmoor":2197, //Dartmoor;Driftwood Log
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Dartmoor":2198, //Dartmoor;Brick
+	"42c7bb52-a71b-489c-8a74-7db0c09ba313|Dartmoor":2199, //Dartmoor;Shears
+	"81654161-7711-4985-8056-8651a381d3ca|Dartmoor":2200, //Dartmoor;Rake
+	"98bf7fc1-7857-4999-bc99-586c49f24017|Dartmoor":2201, //Dartmoor;Classic Coin
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Dartmoor":2202, //Dartmoor;Folding Knife
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Dartmoor":2203, //Dartmoor;Emetic Rat Poison
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Dartmoor":2204, //Dartmoor;Shovel
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Dartmoor":2205, //Dartmoor;Garden Fork
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Dartmoor":2206, //Dartmoor;Cigar Box
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Dartmoor":2207, //Dartmoor;Hammer
+	"ce633778-7424-4784-8bc2-f9d717a23709|Dartmoor":2208, //Dartmoor;Baseball
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Dartmoor":2209, //Dartmoor;Crowbar
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Dartmoor":2210, "aa62586e-d463-494e-b55f-177bcdf8c08c|Dartmoor":2210, //Dartmoor;Poisonous Flower (Emetic)
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Dartmoor":2211, //Dartmoor;Wrench
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Dartmoor":2212, //Dartmoor;Screwdriver
+	"4eede7ee-582b-49a4-b438-2418d82671d9|Dartmoor":2213, //Dartmoor;Walking Cane
+	"58769c58-3e70-4746-be8e-4c7114f8c2bb|Dartmoor":2214, //Dartmoor;Unicorn Horn
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Dartmoor":2215, //Dartmoor;Letter Opener
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Dartmoor":2216, //Dartmoor;Barber Razor
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Dartmoor":2217, //Dartmoor;Newspaper
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Dartmoor":2218, "97d74fa2-4832-4186-a447-c4b2e37d537a|Dartmoor":2218, //Dartmoor;Bust
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Dartmoor":2219, //Dartmoor;Lead Pipe
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Dartmoor":2220, //Dartmoor;Apple
+	"6b87c27d-0d73-4c63-b852-5a9c7a9ffb90|Dartmoor":2221, //Dartmoor;Feather Duster
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Dartmoor":2222, //Dartmoor;Saber
+	"785c3c6b-1272-4853-94f0-a41d52f64795|Dartmoor":2223, //Dartmoor;Bartoli Hunting Shotgun
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Dartmoor":2224, //Dartmoor;Car Battery
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Dartmoor":2225, //Dartmoor;Coin
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Dartmoor":2226, //Dartmoor;Lethal Poison Pill Jar
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Dartmoor":2227, //Dartmoor;Fire Poker
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Dartmoor":2228, //Dartmoor;Golf Club
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Dartmoor":2229, //Dartmoor;Iron
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Dartmoor":2230, //Dartmoor;Apricot
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Dartmoor":2231, //Dartmoor;Bag of Sugar
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Dartmoor":2232, //Dartmoor;Cleaver
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Dartmoor":2233, //Dartmoor;Scissors
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Dartmoor":2234, //Dartmoor;Propane Flask
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Dartmoor":2235, "c19f796e-e23f-4429-a046-47ed3d324359|Dartmoor":2235, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Dartmoor":2235, "004ecac9-6aee-4b30-a073-4399a94535d8|Dartmoor":2235, //Dartmoor;Soda Can
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Dartmoor":2236, //Dartmoor;Kitchen Knife
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Dartmoor":2237, //Dartmoor;Soap
+	"903d273c-c750-441d-916a-31557fea3382|Dartmoor":2238, //Dartmoor;Banana
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Dartmoor":2239, //Dartmoor;Imperial Filigree Egg
+	"1973ae7e-538c-4a43-98af-208b9893d246|Dartmoor":2240, //Dartmoor;Maori Paddle
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Dartmoor":2241, //Dartmoor;Pool Ball
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Dartmoor":2242, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Dartmoor":2242, //Dartmoor;Fish
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Dartmoor":2243, //Dartmoor;Hackl 9S Covert
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Berlin":2244, //Berlin;Baseball Bat
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Berlin":2245, //Berlin;Toy Tank
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Berlin":2246, //Berlin;Tactical Bartoli 12G
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Berlin":2247, //Berlin;Fire Extinguisher
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Berlin":2248, "c19f796e-e23f-4429-a046-47ed3d324359|Berlin":2248, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Berlin":2248, "004ecac9-6aee-4b30-a073-4399a94535d8|Berlin":2248, //Berlin;Soda Can
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Berlin":2249, //Berlin;Coin
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Berlin":2250, //Berlin;Kitchen Knife
+	"903d273c-c750-441d-916a-31557fea3382|Berlin":2251, //Berlin;Banana
+	"22183fd3-d837-47c6-9c44-05637300af93|Berlin":2252, //Berlin;Coconut
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Berlin":2253, //Berlin;Emetic Rat Poison
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Berlin":2254, //Berlin;Screwdriver
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Berlin":2255, //Berlin;Fire Axe
+	"c45e59f4-d8e1-4c37-b079-8b74b1fe9b24|Berlin":2256, //Berlin;Modern Sedative Syringe
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Berlin":2257, //Berlin;Wrench
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Berlin":2258, //Berlin;Hobby Knife
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Berlin":2259, //Berlin;Propane Flask
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Berlin":2260, //Berlin;Police Baton
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Berlin":2261, //Berlin;Crowbar
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Berlin":2262, //Berlin;Hammer
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Berlin":2263, //Berlin;Lead Pipe
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Berlin":2264, //Berlin;Pool Ball
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Berlin":2265, //Berlin;Battle Axe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Berlin":2266, //Berlin;Frying Pan
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Berlin":2267, //Berlin;Cocaine Brick
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Berlin":2268, //Berlin;Car Battery
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Berlin":2269, //Berlin;Shovel
+	"55ed7196-2303-4af6-9fa3-45b691134561|Berlin":2270, //Berlin;Bartoli 75R
+	"aa532e88-2430-432f-9818-ddb8ad80615e|Berlin":2271, "01048280-0358-4f0a-95b7-1f9f665c1648|Berlin":2271, //Berlin;Insecticide
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Berlin":2272, //Berlin;Garden Fork
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Berlin":2273, //Berlin;Gold Idol
+	"719ba201-3688-4984-afb0-81dc2cc95ec1|Berlin":2274, //Berlin;Bartoli Woodsman Hunting Rifle
+	"5ad01c38-244a-4b75-94d6-624850d2dc92|Berlin":2275, //Berlin;Spray Can
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Berlin":2276, //Berlin;Bag of Sugar
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Berlin":2277, //Berlin;Brick
+	"d73251b4-4860-4b5b-8376-7c9cf2a054a2|Berlin":2278, //Berlin;Scrap Sword
+	"5952b621-fee9-4699-809c-8889abadfdb8|Berlin":2279, //Berlin;Blueberry Muffin
+	"fb5319c4-f3ff-4ce6-9a78-2fc2c33bd19c|Berlin":2280, //Berlin;Bird's Egg
+	"2c037ef5-a01b-4532-8216-1d535193a837|Berlin":2281, //Berlin;Combat Knife
+	"ce633778-7424-4784-8bc2-f9d717a23709|Berlin":2282, //Berlin;Baseball
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Berlin":2283, //Berlin;Old Axe
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Berlin":2284, //Berlin;Iron
+	"8ee26350-67f9-48bd-983e-8f276eea04cc|Berlin":2285, //Berlin;Poisonous (Emetic) Mushroom
+	"785c3c6b-1272-4853-94f0-a41d52f64795|Berlin":2286, //Berlin;Bartoli Hunting Shotgun
+	"ef63eda6-6411-4ce0-b35b-143fc5767fc0|Berlin":2287, //Berlin;Lethal Pills
+	"af9ad679-6a7c-4f8e-9700-ceb5e6887666|Berlin":2288, //Berlin;Modern Lethal Syringe
+	"e30a5b15-ce4d-41d5-a2a5-08dec9c4fe79|Berlin":2289, //Berlin;Concealable Knife
+	"407bf3c3-6319-4573-b193-2611b0ee397e|Berlin":2290, //Berlin;ICA Remote Audio Distraction Mk III
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Chongqing":2291, //Chongqing;Brick
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Chongqing":2292, //Chongqing;Hammer
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Chongqing":2293, //Chongqing;Lead Pipe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Chongqing":2294, //Chongqing;Frying Pan
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Chongqing":2295, //Chongqing;Apple
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Chongqing":2296, "c19f796e-e23f-4429-a046-47ed3d324359|Chongqing":2296, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Chongqing":2296, "004ecac9-6aee-4b30-a073-4399a94535d8|Chongqing":2296, //Chongqing;Soda Can
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Chongqing":2297, //Chongqing;Screwdriver
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Chongqing":2298, //Chongqing;Fire Axe
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Chongqing":2299, //Chongqing;Wrench
+	"9488fa1e-10e1-49c9-bb24-6635d2e5bd49|Chongqing":2300, //Chongqing;Tanto
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Chongqing":2301, //Chongqing;Crowbar
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Chongqing":2302, //Chongqing;Letter Opener
+	"0f9608e9-6e42-49b9-b4cd-9aaebba8458f|Chongqing":2303, //Chongqing;Hackl Leviathan Sniper Rifle Covert
+	"e98f44fd-7f36-46a8-ae3c-bf080e8454d3|Chongqing":2304, //Chongqing;Umbrella
+	"d73251b4-4860-4b5b-8376-7c9cf2a054a2|Chongqing":2305, //Chongqing;Scrap Sword
+	"3a359494-ee05-4fea-beac-8726233a55bf|Chongqing":2306, //Chongqing;Whiskey Bottle
+	"5952b621-fee9-4699-809c-8889abadfdb8|Chongqing":2307, //Chongqing;Blueberry Muffin
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|Chongqing":2308, //Chongqing;Chloroform Flask
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Chongqing":2309, //Chongqing;Coin
+	"8d937ed4-dc85-476b-8048-e96a8900e7bf|Chongqing":2310, //Chongqing;Mannequin Arm
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Chongqing":2311, //Chongqing;Remote Explosive
+	"55ed7196-2303-4af6-9fa3-45b691134561|Chongqing":2312, //Chongqing;Bartoli 75R
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Chongqing":2313, //Chongqing;Hackl 9S Covert
+	"8a30c788-049a-4b83-b148-1a6db49d2ae5|Chongqing":2314, //Chongqing;ICA SMG Raptor Covert
+	"f6f525d2-a28c-4548-825b-f7ce93f6577c|Chongqing":2315, //Chongqing;Fusil X2000 Stealth
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Chongqing":2316, //Chongqing;Tactical Bartoli 12G
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Chongqing":2317, //Chongqing;Emetic Rat Poison
+	"bad168bb-3629-42b3-bc57-604b03a81d30|Chongqing":2318, //Chongqing;Package
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Chongqing":2319, //Chongqing;Newspaper
+	"903d273c-c750-441d-916a-31557fea3382|Chongqing":2320, //Chongqing;Banana
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Chongqing":2321, //Chongqing;Apricot
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Chongqing":2322, //Chongqing;Cleaver
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Chongqing":2323, //Chongqing;Meaty Bone
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Chongqing":2324, //Chongqing;Kitchen Knife
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Chongqing":2325, //Chongqing;Iron
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Chongqing":2326, //Chongqing;Soap
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Chongqing":2327, //Chongqing;Car Battery
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Chongqing":2328, //Chongqing;Toy Tank
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Chongqing":2329, //Chongqing;Scissors
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Chongqing":2330, //Chongqing;Driftwood Log
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Chongqing":2331, //Chongqing;Hobby Knife
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Chongqing":2332, //Chongqing;Fire Extinguisher
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Chongqing":2333, //Chongqing;Cowboy Bust
+	"280739c7-9d93-48b9-840e-694883e76700|Chongqing":2334, //Chongqing;Stethoscope
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Chongqing":2335, //Chongqing;Lethal Poison Pill Jar
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Chongqing":2336, //Chongqing;Garden Fork
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Chongqing":2337, //Chongqing;Propane Flask
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Chongqing":2338, //Chongqing;Cigar Box
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Mendoza":2339, //Mendoza;Emetic Rat Poison
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Mendoza":2340, //Mendoza;Cannonball
+	"12200bd8-9605-4111-8b26-4e73cb07d816|Mendoza":2341, //Mendoza;Broadsword
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Mendoza":2342, //Mendoza;Bag of Gunpowder
+	"fba6e133-78d1-4af1-8450-1ff30466c553|Mendoza":2343, //Mendoza;Jarl's Pirate Saber
+	"719ba201-3688-4984-afb0-81dc2cc95ec1|Mendoza":2344, //Mendoza;Bartoli Woodsman Hunting Rifle
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Mendoza":2345, //Mendoza;Old Axe
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Mendoza":2346, //Mendoza;Lethal Poison Pill Jar
+	"d2a7fa04-2cac-45d8-b696-47c566bb95ff|Mendoza":2347, //Mendoza;Sapper's Axe
+	"42c7bb52-a71b-489c-8a74-7db0c09ba313|Mendoza":2348, //Mendoza;Shears
+	"4fad7437-59e9-4ca9-9b31-a6d97484216b|Mendoza":2349, //Mendoza;Violin
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Mendoza":2350, //Mendoza;Imperial Filigree Egg
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Mendoza":2351, //Mendoza;Garden Fork
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Mendoza":2352, //Mendoza;Shovel
+	"e98f44fd-7f36-46a8-ae3c-bf080e8454d3|Mendoza":2353, //Mendoza;Umbrella
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Mendoza":2354, //Mendoza;Brick
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Mendoza":2355, "c19f796e-e23f-4429-a046-47ed3d324359|Mendoza":2355, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Mendoza":2355, "004ecac9-6aee-4b30-a073-4399a94535d8|Mendoza":2355, //Mendoza;Soda Can
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Mendoza":2356, //Mendoza;Fire Poker
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Mendoza":2357, //Mendoza;Apple
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Mendoza":2358, //Mendoza;Frying Pan
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Mendoza":2359, //Mendoza;Meaty Bone
+	"903d273c-c750-441d-916a-31557fea3382|Mendoza":2360, //Mendoza;Banana
+	"299eae90-4744-4557-b30b-71382cba2839|Mendoza":2361, //Mendoza;Cabernet Sauvignon
+	"785c3c6b-1272-4853-94f0-a41d52f64795|Mendoza":2362, //Mendoza;Bartoli Hunting Shotgun
+	"81654161-7711-4985-8056-8651a381d3ca|Mendoza":2363, //Mendoza;Rake
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Mendoza":2364, //Mendoza;Wrench
+	"2b1bd2af-554e-4ea7-a717-3f6d0eb0215f|Mendoza":2365, //Mendoza;Grape Knife
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Mendoza":2366, //Mendoza;Car Battery
+	"cb34f363-3534-46ff-b036-d49f1329f300|Mendoza":2367, //Mendoza;Torch
+	"3fbd6da4-c61c-40d6-9494-8277d2e172e4|Mendoza":2368, //Mendoza;Grapevine
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Mendoza":2369, "aa62586e-d463-494e-b55f-177bcdf8c08c|Mendoza":2369, //Mendoza;Poisonous Flower (Emetic)
+	"40766e9d-eb46-474e-b5ce-927e3e70f0c6|Mendoza":2370, //Mendoza;Pinot Noir
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Mendoza":2371, //Mendoza;Screwdriver
+	"3f9ed406-8de0-4466-b393-38a7f905d859|Mendoza":2372, //Mendoza;Malbec
+	"2d960bf0-217c-400d-a1ee-f721e18f2926|Mendoza":2373, //Mendoza;1945 Grand Paladin
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Mendoza":2374, //Mendoza;Fire Extinguisher
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Mendoza":2375, //Mendoza;Fire Axe
+	"0576a20c-581b-4705-8b9d-464e077d117e|Mendoza":2376, //Mendoza;Wet Floor Sign
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Mendoza":2377, //Mendoza;Crowbar
+	"2c037ef5-a01b-4532-8216-1d535193a837|Mendoza":2378, //Mendoza;Combat Knife
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Mendoza":2379, //Mendoza;Coin
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Mendoza":2380, //Mendoza;Cocaine Brick
+	"a8309099-1b89-4492-bf37-37d4312b6615|Mendoza":2381, //Mendoza;Sieger AR552 Tactical
+	"7d64d9df-5d30-4e98-9af0-7562ee145d5c|Mendoza":2382, //Mendoza;Sieger 300 Tactical
+	"3dbbbb5e-61a7-4cae-8df0-0e911e744dca|Mendoza":2383, //Mendoza;Remote CX Demo Block MK II
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Mendoza":2384, //Mendoza;Hatchet
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|Mendoza":2385, //Mendoza;Claw Hammer
+	"3e3819ca-4d19-4e0a-a238-4bd16c730e61|Mendoza":2386, //Mendoza;Machete
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Mendoza":2387, //Mendoza;Propane Flask
+	"2147b6cd-5a42-4cd6-b366-2c5c50d97db7|Mendoza":2388, //Mendoza;Fishing Line
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Mendoza":2389, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Mendoza":2389, //Mendoza;Fish
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Mendoza":2390, //Mendoza;Hobby Knife
+	"b1b40b14-eded-404f-b933-c4da15e85644|Mendoza":2391, "d689f87e-c3b1-4018-8e78-2f0025cde2a9|Mendoza":2391, //Mendoza;Icicle
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Mendoza":2392, //Mendoza;Kitchen Knife
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Mendoza":2393, //Mendoza;Bartoli 75S
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Mendoza":2394, //Mendoza;Hackl 9S Covert
+	"6294f1c4-68db-477f-b7c9-8c9825c077a1|Carpathian Mountains":2395, //Carpathian Mountains;Rusty Crowbar
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Carpathian Mountains":2396, //Carpathian Mountains;Soap
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Carpathian Mountains":2397, //Carpathian Mountains;Imperial Filigree Egg
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|Carpathian Mountains":2398, //Carpathian Mountains;Flash Grenade
+	"b1b40b14-eded-404f-b933-c4da15e85644|Carpathian Mountains":2399, "d689f87e-c3b1-4018-8e78-2f0025cde2a9|Carpathian Mountains":2399, //Carpathian Mountains;Icicle
+	"a494c3c8-9a41-4398-9542-559e6a5dc1cb|Carpathian Mountains":2400, //Carpathian Mountains;ICA SMG White Raptor Covert
+	"c716ebb8-cc0e-4e60-9335-844a0d7e645d|Carpathian Mountains":2401, //Carpathian Mountains;HWK21 Pale
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Carpathian Mountains":2402, //Carpathian Mountains;Brick
+	"ecf022db-ecfd-48c0-97b5-2258e4e89a65|Carpathian Mountains":2403, //Carpathian Mountains;Rusty Screwdriver
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Carpathian Mountains":2404, "c19f796e-e23f-4429-a046-47ed3d324359|Carpathian Mountains":2404, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Carpathian Mountains":2404, "004ecac9-6aee-4b30-a073-4399a94535d8|Carpathian Mountains":2404, //Carpathian Mountains;Soda Can
+	"4e92b3c5-3358-44aa-8a87-f7f349f46f44|Carpathian Mountains":2405, //Carpathian Mountains;ICA Tactical Shotgun Covert
+	"3f9cf03f-b84f-4419-b831-4704cff9775c|Carpathian Mountains":2406, //Carpathian Mountains;Fragmentation Grenade
+	"5952b621-fee9-4699-809c-8889abadfdb8|Carpathian Mountains":2407, //Carpathian Mountains;Blueberry Muffin
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|Carpathian Mountains":2408, //Carpathian Mountains;Claw Hammer
+	"a02af9a5-aefb-47e0-9d67-51cc9ec89774|Carpathian Mountains":2409, //Carpathian Mountains;Flash Grenade Mk III
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Carpathian Mountains":2410, //Carpathian Mountains;Barber Razor
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Carpathian Mountains":2411, //Carpathian Mountains;Fire Axe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Carpathian Mountains":2412, //Carpathian Mountains;Fire Extinguisher
+	"1a11a060-358c-4054-98ec-d3491af1d7c6|Carpathian Mountains":2413, //Carpathian Mountains;Fiber Wire
+	"f93b99a3-aef6-419f-b303-59470577696d|Carpathian Mountains":2414 //Carpathian Mountains;ICA19 Black Lily
+}
 const locationNameToApIdMap: Record<string,number> = {
     "ICA Facility Completed":1000,
     "Paris Completed":1001,
@@ -5908,7 +6825,7 @@ const checkLocation = (id:number) =>{
             logArchipelago("Id: "+id+" already in list to send-")
         }
     }else{
-        errArchipelago("Completed Level was not from Archipelago campaign, not sending any checks")
+        errArchipelago("Invalid Archipelago Id found, either this Completed Level was not from AP or this item isn't a check.")
     }
 }
 
@@ -6034,6 +6951,9 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
                 configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
                 continue;
             }
+			if(id === 1001){ // exception for Nothing
+				continue
+			}
             errArchipelago("Recived ItemId "+id+" is not in ItemMap!")
             errorOccured = true
             continue
@@ -6368,6 +7288,9 @@ module.exports = function archipelagoCampaign(controller: Controller) {
                 if(modifiedContractMap[session.contractId]!=undefined){
                     logArchipelago("Sending check for "+event.Value.ItemName +";"+event.Value.RepositoryId+";"+itemDepotToApIdMap[event.Value.RepositoryId])
                     checkLocation(itemDepotToApIdMap[event.Value.RepositoryId])
+
+					logArchipelago("Sending Map specific check for "+event.Value.ItemName +";"+event.Value.RepositoryId+";"+itempDepotAndLevelToApIdMap[event.Value.RepositoryId+"|"+modifiedContractMap[session.contractId]])
+                    checkLocation(itempDepotAndLevelToApIdMap[event.Value.RepositoryId+"|"+modifiedContractMap[session.contractId]])
                 }else{
                     errArchipelago("Save from diffrent Archipelago Seed was loaded, not sending check \"Itempickup - "+event.Value.ItemName+"\"")
                 }

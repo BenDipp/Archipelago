@@ -151,6 +151,10 @@ class Itemsanity(Toggle):
     """Add a check for each item that can be picked up"""
     display_name = "Enable Itemsanity"
 
+class SplitItemsanity(Toggle):
+    """Split the checks from itemsanity by map (\"Itempickup - Crowbar\" becomes \"Itempickup - ICA Facility - Crowbar\",\"Itempickup - Paris - Crowbar\",\"Itempickup - Sapienza - Crowbar\" etc.)"""
+    display_name = "Split Itemsanity"
+
 class GameDifficulty(Choice):
     """Set the ingame difficulty for all missions:
     - Casual: Unlimited saves, All Mission Story guides available, No surveillance cameras, Less enforcers, Forgiving combat, More items are legal to carry, NPCs are less attentive to sounds.
@@ -249,6 +253,7 @@ class IncludeWinterSportsItems(Toggle):
 class HitmanOptions(PerGameCommonOptions):
     game_difficulty: GameDifficulty
     enable_itemsanity: Itemsanity
+    split_itemsanity: SplitItemsanity
 
     included_s1_locations: IncludedH1Levels
     included_s2_locations: IncludedH2Levels
