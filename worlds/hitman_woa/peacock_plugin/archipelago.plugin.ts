@@ -6922,8 +6922,10 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
         modifiedContractMap[newContractId] = contractMap[contractId]  
         contract.Metadata.Id = newContractId
 		
-		if(contractId == "ada5f2b1-8529-48bb-a596-717f75f5eacb")
+		if(contractId == "ada5f2b1-8529-48bb-a596-717f75f5eacb"){
 			contract.Data.MandatoryLoadout = undefined
+			contract.Metadata.Type = "mission" //was "tutorial"
+		}
 
 		targetsIndex++;
         controller.addMission(contract); 
