@@ -115,10 +115,10 @@ class HitmanWorld(World):
                     self.options.included_s2_locations.value = slot_data["included_s2_locations"]
                     self.options.included_s2_dlc_locations.value = slot_data["included_s2_dlc_locations"]
                     self.options.included_s3_locations.value = slot_data["included_s3_locations" ]
-                    self.options.check_for_completion.value = slot_data["check_for_completion"]
-                    self.options.check_for_sa.value = slot_data["check_for_sa"]
-                    self.options.check_for_so.value = slot_data["check_for_so"]
-                    self.options.check_for_saso.value = slot_data["check_for_saso"]
+                    self.options.levels_with_check_for_completion.value = slot_data["levels_with_check_for_completion"]
+                    self.options.levels_with_check_for_sa.value = slot_data["levels_with_check_for_sa"]
+                    self.options.levels_with_check_for_so.value = slot_data["levels_with_check_for_so"]
+                    self.options.levels_with_check_for_saso.value = slot_data["levels_with_check_for_saso"]
                     self.options.starting_location.value = slot_data["starting_location"]
                     self.options.goal_level.value = slot_data["goal_level"]
         
@@ -148,17 +148,29 @@ class HitmanWorld(World):
         self.enabled_entitlements[self.player].extend(self.options.included_s3_locations.value)
 
         # enable completion checks
-        if self.options.check_for_completion:
+        if "all" in self.options.levels_with_check_for_completion.value:
             self.enabled_entitlements[self.player].append("completed")
+        else:
+            for location in self.options.levels_with_check_for_completion.value:
+                self.enabled_entitlements[self.player].append(location+"_completed")
 
-        if self.options.check_for_sa:
+        if "all" in self.options.levels_with_check_for_sa.value:
             self.enabled_entitlements[self.player].append("sa")
+        else:
+            for location in self.options.levels_with_check_for_sa.value:
+                self.enabled_entitlements[self.player].append(location+"_sa")
 
-        if self.options.check_for_so:
+        if "all" in self.options.levels_with_check_for_so.value:
             self.enabled_entitlements[self.player].append("so")
+        else:
+            for location in self.options.levels_with_check_for_so.value:
+                self.enabled_entitlements[self.player].append(location+"_so")
 
-        if self.options.check_for_saso:
+        if "all" in self.options.levels_with_check_for_saso.value:
             self.enabled_entitlements[self.player].append("saso")
+        else:
+            for location in self.options.levels_with_check_for_saso.value:
+                self.enabled_entitlements[self.player].append(location+"_saso")
 
         if self.options.enable_itemsanity:
             if self.options.split_itemsanity:
@@ -337,7 +349,7 @@ class HitmanWorld(World):
         slotdata = self.options.as_dict( # copy options for yaml-less Universal Tracker
             "enable_itemsanity", "split_itemsanity",
             "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations", 
-            "check_for_completion", "check_for_sa", "check_for_so", "check_for_saso",
+            "levels_with_check_for_completion", "levels_with_check_for_sa", "levels_with_check_for_so", "levels_with_check_for_saso",
             "starting_location", "goal_level"
         )
         slotdata["starting_location_name"] = self.options.starting_location.current_key

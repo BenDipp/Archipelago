@@ -69,7 +69,7 @@ class PercentageOfAdditionalContractPieces(Range):
     default = 20
 
 class StartingLevel(Choice):
-    """Which level is unlocked from the start. If the selected level is not included in the "included_x_locations" options, it will be added to it."""
+    """Which level is unlocked from the start. If the selected level is not included in the "included_x_locations"options, it will be added to it."""
     display_name = "Starting Level"
     option_ica_facility = 0 
     option_paris = 1
@@ -131,28 +131,37 @@ class IncludedH3Levels(OptionSet):
     valid_keys = ["dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
     default = ["dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
-class CheckForCompletion(DefaultOnToggle):
-    """Add a check for beating each level, regardless of Rating"""
-    display_name = "Level completion checks"
+class CheckForCompletion(OptionSet):
+    """Add a check for beating each of the listed levels, regardless of Rating
+    valid options: all, ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido, hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail, new_york, haven_island, dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island"""
+    display_name = "Levels with completion checks"
+    valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
+    default = ["all"]
 
-class CheckForSA(Toggle):
-    """Add a check for beating each level with Silent Assassin Rating"""
-    display_name = "Silent Assassin checks"
+class CheckForSA(OptionSet):
+    """Add a check for beating each of the listed levels with a Silent Assasin Rating
+    valid options: all, ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido, hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail, new_york, haven_island, dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island"""
+    display_name = "Levels with Silent Assassin checks"
+    valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
-class CheckForSO(Toggle):
-    """Add a check for beating each level without using disguises"""
-    display_name = "Suit Only checks"
+class CheckForSO(OptionSet):
+    """Add a check for beating each of the listed levels without using disguises
+    valid options: all, ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido, hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail, new_york, haven_island, dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island"""
+    display_name = "Levels with Suit Only checks"
+    valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
-class CheckForSASO(Toggle):
-    """Add a check for beating each level with Silent Assassin Rating without using disguises"""
-    display_name = "Silent Assassin, Suit Only checks"
+class CheckForSASO(OptionSet):
+    """Add a check for beating each of the listed levels with Silent Assassin Rating without using disguises
+    valid options: all, ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido, hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail, new_york, haven_island, dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island"""
+    display_name = "Levels with Silent Assassin, Suit Only checks"
+    valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
 class Itemsanity(Toggle):
     """Add a check for each item that can be picked up"""
     display_name = "Enable Itemsanity"
 
 class SplitItemsanity(Toggle):
-    """Split the checks from itemsanity by map (\"Itempickup - Crowbar\" becomes \"Itempickup - ICA Facility - Crowbar\",\"Itempickup - Paris - Crowbar\",\"Itempickup - Sapienza - Crowbar\" etc.)"""
+    """Split the checks from itemsanity by map (\"Itempickup - Crowbar\"becomes \"Itempickup - ICA Facility - Crowbar\",\"Itempickup - Paris - Crowbar\",\"Itempickup - Sapienza - Crowbar\"etc.)"""
     display_name = "Split Itemsanity"
 
 class GameDifficulty(Choice):
@@ -168,7 +177,7 @@ class GameDifficulty(Choice):
     default = 1
 
 class RandomTargets(Range):
-    """How many random Targets are assigned to each Level. 0 Targets results in vanilla targets beeing chosen for each map. (Note: Carpathian Mountains will always remain vanilla)""" #TODO: does logic need to be considered?
+    """How many random Targets are assigned to each Level. 0 Targets results in vanilla targets beeing chosen for each map. (Note: Carpathian Mountains will always remain vanilla)"""#TODO: does logic need to be considered?
     display_name = "Number of Random Targets"
     range_end = 5
     range_start = 0
@@ -268,10 +277,10 @@ class HitmanOptions(PerGameCommonOptions):
     goal_required_contract_pieces: RequiredContractPieceAmount
     goal_additional_contract_pieces_percent: PercentageOfAdditionalContractPieces
 
-    check_for_completion: CheckForCompletion
-    check_for_sa: CheckForSA
-    check_for_so: CheckForSO
-    check_for_saso: CheckForSASO
+    levels_with_check_for_completion: CheckForCompletion
+    levels_with_check_for_sa: CheckForSA
+    levels_with_check_for_so: CheckForSO
+    levels_with_check_for_saso: CheckForSASO
 
     number_of_targets: RandomTargets
 
