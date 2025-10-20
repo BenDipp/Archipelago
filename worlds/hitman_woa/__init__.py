@@ -293,16 +293,19 @@ class HitmanWorld(World):
 
         valid_filler = []
         valid_useful = []
+        valid_duplicats = []
         starting_locaiton = "Level - "+goal_table[self.options.starting_location.current_key]
 
         for item in item_table:
             if len(item_table[item][1]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1]):
-                if item_table[item][2] == ItemClassification.progression and item != starting_locaiton:
+                if item_table[item][2] == ItemClassification.progression and item != starting_locaiton and item != "Contract Piece":
                     item_pool.append(self.create_item(item))
                 if item_table[item][2] == ItemClassification.filler:
                     valid_filler.append(item)
                 if item_table[item][2] == ItemClassification.useful:
                     valid_useful.append(item)
+                if item_table[item][3]: #is allowed to be duplicated
+                     valid_duplicats.append(item)
 
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection:
             contract_count = int((Decimal(100 + self.options.goal_additional_contract_pieces_percent)/100 * self.options.goal_required_contract_pieces).to_integral_value(rounding=ROUND_HALF_UP)) # Yoinked from OoT Triforce Hunt
@@ -322,8 +325,8 @@ class HitmanWorld(World):
                 item_pool.append(self.create_item(choosenItem))
                 valid_filler.remove(choosenItem)
             else:
-                item_pool.append(self.create_item("Nothing"))
-            # TODO: add better filler items to remove Nothings
+                choosenItem = self.random.choice(valid_duplicats)
+                item_pool.append(self.create_item(choosenItem))
         
         self.multiworld.push_precollected(self.create_item(starting_locaiton))
         self.multiworld.itempool.extend(item_pool)

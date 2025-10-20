@@ -6971,7 +6971,27 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
                 // TODO: somehow force update the menu and campaign
         }else{
             logArchipelago("Awarded Unlockable: "+apItemMap[id].unlockableId)
-            controller.configManager.configs.allunlockables.push(unlockablesToKeep[apItemMap[id].unlockableId])
+			const lockableToUnlock = unlockablesToKeep[apItemMap[id].unlockableId]
+			const alreadyUnlockedLockable = controller.configManager.configs.allunlockables.find((element: Unlockable) => element.Id === apItemMap[id].unlockableId)
+
+			if(alreadyUnlockedLockable != undefined){ //Modify existing if it would be a copy
+				
+				if(lockableToUnlock.Properties.GameAssets === undefined){
+					lockableToUnlock.Properties.GameAssets = [lockableToUnlock.Id]
+					alreadyUnlockedLockable.Properties.GameAssets = [lockableToUnlock.Id]
+				}
+
+				if(lockableToUnlock.Properties.RepositoryAssets === undefined){
+					lockableToUnlock.Properties.RepositoryAssets = [lockableToUnlock.Properties.RepositoryId!]
+					alreadyUnlockedLockable.Properties.RepositoryAssets = [lockableToUnlock.Properties.RepositoryId!]
+				}
+				
+				alreadyUnlockedLockable.Properties.GameAssets.push(...lockableToUnlock.Properties.GameAssets)
+				alreadyUnlockedLockable.Properties.RepositoryAssets.push(...lockableToUnlock.Properties.RepositoryAssets)
+				
+			}else{
+				controller.configManager.configs.allunlockables.push(JSON.parse(JSON.stringify(unlockablesToKeep[apItemMap[id].unlockableId])))
+			}
 
             controller.configManager.configs.H2allunlockables.push(unlockablesToKeep[apItemMap[id].unlockableId])
             clearInventoryCache()
