@@ -157,11 +157,11 @@ class CheckForSASO(OptionSet):
     valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
 class Itemsanity(Toggle):
-    """Add a check for each item that can be picked up"""
+    """Add a check for each unique item that can be picked up"""
     display_name = "Enable Itemsanity"
 
 class SplitItemsanity(Toggle):
-    """Split the checks from itemsanity by map (\"Itempickup - Crowbar\"becomes \"Itempickup - ICA Facility - Crowbar\",\"Itempickup - Paris - Crowbar\",\"Itempickup - Sapienza - Crowbar\"etc.)"""
+    """Split the checks from itemsanity by map (\"Itempickup - Crowbar\" becomes \"Itempickup - ICA Facility - Crowbar\", \"Itempickup - Paris - Crowbar\", \"Itempickup - Sapienza - Crowbar\" etc.)"""
     display_name = "Split Itemsanity"
 
 class GameDifficulty(Choice):
