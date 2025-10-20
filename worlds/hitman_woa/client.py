@@ -28,14 +28,15 @@ class HitmanContext(CommonContext):
 
     async def server_auth(self, password_requested: bool = False):
         # check if Peacock is running
+        logger.info("Testing connection to Peacock...")
         try:
             r = requests.get(self.peacock_url)
-            if r.status_code != 200:
-                raise Exception(r.text)
+            r.raise_for_status()
         except Exception as e:
             logger.error("No respone from Peacock, please make sure the Peacock server is running before connecting.")
             self.exit_event.set()
             return
+        logger.info("Peacock connection established.")            
 
         if password_requested and not self.password:
             await super(HitmanContext, self).server_auth(password_requested)
@@ -79,9 +80,11 @@ class HitmanContext(CommonContext):
         return ui
 
     def set_slot_data(self):
+        logger.info("Sending Slot Data to Peacock...")
         try:
             r = requests.get(self.peacock_url+"/setData/"+self.slot_data["difficulty"]+"/"+str(self.current_seed)+"/"+self.slot_data["targets"])
             r.raise_for_status()
+            logger.info("Slot Data sent.")
         except Exception as e:
                 logger.error("Error occured while attempting to set difficulty, disconnecting!")
                 self.disconnect(False)
@@ -96,8 +99,10 @@ class HitmanContext(CommonContext):
                     goalData = self.slot_data["goal_amount"]
                     moreGoalData = "none"
 
+            logger.info("Sending Goal information...")
             r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goalData)+"/"+moreGoalData)
             r.raise_for_status()
+            logger.info("Goal information sent.")
         except Exception as e:
                 logger.error("Error occured while attempting to set goal, disconnecting!")
                 self.disconnect(False)
