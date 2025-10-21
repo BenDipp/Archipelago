@@ -45,7 +45,7 @@ class HitmanWeb(WebWorld):
             options.GoalLevel,
             options.GoalDifficulty,
             options.RequiredContractPieceAmount,
-            options.PercentageOfAdditionalContractPieces
+            options.AdditionalContractPieces
         ]),
         OptionGroup("Inlcuded Items from DLC",[
             options.IncludeDeluxeItems,
@@ -123,7 +123,8 @@ class HitmanWorld(World):
                     self.options.goal_level.value = slot_data["goal_level"]
         
         # make sure the goal Level is added as location
-        if self.options.goal_mode.value == self.options.goal_mode.option_level_completion:
+        if self.options.goal_mode.value == self.options.goal_mode.option_level_completion or \
+        self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
             self.enabled_entitlements[self.player].append(self.options.goal_level.current_key)
             match self.options.goal_rating.value:
                 case self.options.goal_rating.option_any:
@@ -281,6 +282,12 @@ class HitmanWorld(World):
                 map_region.add_locations({location :self.location_name_to_id[location]},HitmanLocation)
                 set_rule(self.multiworld.get_location(location, self.player),
                         lambda state, required_items = all_required_items: state.has_from_list(required_items,self.player,1))
+            
+        if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or \
+        self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
+            map_region.add_locations({location :self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
+            set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
+                        lambda state, required_items = "Contract Piece": state.has(required_items,self.player,self.options.goal_required_contract_pieces.value))
 
     def create_item(self, item:str) -> HitmanItem:
         return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)
@@ -307,10 +314,15 @@ class HitmanWorld(World):
                 if item_table[item][3]: #is allowed to be duplicated
                      valid_duplicats.append(item)
 
-        if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection:
-            contract_count = int((Decimal(100 + self.options.goal_additional_contract_pieces_percent)/100 * self.options.goal_required_contract_pieces).to_integral_value(rounding=ROUND_HALF_UP)) # Yoinked from OoT Triforce Hunt
-            for i in range(1, contract_count):
+        if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or \
+        self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
+            for i in range(0, self.options.goal_required_contract_pieces.value+self.options.goal_additional_contract_pieces.value):
                 item_pool.append(self.create_item("Contract Piece"))
+
+        if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
+            print("Level - "+goal_table[self.options.goal_level.current_key])
+            item_pool.remove(self.create_item("Level - "+goal_table[self.options.goal_level.current_key]))
+            self.multiworld.get_location("All Contract Pieces Collected", self.player).place_locked_item(self.create_item("Level - "+goal_table[self.options.goal_level.current_key]))
 
         total_locations = len(self.multiworld.get_unfilled_locations(self.player))
         total_items = len(item_pool)
@@ -343,10 +355,10 @@ class HitmanWorld(World):
             #        self.player,
             #        self.options.goal_amount.value) 
                 #Assumes that every level-unlock gives 1 check towards the goal
-            case self.options.goal_mode.option_level_completion:
+            case self.options.goal_mode.option_level_completion | self.options.goal_mode.option_contract_collection_level_completion:
                 self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location(self.goal_location, self.player)
             case self.options.goal_mode.option_contract_collection:
-                self.multiworld.completion_condition[self.player] = lambda state: state.has("Contract Piece", self.player, self.options.goal_required_contract_pieces.value) 
+                self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location("All Contract Pieces Collected", self.player)
     
     def fill_slot_data(self):
         slotdata = self.options.as_dict( # copy options for yaml-less Universal Tracker
@@ -376,6 +388,13 @@ class HitmanWorld(World):
                 slotdata["goal_rating"] = self.options.goal_rating.current_key
             case self.options.goal_mode.option_contract_collection:
                 slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
+                slotdata["goal_location_id"] = self.location_name_to_id["All Contract Pieces Collected"]
+            case self.options.goal_mode.option_contract_collection_level_completion:
+                slotdata["goal_location_id"] = self.location_name_to_id[self.goal_location]
+                slotdata["goal_location_name"] = self.options.goal_level.current_key
+                slotdata["goal_rating"] = self.options.goal_rating.current_key
+                slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
+
 
         if self.options.number_of_targets.value > 0:
             targets = ""

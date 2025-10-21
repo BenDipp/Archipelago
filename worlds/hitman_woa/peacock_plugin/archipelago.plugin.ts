@@ -6933,6 +6933,7 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 }
 let collectedContractPieces = 0
 let contractGoalAmount = ""
+let goalLevelString = ""
 const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
     let errorOccured = false
     for(const i in itemIds){
@@ -6943,15 +6944,19 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
                 collectedContractPieces++;
 
 				//H3
-				configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+				configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
 
-                configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+                configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
 
 				//H2
-				configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+				configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
 
-                configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
-                continue;
+                configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
+				
+				if(collectedContractPieces >= parseInt(contractGoalAmount)){
+					checkLocation(10000) //got all pieces
+				}
+				continue;
             }
 			if(id === 1001){ // exception for Nothing
 				continue
@@ -7089,7 +7094,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             listOfUnsentChecks.pop()
         }
     })
-    webFeaturesRouter.get("/archipelago/setGoal/:goalMode/:goalDetails/:moreGoalDetails",(req,res)=>{
+    webFeaturesRouter.get("/archipelago/setGoal/:goalMode/:goalDetails/:moreGoalDetails/:evenMoreGoalDetails",(req,res)=>{
         if(req.params.goalMode === "contract_collection"){
             contractGoalAmount = req.params.goalDetails
 
@@ -7108,19 +7113,32 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
 
             res.status(200).send()
-        }else if(req.params.goalMode === "level_completion"){
+        }else if(req.params.goalMode === "contract_collection_level_completion"){
+			contractGoalAmount = req.params.goalDetails
+			goalLevelString = req.params.moreGoalDetails+" ("+req.params.evenMoreGoalDetails.replaceAll("_"," ")+")"
 
 			//H3
-            configs.EiderDashboard.children.$mergearrays[5].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+            configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
 
-            configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+            configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
+
+            configs.EiderDashboard.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.moreGoalDetails), "h3")!.Metadata.TileImage;
+            
+			res.status(200).send()
+		}else if(req.params.goalMode === "level_completion"){
+			goalLevelString = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+
+			//H3
+            configs.EiderDashboard.children.$mergearrays[5].data.title = goalLevelString
+
+            configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = goalLevelString
 
             configs.EiderDashboard.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.goalDetails), "h3")!.Metadata.TileImage;
 
 			//H2
-			configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+			configs.H2DashboardTemplate.children.$mergearrays[5].data.title = goalLevelString
 
-            configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+            configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = goalLevelString
 
             configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.goalDetails), "h3")!.Metadata.TileImage;
 

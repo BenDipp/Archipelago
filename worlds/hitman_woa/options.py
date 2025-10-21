@@ -2,17 +2,19 @@ from dataclasses import dataclass
 from Options import Choice, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
 
 class Goal(Choice):
-    """The victory condition for your Archipelago run.
+    """The goal condition for your Archipelago run.
     -level_completion: requires beating a specific level with a specific rating 
-    -contract_collection: requires collection a certain number of Contract Pieces"""
+    -contract_collection: requires collection a certain number of Contract Pieces to instantly goal
+    -contract_collection_level_completion: requires beating a specific level with a specific rating, after collecting a certain number of Contract Pieces to unlock that level"""
     display_name = "Goal"
     # TODO: didnt work out right now option_number_of_completions = 1
     option_level_completion = 2
     option_contract_collection = 3
+    option_contract_collection_level_completion = 4
     default = 2
     
 class GoalDifficulty(Choice):
-    """When goal is set to level_completion, which rating the goal level needs to be completed with to win."""
+    """When goal is set to level_completion or contract_collection_level_completion, which rating the goal level needs to be completed with to win."""
     display_name = "Goal Level Rating"
     option_any = 1
     option_silent_assassin = 2
@@ -21,7 +23,7 @@ class GoalDifficulty(Choice):
     default = 1
 
 class GoalLevel(Choice):
-    """When goal is set to level_completion, which level is the goal. If the selected level is not included in the "included_x_locations" options, it will be added to it."""
+    """When goal is set to level_completion or contract_collection_level_completion, which level is the goal. If the selected level is not included in the "included_x_locations" options, it will be added to it."""
     display_name = "Goal Level"
     option_ica_facility = 0
     option_paris = 1
@@ -57,16 +59,16 @@ class GoalLevel(Choice):
 class RequiredContractPieceAmount(Range):
     """When the goal is set to contract_colleciton, how many contract pieces are required to award the goal."""
     display_name = "Required Contract Pieces"
-    range_end = 20
+    range_end = 100
     range_start = 1
-    default = 10
+    default = 5
 
-class PercentageOfAdditionalContractPieces(Range):
-    """When the goal is set to contract_colleciton, percentage of additional contract pieces in the item pool."""
-    display_name = "Percentage of Additional Contract Pieces"
+class AdditionalContractPieces(Range):
+    """When the goal is set to contract_colleciton, number of additional contract pieces in the item pool."""
+    display_name = "Number of Additional Contract Pieces"
     range_end = 100
     range_start = 0
-    default = 20
+    default = 5
 
 class StartingLevel(Choice):
     """Which level is unlocked from the start. If the selected level is not included in the "included_x_locations"options, it will be added to it."""
@@ -275,7 +277,7 @@ class HitmanOptions(PerGameCommonOptions):
     goal_level: GoalLevel
     #goal_amount: GoalAmount
     goal_required_contract_pieces: RequiredContractPieceAmount
-    goal_additional_contract_pieces_percent: PercentageOfAdditionalContractPieces
+    goal_additional_contract_pieces: AdditionalContractPieces
 
     levels_with_check_for_completion: CheckForCompletion
     levels_with_check_for_sa: CheckForSA

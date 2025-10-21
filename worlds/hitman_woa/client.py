@@ -86,8 +86,9 @@ class HitmanContext(CommonContext):
             r.raise_for_status()
             logger.info("Slot Data sent.")
         except Exception as e:
-                logger.error("Error occured while attempting to set difficulty, disconnecting!")
-                self.disconnect(False)
+                logger.error("Error occured while attempting to set slot data, disconnecting!")
+                print("Error sending slot data:", e)
+                asyncio.run(self.disconnect(False))
 
     def set_goal(self):
         try:
@@ -95,17 +96,24 @@ class HitmanContext(CommonContext):
                 case "level_completion":
                     goalData = self.slot_data["goal_location_name"]
                     moreGoalData = self.slot_data["goal_rating"]
+                    evenMoreGoalData = "none"
                 case "contract_collection":
                     goalData = self.slot_data["goal_amount"]
                     moreGoalData = "none"
+                    evenMoreGoalData = "none"
+                case "contract_collection_level_completion":
+                    goalData = self.slot_data["goal_amount"]
+                    moreGoalData = self.slot_data["goal_location_name"]
+                    evenMoreGoalData = self.slot_data["goal_rating"]
 
             logger.info("Sending Goal information...")
-            r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goalData)+"/"+moreGoalData)
+            r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goalData)+"/"+moreGoalData+"/"+evenMoreGoalData)
             r.raise_for_status()
             logger.info("Goal information sent.")
         except Exception as e:
                 logger.error("Error occured while attempting to set goal, disconnecting!")
-                self.disconnect(False)
+                print("Error sending goal info:", e)
+                asyncio.run(self.disconnect(False))
 
     def recieve_items(self, items:list[NetworkItem]):
         itemIds = []
@@ -121,10 +129,6 @@ class HitmanContext(CommonContext):
                 asyncio.run(self.disconnect(False))
                 return
 
-        if self.slot_data["goal_mode"] == "contract_collection" and self.collected_contract_pieces >= self.slot_data["goal_amount"]:
-            loop = asyncio.get_event_loop()
-            loop.create_task(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]))
-
     def periodically_get_checks(self):
         self.sse_running = True
         while self.sse_running:
@@ -135,7 +139,7 @@ class HitmanContext(CommonContext):
                 checks = response.json()
                 asyncio.run(self.check_locations(checks))
 
-                if self.slot_data["goal_mode"] == "level_completion" and self.slot_data["goal_location_id"] in checks:
+                if (self.slot_data["goal_mode"] == "level_completion" or self.slot_data["goal_mode"] == "contract_collection_level_completion" or self.slot_data["goal_mode"] == "contract_collection") and self.slot_data["goal_location_id"] in checks:
                     asyncio.run(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]))
             except requests.RequestException as e:
                 print("Error fetching checks:", e)
