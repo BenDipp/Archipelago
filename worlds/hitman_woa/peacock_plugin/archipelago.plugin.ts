@@ -76,7 +76,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "7aeb740f-3d60-4e49-8d27-15a98067ce9f":6, //Lead Pipe
     "95d1c5bd-72de-4236-97c0-b96fc5d92fa8":7, //Pool Ball
     "5cc4d1ea-b4fa-4667-ba3a-b6e859f03059":8, //Brick
-    "31f36818-623f-4c92-892f-d7b19bb325e1":9,   "97d74fa2-4832-4186-a447-c4b2e37d537a":9, //Bust
+    "31f36818-623f-4c92-892f-d7b19bb325e1":9,"97d74fa2-4832-4186-a447-c4b2e37d537a":9, //Bust
     "6ecf1f15-453c-4783-9c70-8777c83934d7":10, //Scissors
     "12cb6b51-a6dd-4bf5-9653-0ab727820cac":11, //Screwdriver
     "f1f89faf-a441-4492-b442-9a923b5ecfd1":12, //Letter Opener
@@ -102,7 +102,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "62c2ac2e-329e-4648-822a-e45a29a93cd0":32, //Amputation Knife
     "ce8e7099-e60d-47e8-bfd6-4918777f2c8b":33, //Toy Tank
     "ac77e98d-4ffa-4755-80fc-cd6e7adc63fb":34, //Expired Can of Spaghetti Sauce
-    "afd1f201-d2a5-4d40-80b1-d81b0d9d2541":35,  "c19f796e-e23f-4429-a046-47ed3d324359":35,    "de69ce1e-a24d-4acc-895f-4c3a71f47ba8":35,  "004ecac9-6aee-4b30-a073-4399a94535d8":35, //Soda Can
+    "afd1f201-d2a5-4d40-80b1-d81b0d9d2541":35,"c19f796e-e23f-4429-a046-47ed3d324359":35,"de69ce1e-a24d-4acc-895f-4c3a71f47ba8":35,"004ecac9-6aee-4b30-a073-4399a94535d8":35, //Soda Can
     "2953e9ac-e25b-41ae-afbf-4a47f86c4f54":36, //Bartoli 75S
     "22f8ffdb-073d-48a1-abb9-13075800008e":37, //Virus Prototype
     "2c037ef5-a01b-4532-8216-1d535193a837":38, //Combat Knife
@@ -117,7 +117,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "5631dace-7f4a-4df8-8e97-b47373b815ff":47, //Katana
     "6e4afb04-417e-4cfc-aaa2-43f3ecca9037":48, //Shashka A33
     "16edb112-58cc-4069-a7dd-ebd258b14044":49, //Fusil G1-4
-    "aa532e88-2430-432f-9818-ddb8ad80615e":50,  "01048280-0358-4f0a-95b7-1f9f665c1648":50, //Insecticide
+    "aa532e88-2430-432f-9818-ddb8ad80615e":50,"01048280-0358-4f0a-95b7-1f9f665c1648":50, //Insecticide
     "22183fd3-d837-47c6-9c44-05637300af93":51, //Coconut
     "d2a7fa04-2cac-45d8-b696-47c566bb95ff":52, //Sapper's Axe
     "e755471f-e6fd-438f-b343-7c98fbb50107":53, //Apricot
@@ -147,7 +147,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "74b04d1f-8ac9-46a0-9a6c-8579cf03276f":77, //Didgeridoo
     "d1f29c76-5751-4e06-b534-e6eb7522b128":78, //Android Arm
     "45c0ccfe-1ac3-4747-9571-fe7588fe6971":79, //Bag of Sugar
-    "1f11f901-2dbe-4e48-a77a-74c110b93da0":80,  "4d0d6b2a-dd81-474c-a412-3bf19af8233d":80, //Fish
+    "1f11f901-2dbe-4e48-a77a-74c110b93da0":80,"4d0d6b2a-dd81-474c-a412-3bf19af8233d":80, //Fish
     "606a9606-8c05-4dcd-93fa-ec9cdc13f357":81, //Pneumatic Wrench
     "53284129-c50a-47a7-9efa-caa3b7503826":82, //Car Bomb
     "c6e9414e-e2ce-470a-95bd-14cd25225878":83, //Cocaine Brick
@@ -156,9 +156,9 @@ const itemDepotToApIdMap: Record<string,number> = {
     "ec31f55f-6109-4f97-9286-8f59fae666f6":86, //The Big One
     "acc9d7b8-80f1-4bb0-ba81-3a69b09e0543":87, //Meaty Bone
     "d75bef38-8a65-45f6-9cd1-ca5e23e2f79a":88, //DAK X2
-    "4cc1765e-939e-4a5a-bee2-44403b47822b":89,  "aa62586e-d463-494e-b55f-177bcdf8c08c":89, //Poisonous Flower (Emetic)
+    "4cc1765e-939e-4a5a-bee2-44403b47822b":89,"aa62586e-d463-494e-b55f-177bcdf8c08c":89, //Poisonous Flower (Emetic)
     "cbf40151-cb96-435a-b683-6430370a07f2":90, //Poisonous Flower (Lethal)
-    "e887e8ea-4554-41e1-b37d-d002dad04fed":91,  "963123fd-8a53-41b6-8950-335495b3f3af":91, //Lethal Poisonous Frog
+    "e887e8ea-4554-41e1-b37d-d002dad04fed":91,"963123fd-8a53-41b6-8950-335495b3f3af":91, //Lethal Poisonous Frog
     "30fa1ade-386f-49b7-bddd-a23cd912611d":92, //Letterbomb Parcel
     "248cbd89-9923-452a-8cda-a5f76d8930dc":93, //Collectors Baseball Bat
     "3e3819ca-4d19-4e0a-a238-4bd16c730e61":94, //Machete
@@ -182,7 +182,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "042fae7b-fe9e-4a83-ac7b-5c914a71b2ca":112, //Flash Grenade
     "5952b621-fee9-4699-809c-8889abadfdb8":113, //Blueberry Muffin
     "a96cdbd8-9657-416a-87bf-d2ed21840794":114, //Newspaper
-    "ef63eda6-6411-4ce0-b35b-143fc5767fc0":115, //Lethal Pills
+    "49765e76-dea7-4ad4-b502-2bad7727a15f":115,"ef63eda6-6411-4ce0-b35b-143fc5767fc0":115, //Lethal Pills
     "c5ec6168-2e5e-4340-b71a-c60f2ee6bd66":116, //Emetic Pills
     "092f6514-c34e-4d04-8d28-7ebbe14230d1":117, //\"Rude Ruby\"
     "ccdd6689-092d-49b2-85f8-416a02e25566":118, //Remote CX Demo Block
@@ -268,7 +268,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "2d960bf0-217c-400d-a1ee-f721e18f2926":198, //1945 Grand Paladin
     "a8309099-1b89-4492-bf37-37d4312b6615":199, //Sieger AR552 Tactical
     "7d64d9df-5d30-4e98-9af0-7562ee145d5c":200, //Sieger 300 Tactical
-    "b1b40b14-eded-404f-b933-c4da15e85644":201, "d689f87e-c3b1-4018-8e78-2f0025cde2a9":201, //Icicle
+    "b1b40b14-eded-404f-b933-c4da15e85644":201,"d689f87e-c3b1-4018-8e78-2f0025cde2a9":201, //Icicle
     "6294f1c4-68db-477f-b7c9-8c9825c077a1":202, //Rusty Crowbar
     "a494c3c8-9a41-4398-9542-559e6a5dc1cb":203, //ICA SMG White Raptor Covert
     "c716ebb8-cc0e-4e60-9335-844a0d7e645d":204, //HWK21 Pale
@@ -276,7 +276,7 @@ const itemDepotToApIdMap: Record<string,number> = {
     "4e92b3c5-3358-44aa-8a87-f7f349f46f44":206, //ICA Tactical Shotgun Covert
     "a02af9a5-aefb-47e0-9d67-51cc9ec89774":207, //Flash Grenade Mk III
     "1a11a060-358c-4054-98ec-d3491af1d7c6":208, //Fiber Wire
-    "f93b99a3-aef6-419f-b303-59470577696d":209 //ICA19 Black Lily
+    "f93b99a3-aef6-419f-b303-59470577696d":209, //ICA19 Black Lily
 }
 const itempDepotAndLevelToApIdMap: Record<string,number> = {
 	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|ICA Facility":1500, //ICA Facility;Crowbar
@@ -656,7 +656,7 @@ const itempDepotAndLevelToApIdMap: Record<string,number> = {
 	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Whittleton Creek":1874, //Whittleton Creek;Emetic Rat Poison
 	"31f36818-623f-4c92-892f-d7b19bb325e1|Whittleton Creek":1875, "97d74fa2-4832-4186-a447-c4b2e37d537a|Whittleton Creek":1875, //Whittleton Creek;Bust
 	"dac32c27-4c49-4933-bccb-56c8f526515f|Whittleton Creek":1876, //Whittleton Creek;Car Battery
-	"ef63eda6-6411-4ce0-b35b-143fc5767fc0|Whittleton Creek":1877, //Whittleton Creek;Lethal Pills
+	"49765e76-dea7-4ad4-b502-2bad7727a15f|Whittleton Creek":1877, "ef63eda6-6411-4ce0-b35b-143fc5767fc0|Whittleton Creek":1877, //Whittleton Creek;Lethal Pills
 	"c5ec6168-2e5e-4340-b71a-c60f2ee6bd66|Whittleton Creek":1878, //Whittleton Creek;Emetic Pills
 	"6ecf1f15-453c-4783-9c70-8777c83934d7|Whittleton Creek":1879, //Whittleton Creek;Scissors
 	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Whittleton Creek":1880, //Whittleton Creek;Letter Opener
@@ -1066,7 +1066,7 @@ const itempDepotAndLevelToApIdMap: Record<string,number> = {
 	"7268dbea-7a1c-47f5-b846-f0445404ec14|Berlin":2284, //Berlin;Iron
 	"8ee26350-67f9-48bd-983e-8f276eea04cc|Berlin":2285, //Berlin;Poisonous (Emetic) Mushroom
 	"785c3c6b-1272-4853-94f0-a41d52f64795|Berlin":2286, //Berlin;Bartoli Hunting Shotgun
-	"ef63eda6-6411-4ce0-b35b-143fc5767fc0|Berlin":2287, //Berlin;Lethal Pills
+	"49765e76-dea7-4ad4-b502-2bad7727a15f|Berlin":2287, "ef63eda6-6411-4ce0-b35b-143fc5767fc0|Berlin":2287, //Berlin;Lethal Pills
 	"af9ad679-6a7c-4f8e-9700-ceb5e6887666|Berlin":2288, //Berlin;Modern Lethal Syringe
 	"e30a5b15-ce4d-41d5-a2a5-08dec9c4fe79|Berlin":2289, //Berlin;Concealable Knife
 	"407bf3c3-6319-4573-b193-2611b0ee397e|Berlin":2290, //Berlin;ICA Remote Audio Distraction Mk III
