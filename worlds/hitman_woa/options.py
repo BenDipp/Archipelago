@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from Options import Choice, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
+from Options import Choice, ItemSet, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
 
 class Goal(Choice):
     """The goal condition for your Archipelago run.
@@ -196,6 +196,18 @@ class MinRandomTargets(Range):
     range_start = 1
     default = 2
 
+class ExcludedItems(ItemSet):
+    """List of Items to not be shuffled the multiworld. 
+    Selected Items cannot be obtained ingame. 
+    Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")"""
+    display_name = "Excluded Items"
+
+class ExcludedStartingItems(ItemSet):
+    """List of Items to not be shuffled into the multiworld. 
+    Selected Items will always be unlocked ingame. 
+    Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")"""
+    display_name = "Excluded Starting Items"
+
 class IncludeDeluxeItems(Toggle):
     """Include Items from the HITMAN 3 Deluxe Pack"""
     display_name = "Include Deluxe Pack Items"
@@ -282,6 +294,9 @@ class HitmanOptions(PerGameCommonOptions):
     included_s2_dlc_locations: IncludedH2DLCLevels
     included_s3_locations: IncludedH3Levels
 
+    excluded_items: ExcludedItems
+    excluded_starting_items: ExcludedStartingItems
+
     starting_location: StartingLevel
     goal_mode: Goal
     goal_rating: GoalDifficulty
@@ -347,6 +362,10 @@ option_groups = [
             GoalDifficulty,
             RequiredContractPieceAmount,
             AdditionalContractPieces
+        ]),
+        OptionGroup("Excluded Items",[
+            ExcludedItems,
+            ExcludedStartingItems
         ]),
         OptionGroup("Inlcuded Items from DLC",[
             IncludeDeluxeItems,
