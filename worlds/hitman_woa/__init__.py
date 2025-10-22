@@ -362,12 +362,13 @@ class HitmanWorld(World):
                 slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
 
 
-        if self.options.number_of_targets.value > 0:
+        if self.options.random_targets.value:
             targets = ""
             already_used_targets = []
             for map in target_table:
                 if target_table[map] != -1:
-                    for i in range(0, self.options.number_of_targets.value): #TODO: skip dups
+                    num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets)
+                    for i in range(0, num_of_targets):
                         chosen_target = self.random.randint(0,target_table[map]-1)
                         while chosen_target in already_used_targets:
                             chosen_target = self.random.randint(0,target_table[map]-1)
@@ -380,6 +381,5 @@ class HitmanWorld(World):
             slotdata["targets"] = targets
         else:
             slotdata["targets"] = "vanilla"
-        
 
         return slotdata

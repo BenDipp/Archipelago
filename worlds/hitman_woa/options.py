@@ -178,12 +178,23 @@ class GameDifficulty(Choice):
     option_master = 2
     default = 1
 
-class RandomTargets(Range):
-    """How many random Targets are assigned to each Level. 0 Targets results in vanilla targets beeing chosen for each map. (Note: Carpathian Mountains will always remain vanilla)"""#TODO: does logic need to be considered?
-    display_name = "Number of Random Targets"
+class RandomTargets(Toggle):
+    """Should random Targets be assigend to each Level. For each level, a random number of targets between min_number_of_targets and min_number_of_targets is choosen. If off, the vanilla targets will be chosen (Note: Carpathian Mountains will always remain vanilla.)"""
+    display_name = "Random Targets"
+
+class MaxRandomTargets(Range):
+    """The maximum number of Targets to be assigned to a Level if Random Targets is active""" 
+    display_name = "Max Number of Random Targets"
     range_end = 5
-    range_start = 0
-    default = 0
+    range_start = 1
+    default = 2
+
+class MinRandomTargets(Range):
+    """The minimum number of Targets to be assigned to a Level if Random Targets is active""" 
+    display_name = "Min Number of Random Targets"
+    range_end = 5
+    range_start = 1
+    default = 2
 
 class IncludeDeluxeItems(Toggle):
     """Include Items from the HITMAN 3 Deluxe Pack"""
@@ -284,7 +295,9 @@ class HitmanOptions(PerGameCommonOptions):
     levels_with_check_for_so: CheckForSO
     levels_with_check_for_saso: CheckForSASO
 
-    number_of_targets: RandomTargets
+    random_targets: RandomTargets
+    min_number_of_targets: MinRandomTargets
+    max_number_of_targets: MaxRandomTargets
 
     include_deluxe_items: IncludeDeluxeItems
     include_h2_expansion_items: IncludeExpansionItems
@@ -309,7 +322,9 @@ class HitmanOptions(PerGameCommonOptions):
 option_groups = [
         OptionGroup("Ingame Settings",[
             GameDifficulty,
-            RandomTargets
+            RandomTargets,
+            MinRandomTargets,
+            MaxRandomTargets
         ]),
         OptionGroup("Level Settings",[
             IncludedH1Levels,
