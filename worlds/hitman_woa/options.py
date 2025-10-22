@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from Options import Choice, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
+from Options import Choice, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
 
 class Goal(Choice):
     """The goal condition for your Archipelago run.
@@ -305,3 +305,50 @@ class HitmanOptions(PerGameCommonOptions):
     include_collectors_items: IncludeCollectorsItems
     include_smart_casual_items: IncludeSmartCasualItems
     include_winter_sports_items: IncludeWinterSportsItems
+
+option_groups = [
+        OptionGroup("Ingame Settings",[
+            GameDifficulty,
+            RandomTargets
+        ]),
+        OptionGroup("Level Settings",[
+            IncludedH1Levels,
+            IncludedH2Levels,
+            IncludedH2DLCLevels,
+            IncludedH3Levels,
+            StartingLevel
+        ]),
+        OptionGroup("Enabled Checks",[
+            Itemsanity,
+            SplitItemsanity,
+            CheckForCompletion,
+            CheckForSA,
+            CheckForSO,
+            CheckForSASO
+        ]),
+        OptionGroup("Goal Settings",[
+            Goal,
+            GoalLevel,
+            GoalDifficulty,
+            RequiredContractPieceAmount,
+            AdditionalContractPieces
+        ]),
+        OptionGroup("Inlcuded Items from DLC",[
+            IncludeDeluxeItems,
+            IncludeExpansionItems,
+            IncludeSinsItems,
+            IncludeLambicItems,
+            IncludePenecillinItems,
+            IncludeSambucaItems,
+            IncludeTomorrowlandItems,
+            IncludeBankerItems,
+            IncludeBruceLeeItems,
+            IncludeTrinityItems,
+            IncludeConcreteArtItems,
+            IncludeMakeshiftItems,
+            IncludeExecutiveItems,
+            IncludeCollectorsItems,
+            IncludeSmartCasualItems,
+            IncludeWinterSportsItems
+        ])
+    ]

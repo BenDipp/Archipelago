@@ -2,7 +2,6 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Dict, List
 from BaseClasses import Item, ItemClassification, Region, Tutorial
 from Fill import FillError
-from Options import OptionGroup
 from worlds.generic.Rules import set_rule
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch as launch_component, icon_paths
@@ -20,52 +19,7 @@ class HitmanWeb(WebWorld):
         "setup_en.md",
         "setup/en",
         ["BenDipp"])]
-    option_groups = [
-        OptionGroup("Ingame Settings",[
-            options.GameDifficulty,
-            options.RandomTargets
-        ]),
-        OptionGroup("Level Settings",[
-            options.IncludedH1Levels,
-            options.IncludedH2Levels,
-            options.IncludedH2DLCLevels,
-            options.IncludedH3Levels,
-            options.StartingLevel
-        ]),
-        OptionGroup("Enabled Checks",[
-            options.Itemsanity,
-            options.SplitItemsanity,
-            options.CheckForCompletion,
-            options.CheckForSA,
-            options.CheckForSO,
-            options.CheckForSASO
-        ]),
-        OptionGroup("Goal Settings",[
-            options.Goal,
-            options.GoalLevel,
-            options.GoalDifficulty,
-            options.RequiredContractPieceAmount,
-            options.AdditionalContractPieces
-        ]),
-        OptionGroup("Inlcuded Items from DLC",[
-            options.IncludeDeluxeItems,
-            options.IncludeExpansionItems,
-            options.IncludeSinsItems,
-            options.IncludeLambicItems,
-            options.IncludePenecillinItems,
-            options.IncludeSambucaItems,
-            options.IncludeTomorrowlandItems,
-            options.IncludeBankerItems,
-            options.IncludeBruceLeeItems,
-            options.IncludeTrinityItems,
-            options.IncludeConcreteArtItems,
-            options.IncludeMakeshiftItems,
-            options.IncludeExecutiveItems,
-            options.IncludeCollectorsItems,
-            options.IncludeSmartCasualItems,
-            options.IncludeWinterSportsItems
-        ])
-    ]
+    option_groups = options.option_groups
 
 def launch_client():
     from .client import launch
