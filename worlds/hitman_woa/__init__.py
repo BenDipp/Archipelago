@@ -49,6 +49,19 @@ class HitmanWorld(World):
     #Keep as list with playerId to differentiate enttilements from multiple players using same world
     enabled_entitlements:Dict[int,List] = {}
 
+    def build_name_groups(item_list, index):
+        name_groups = {}
+        for name, data in item_list.items():
+            groups = data[index] 
+            if not groups:  # skip if empty
+                continue
+            for group in groups:
+                name_groups.setdefault(group, set()).add(name)
+        return name_groups
+
+    location_name_groups = build_name_groups(location_table, 6)
+    item_name_groups = build_name_groups(item_table, 4)
+    
     # Universal Tracker support:
     @staticmethod
     def interpret_slot_data(slot_data: Dict[str, Any]) -> Dict[str, Any]:
