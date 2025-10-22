@@ -401,7 +401,7 @@ class HitmanWorld(World):
             for map in target_table:
                 if target_table[map] != -1:
                     for i in range(0, self.options.number_of_targets.value): #TODO: skip dups
-                        chosen_target = self.random.randint(0,target_table[map])
+                        chosen_target = self.random.randint(0,target_table[map]-1)
                         targets += str(chosen_target)+"_"
                 targets+="-"
 
