@@ -320,7 +320,6 @@ class HitmanWorld(World):
                 item_pool.append(self.create_item("Contract Piece"))
 
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
-            print("Level - "+goal_table[self.options.goal_level.current_key])
             item_pool.remove(self.create_item("Level - "+goal_table[self.options.goal_level.current_key]))
             self.multiworld.get_location("All Contract Pieces Collected", self.player).place_locked_item(self.create_item("Level - "+goal_table[self.options.goal_level.current_key]))
 
