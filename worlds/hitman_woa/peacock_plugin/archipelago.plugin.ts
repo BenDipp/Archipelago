@@ -68,7 +68,7 @@ const contractCreationContractsMap: Record<string,string> = {
 let modifiedContractMap: Record<string,string> = {}
 
 const itemDepotToApIdMap: Record<string,number> = {
-    "01ed6d15-e26e-4362-b1a6-363684a7d0fd":1, //Crowbar
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd":1, //Crowbar
     "3c24c96a-557c-472a-9d71-1a235d7383a7":2, //Hammer
     "dda002e9-02b1-4208-82a5-cf059f3c79cf":3, //Coin
     "8b37a3a8-8a20-4262-81c5-0fcd15f4bba9":4, //Emetic Rat Poison
@@ -7097,7 +7097,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             listOfUnsentChecks.pop()
         }
     })
-    webFeaturesRouter.get("/archipelago/setGoal/:goalMode/:goalDetails/:moreGoalDetails/:evenMoreGoalDetails",(req,res)=>{
+    webFeaturesRouter.get("/archipelago/setGoal/:goalMode/:goalDetails{/:moreGoalDetails}{/:evenMoreGoalDetails}",(req,res)=>{
         if(req.params.goalMode === "contract_collection"){
             contractGoalAmount = req.params.goalDetails
 
