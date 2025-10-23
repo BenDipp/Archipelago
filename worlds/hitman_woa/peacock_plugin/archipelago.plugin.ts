@@ -1,0 +1,7330 @@
+// import archipelagoLogin from "plugins/loginData.json"
+import { log, LogLevel } from "@peacockproject/core/loggingInterop"
+import { Controller } from "@peacockproject/core/controller"
+import { clearInventoryCache } from "@peacockproject/core/inventory"
+import { getFlag, setFlag } from "@peacockproject/core/flags"
+import {
+    Campaign,
+    ClientToServerEvent,
+    ContractSession,
+    GameVersion,
+    GenSingleMissionFunc,
+    GenSingleVideoFunc,
+    PlayNextGetCampaignsHookReturn,
+    Unlockable,
+} from "@peacockproject/core/types/types"
+
+import { configs } from "@peacockproject/core/configSwizzleManager"
+import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
+
+const contractMap: Record<string,string> = {
+    "ada5f2b1-8529-48bb-a596-717f75f5eacb":"ICA Facility",
+    "00000000-0000-0000-0000-000000000200":"Paris",
+    "00000000-0000-0000-0000-000000000600":"Sapienza",
+    "00000000-0000-0000-0000-000000000400":"Marrakesh",
+    "db341d9f-58a4-411d-be57-0bc4ed85646b":"Bangkok",
+    "42bac555-bbb9-429d-a8ce-f1ffdf94211c":"Colorado",
+    "0e81a82e-b409-41e9-9e3b-5f82e57f7a12":"Hokkaido",
+    "c65019e5-43a8-4a33-8a2a-84c750a5eeb3":"Hawkes Bay",
+    "c1d015b4-be08-4e44-808e-ada0f387656f":"Miami",
+    "422519be-ed2e-44df-9dac-18f739d44fd9":"Santa Fortuna",
+    "0fad48d7-3d0f-4c66-8605-6cbe9c3a46d7":"Mumbai",
+    "82f55837-e26c-41bf-bc6e-fa97b7981fbc":"Whittleton Creek",
+    "0d225edf-40cd-4f20-a30f-b62a373801d3":"Isle of Sgail",
+    "7a03a97d-238c-48bd-bda0-e5f279569cce":"New York",
+    "095261b5-e15b-4ca1-9bb7-001fb85c5aaa":"Haven Island",
+    "7d85f2b0-80ca-49be-a2b7-d56f67faf252":"Dubai",
+    "755984a8-fb0b-4673-8637-95cfe7d34e0f":"Dartmoor",
+    "ebcd14b2-0786-4ceb-a2a4-e771f60d0125":"Berlin",
+    "3d0cbb8c-2a80-442a-896b-fea00e98768c":"Chongqing",
+    "d42f850f-ca55-4fc9-9766-8c6a2b5c3129":"Mendoza",
+    "a3e19d55-64a6-4282-bb3c-d18c3f3e6e29":"Carpathian Mountains",
+    "b2aac100-dfc7-4f85-b9cd-528114436f6c":"Ambrose Island"
+}
+const contractCreationContractsMap: Record<string,string> = {
+    "ada5f2b1-8529-48bb-a596-717f75f5eacb":"535615f2-f8b2-492a-a9c7-150f954dd078",
+    "00000000-0000-0000-0000-000000000200":"e9f86bbc-ce66-4aa3-8759-2e0580178156",
+    "00000000-0000-0000-0000-000000000600":"3984dfed-edd5-4697-a1a2-1c3a77f580f5",
+    "00000000-0000-0000-0000-000000000400":"dff84b03-6c7d-4f80-a04c-98a6ffc73d71",
+    "db341d9f-58a4-411d-be57-0bc4ed85646b":"3919d59e-fbf8-4c40-90e5-b800c9e74694",
+    "42bac555-bbb9-429d-a8ce-f1ffdf94211c":"0ac9d7ef-8923-4ce9-b7b8-f99cc3f47c59",
+    "0e81a82e-b409-41e9-9e3b-5f82e57f7a12":"3b7072e6-febc-46f6-901d-717987f2d22e",
+    "c65019e5-43a8-4a33-8a2a-84c750a5eeb3":"3f95f6fd-a0f7-4d07-9df4-9736167a6c5e",
+    "c1d015b4-be08-4e44-808e-ada0f387656f":"66ea2e0f-17a7-4172-91d5-d96e2548ca1d",
+    "422519be-ed2e-44df-9dac-18f739d44fd9":"df1b1e23-9d50-43a4-86c8-6d917a4f1899",
+    "0fad48d7-3d0f-4c66-8605-6cbe9c3a46d7":"e00ea75e-2596-4a78-b0fd-12e583db5bde",
+    "82f55837-e26c-41bf-bc6e-fa97b7981fbc":"26977adc-17b5-489d-a9b7-f276d5cfd9e6",
+    "0d225edf-40cd-4f20-a30f-b62a373801d3":"fa162cbe-c9be-4e28-b28a-83f235c0ab86",
+    "7a03a97d-238c-48bd-bda0-e5f279569cce":"aa8f57ec-792f-4ab4-8de9-0b65637bd177",
+    "095261b5-e15b-4ca1-9bb7-001fb85c5aaa":"b565439d-784b-47db-a946-bf2b91b8a16f",
+    "7d85f2b0-80ca-49be-a2b7-d56f67faf252":"cc91b5a2-aa39-4dbd-b117-c972b5fc266b",
+    "755984a8-fb0b-4673-8637-95cfe7d34e0f":"a4affaf9-ce38-42d1-8e1c-b199d7bdf4d5",
+    "ebcd14b2-0786-4ceb-a2a4-e771f60d0125":"daf81d6c-70ed-4060-bbbf-8722027fa868",
+    "3d0cbb8c-2a80-442a-896b-fea00e98768c":"451bdccf-fa3a-4aba-8b81-9c7f19c7490a",
+    "d42f850f-ca55-4fc9-9766-8c6a2b5c3129":"ac8147eb-9a56-4768-bf7c-db0523637093",
+    "a3e19d55-64a6-4282-bb3c-d18c3f3e6e29":"undefined",
+    "b2aac100-dfc7-4f85-b9cd-528114436f6c":"0862d67a-e7a5-4092-a47d-6d3d57c83e37"
+}
+let modifiedContractMap: Record<string,string> = {}
+
+const itemDepotToApIdMap: Record<string,number> = {
+    "01ed6d15-e26e-4362-b1a6-363684a7d0fd":1, //Crowbar
+    "3c24c96a-557c-472a-9d71-1a235d7383a7":2, //Hammer
+    "dda002e9-02b1-4208-82a5-cf059f3c79cf":3, //Coin
+    "8b37a3a8-8a20-4262-81c5-0fcd15f4bba9":4, //Emetic Rat Poison
+    "6adddf7e-6879-4d51-a7e2-6a25ffdca6ae":5, //Wrench
+    "7aeb740f-3d60-4e49-8d27-15a98067ce9f":6, //Lead Pipe
+    "95d1c5bd-72de-4236-97c0-b96fc5d92fa8":7, //Pool Ball
+    "5cc4d1ea-b4fa-4667-ba3a-b6e859f03059":8, //Brick
+    "31f36818-623f-4c92-892f-d7b19bb325e1":9,   "97d74fa2-4832-4186-a447-c4b2e37d537a":9, //Bust
+    "6ecf1f15-453c-4783-9c70-8777c83934d7":10, //Scissors
+    "12cb6b51-a6dd-4bf5-9653-0ab727820cac":11, //Screwdriver
+    "f1f89faf-a441-4492-b442-9a923b5ecfd1":12, //Letter Opener
+    "a8bc4325-718e-45ba-b0e4-000729c70ce4":13, //Fire Axe
+    "d8aa6eba-0cb7-4ed4-ab99-975f2793d731":14, //Fusil G2
+    "7c691c03-7c6b-4eb4-9a68-898efe5eedaa":15, //Remote Explosive
+    "55ed7196-2303-4af6-9fa3-45b691134561":16, //Bartoli 75R
+    "d64eb5f2-1e9b-402d-855b-c714cfde50db":17, //Fire Extinguisher
+    "901a3b51-51a0-4236-bdf2-23d20696b358":18, //Tactical Bartoli 12G
+    "e17172cc-bf70-4df6-9828-d9856b1a24fd":19, //Kitchen Knife
+    "a8a0c154-c36f-413e-8f29-b83a1b7a22f0":20, //Propane Flask
+    "1bbf0ed5-0515-4599-a4c9-454ce59cff44":21, //Cleaver
+    "bce6ce09-6ead-4d72-8438-2c7780770e70":22, //Frying Pan
+    "987d9c9f-203d-44d9-bbf8-bf703f349565":23, //Fire Poker
+    "3a8207bb-84f5-438f-8f30-5c83aef2af80":24, //Hatchet
+    "58dceb1c-d7db-41dc-9750-55e3ab87fdf0":25, //Battle Axe
+    "94f52181-b9ec-4363-baef-d53b4e424b74":26, //Saber
+    "17615866-32e7-4e1e-951d-7ef2ada796e9":27, //Golf Club
+    "510c62c2-1f40-4a4d-9e42-da677bd116e7":28, //Police Baton
+    "a1f89118-d345-4367-9423-620c3ef5dfba":29, //Lethal Poison Pill Jar
+    "1066917f-2e04-4c54-b8cb-55cb1dcc2f26":30, //Shovel
+    "e312a416-5b56-4cb5-8994-1d4bc82fbb84":31, //Circumcision Knife
+    "62c2ac2e-329e-4648-822a-e45a29a93cd0":32, //Amputation Knife
+    "ce8e7099-e60d-47e8-bfd6-4918777f2c8b":33, //Toy Tank
+    "ac77e98d-4ffa-4755-80fc-cd6e7adc63fb":34, //Expired Can of Spaghetti Sauce
+    "afd1f201-d2a5-4d40-80b1-d81b0d9d2541":35,  "c19f796e-e23f-4429-a046-47ed3d324359":35,    "de69ce1e-a24d-4acc-895f-4c3a71f47ba8":35,  "004ecac9-6aee-4b30-a073-4399a94535d8":35, //Soda Can
+    "2953e9ac-e25b-41ae-afbf-4a47f86c4f54":36, //Bartoli 75S
+    "22f8ffdb-073d-48a1-abb9-13075800008e":37, //Virus Prototype
+    "2c037ef5-a01b-4532-8216-1d535193a837":38, //Combat Knife
+    "c21f558b-2935-41e5-88ff-642eb1761ccc":39, //Baseball Bat
+    "c95c55aa-34e5-42bd-bf27-32be3978b269":40, //Explosive Golf Ball
+    "a2c56798-026f-4d0b-9480-de0d2525a119":41, //Folding Knife
+    "369c68f7-cbef-4e45-83c7-8acd0dc2d237":42, //Old Axe
+    "25a4d780-3123-448d-a6e7-3dfdbb8c8260":43, //Radio
+    "e65953cb-f954-4d21-9f11-52b454cac15e":44, //Bag of Gunpowder
+    "b86b9ece-c929-44f6-8903-8f2c817e2a19":45, //Cannonball
+    "7f31d897-a62f-448c-be0d-79d565e2faa7":46, //Bartoli 12G
+    "5631dace-7f4a-4df8-8e97-b47373b815ff":47, //Katana
+    "6e4afb04-417e-4cfc-aaa2-43f3ecca9037":48, //Shashka A33
+    "16edb112-58cc-4069-a7dd-ebd258b14044":49, //Fusil G1-4
+    "aa532e88-2430-432f-9818-ddb8ad80615e":50,  "01048280-0358-4f0a-95b7-1f9f665c1648":50, //Insecticide
+    "22183fd3-d837-47c6-9c44-05637300af93":51, //Coconut
+    "d2a7fa04-2cac-45d8-b696-47c566bb95ff":52, //Sapper's Axe
+    "e755471f-e6fd-438f-b343-7c98fbb50107":53, //Apricot
+    "ce633778-7424-4784-8bc2-f9d717a23709":54, //Baseball
+    "c86ce2f4-7bd1-4949-acc4-54e5428d9396":55, //Cowboy Bust
+    "ee25fc91-e42e-4044-99b4-b3c4206d250d":56, //Explosive Watch Battery
+    "af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc":57, //Nitroglycerin
+    "af9ad679-6a7c-4f8e-9700-ceb5e6887666":58, //Modern Lethal Syringe
+    "e206ed81-0559-4289-9fec-e6a3e9d4ee7c":59, //HX-10
+    "51f6ed96-4985-4d09-8218-e3b912d025b9":60, //Branding Iron
+    "8d937ed4-dc85-476b-8048-e96a8900e7bf":61, //Mannequin Arm
+    "3fd9825d-8aa5-48e0-97a9-ec8f541f871a":62, //HX-7
+    "5d8ca32a-fe4c-4597-b074-51e36c3de898":63, //Scalpel
+    "e45c295d-60dd-4cba-a01b-0dc1b6f1b17c":64, //Botulinum Toxin
+    "35efd6dc-0387-4b56-83f0-4e6609bac93f":65, //Hackl 9S Covert
+    "26b5496d-9a8c-4059-9d69-d8712078a33c":66, //Kalmer 1 - Tranquilizer
+    "3cf48e44-6e0f-4e4d-9d21-6a4af476118c":67, //Chloroform Flask
+    "c664eb1a-41d8-4d0a-a393-d5f66f055e5e":68, //Squeaky Toy
+    "e55eb9a4-e79c-43c7-970b-79e94e7683b7":69, //Shuriken
+    "1973ae7e-538c-4a43-98af-208b9893d246":70, //Maori Paddle
+    "59b5731d-2de8-4175-9be0-92fbc2c3e603":71, //Wristwatch Alarm
+    "ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f":72, //Driftwood Log
+    "dac32c27-4c49-4933-bccb-56c8f526515f":73, //Car Battery
+    "0ff22cf7-a472-48d6-87eb-1b307bc5c576":74, //Apple
+    "3f9cf03f-b84f-4419-b831-4704cff9775c":75, //Fragmentation Grenade
+    "c82fefa7-febe-46c8-90ec-c945fbef0cb4":76, //Kronstadt Octane Booster
+    "74b04d1f-8ac9-46a0-9a6c-8579cf03276f":77, //Didgeridoo
+    "d1f29c76-5751-4e06-b534-e6eb7522b128":78, //Android Arm
+    "45c0ccfe-1ac3-4747-9571-fe7588fe6971":79, //Bag of Sugar
+    "1f11f901-2dbe-4e48-a77a-74c110b93da0":80,  "4d0d6b2a-dd81-474c-a412-3bf19af8233d":80, //Fish
+    "606a9606-8c05-4dcd-93fa-ec9cdc13f357":81, //Pneumatic Wrench
+    "53284129-c50a-47a7-9efa-caa3b7503826":82, //Car Bomb
+    "c6e9414e-e2ce-470a-95bd-14cd25225878":83, //Cocaine Brick
+    "cad726d7-331d-4601-9723-6b8a17e5f91b":84, //Starfish
+    "ac1f44ac-0542-4e3e-9805-81ceeb499804":85, //Cannabis Joint
+    "ec31f55f-6109-4f97-9286-8f59fae666f6":86, //The Big One
+    "acc9d7b8-80f1-4bb0-ba81-3a69b09e0543":87, //Meaty Bone
+    "d75bef38-8a65-45f6-9cd1-ca5e23e2f79a":88, //DAK X2
+    "4cc1765e-939e-4a5a-bee2-44403b47822b":89,  "aa62586e-d463-494e-b55f-177bcdf8c08c":89, //Poisonous Flower (Emetic)
+    "cbf40151-cb96-435a-b683-6430370a07f2":90, //Poisonous Flower (Lethal)
+    "e887e8ea-4554-41e1-b37d-d002dad04fed":91,  "963123fd-8a53-41b6-8950-335495b3f3af":91, //Lethal Poisonous Frog
+    "30fa1ade-386f-49b7-bddd-a23cd912611d":92, //Letterbomb Parcel
+    "248cbd89-9923-452a-8cda-a5f76d8930dc":93, //Collectors Baseball Bat
+    "3e3819ca-4d19-4e0a-a238-4bd16c730e61":94, //Machete
+    "c4747fa2-4958-4a02-926e-3b069cf218dc":95, //Claw Hammer
+    "79b48d90-26aa-4b17-9332-599ed8e0bd7f":96, //Shashka A33 Gold
+    "4b0def3b-7378-494d-b885-92c334f2f8cb":97, //Gold Idol
+    "b2321154-4520-4911-9d94-9256b85e0983":98, //Sacrificial Knife
+    "5ce2f842-e091-4ead-a51c-1cc406309c8d":99, //Barber Razor
+    "77ecaad6-652f-480d-b365-cdf90820a5ec":100, //\"El Matador\"
+    "d2f4e54f-1eb8-482d-9732-a9159b1a9229":101, //Cocaine Souvenir
+    "b153112f-9cd1-4a49-a9c6-ba1a34f443ab":102, //Beak Staff
+    "7268dbea-7a1c-47f5-b846-f0445404ec14":103, //Iron
+    "cf4838bf-2417-4baf-ad40-50b7793040c6":104, //Chennai Cricket Ball
+    "cbc38627-a3c4-4116-8731-ace217a831e7":105, //Lever
+    "c008f9ce-4029-4ab4-a9c3-52868fe810ff":106, //Colored Smoke
+    "40e96ed0-7668-4d65-b88a-f44bfff5f537":107, //Khatvanga
+    "a804e004-7d45-42c8-87bd-b7cbcffa56cc":108, //Measuring Tape
+    "43d15bea-d282-4a91-b625-8b7ba85c0ad5":109, //Druzhina 34
+    "81654161-7711-4985-8056-8651a381d3ca":110, //Rake
+    "e638b949-9b96-4c41-bec4-0a8fbfb05c75":111, //DAK X2 Covert Special
+    "042fae7b-fe9e-4a83-ac7b-5c914a71b2ca":112, //Flash Grenade
+    "5952b621-fee9-4699-809c-8889abadfdb8":113, //Blueberry Muffin
+    "a96cdbd8-9657-416a-87bf-d2ed21840794":114, //Newspaper
+    "ef63eda6-6411-4ce0-b35b-143fc5767fc0":115, //Lethal Pills
+    "c5ec6168-2e5e-4340-b71a-c60f2ee6bd66":116, //Emetic Pills
+    "092f6514-c34e-4d04-8d28-7ebbe14230d1":117, //\"Rude Ruby\"
+    "ccdd6689-092d-49b2-85f8-416a02e25566":118, //Remote CX Demo Block
+    "2f6eec38-45ea-49df-83a2-0b98a858e60a":119, //RS-15
+    "a15af673-8e21-47e3-bdfa-f5dea7b5f9e9":120, //TAC-4 AR Auto
+    "6b93848c-8f1d-42eb-816f-bab61b56d8a5":121, //Fusil G1-4|C
+    "0705964d-dab5-45b6-96ae-30cd4c2f0dec":122, //Paddle
+    "bad168bb-3629-42b3-bc57-604b03a81d30":123, //Package
+    "0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f":124, //Cigar Box
+    "2147b6cd-5a42-4cd6-b366-2c5c50d97db7":125, //Fishing Line
+    "94c2b206-d011-4358-a6b3-c8a6042ab2c2":126, //Wooden Torch
+    "1a105af8-fd30-447f-8b2c-f908f702e81c":127, //Garden Fork
+    "3a359494-ee05-4fea-beac-8726233a55bf":128, //Whiskey Bottle
+    "5ad01c38-244a-4b75-94d6-624850d2dc92":129, //Spray Can
+    "1050c8d3-43d6-4bcf-a5d3-0ca994121871":130, //Vodka Bottle
+    "84f50c4c-de1d-41f3-8021-1cba7df987cd":131, //Soap
+    "903d273c-c750-441d-916a-31557fea3382":132, //Banana
+    "72cb6124-36eb-4c25-8da0-78d4c5fac459":133, //Durian
+    "66024572-7838-42d3-8c7b-c651e259438e":134, //Meat Fork
+    "5db9cefd-391e-4c35-a4c4-bb672ac9b996":135, //Kukri Machete
+    "7bc45270-83fe-4cf6-ad10-7d1b0cf3a3fd":136, //Seashell
+    "7d668011-77f9-4cae-97f1-e3eda5e0c8b2":137, //Lethal Poison Vial
+    "af82349c-259f-4bdd-8be7-d5ff61695c29":138, //Emetic Gas Grenade
+    "b5481de5-6446-46b3-903f-e0040f46b7f0":139, //Sawed-Off Bartoli 12G
+    "58a036dc-79d4-4d64-8bf5-3faafa3cfead":140, //Hook
+    "79f8c0e9-4690-4ebf-b2b3-fd8411a1407f":141, //Brine-Damaged SMG
+    "a83349bf-3d9c-43ec-92ee-c8c98cbeabc1":142, //Molotov Cocktail
+    "8f1bae41-3570-40cc-be87-77cb6a4af86c":143, //Makeshift Explosive
+    "3dbbbb5e-61a7-4cae-8df0-0e911e744dca":144, //Remote CX Demo Block MK II
+    "d73251b4-4860-4b5b-8376-7c9cf2a054a2":145, //Scrap Sword
+    "e98f44fd-7f36-46a8-ae3c-bf080e8454d3":146, //Umbrella
+    "42c7bb52-a71b-489c-8a74-7db0c09ba313":147, //Shears
+    "9e728dc1-3344-4615-be7a-1bcbdd7ad4aa":148, //Hobby Knife
+    "6738e8ad-b8d0-496a-9749-d27a93b40113":149, //Militia-Issued HX-10 SMG
+    "fc715a9a-3bf1-4768-bd67-0def61b92551":150, //Remote Breaching Charge
+    "dc10958c-e3dc-447b-b9f4-8c4bde86d108":151, //Doubloon
+    "fba6e133-78d1-4af1-8450-1ff30466c553":152, //Jarl's Pirate Saber
+    "23b8ad17-1913-40ce-b3bc-2c92317801dd":153, //Mace
+    "12200bd8-9605-4111-8b26-4e73cb07d816":154, //Broadsword
+    "9a7711c7-ede9-4230-853e-ab94c65fc0c9":155, //Viking Axe
+    "e0de34ce-f8d1-428b-8b37-0dae7398bde3":156, //HX-7 Covert
+    "92d68841-8552-40b1-b8a5-c36c6efdb6b1":157, //Aztec Necklace
+    "c88a59cd-d5cc-4435-a3f1-2312abcc817e":158, //Imperial Filigree Egg
+    "cb34f363-3534-46ff-b036-d49f1329f300":159, //Torch
+    "1e11fbea-cd51-48bf-8316-a050772d6135":160, //Hackl 9S
+    "da6ae60b-092d-4ad9-aa3c-322c8cb21985":161, //Commemorative Token
+    "25bc1a6d-c618-43ee-9c1f-81347ed430a6":162, //Cheeseburger
+    "54b1ffd7-5290-4b58-8e1c-53fd038a08f5":163, //Small Goldbar
+    "4fad7437-59e9-4ca9-9b31-a6d97484216b":164, //Violin
+    "7685be69-ff8f-479c-91b9-7347253f8bf1":165, //Earphones
+    "9488fa1e-10e1-49c9-bb24-6635d2e5bd49":166, //Tanto
+    "6d4c88f3-9a09-453c-9a6e-a081f1136bf3":167, //Burial Dagger
+    "8598ae82-53ac-43ba-9f43-30140d6ba7ee":168, //Golden Sawed Off Bartoli 12G
+    "59e407df-c49b-4abe-a1be-0806b026e47e":169, //Concussion Grenade
+    "0576a20c-581b-4705-8b9d-464e077d117e":170, //Wet Floor Sign
+    "5c211971-235a-4856-9eea-fe890940f63a":171, //Antique Carved Knife
+    "4292fe64-aac6-4bbe-be73-31671640172a":172, //Goldbar
+    "6b87c27d-0d73-4c63-b852-5a9c7a9ffb90":173, //Feather Duster
+    "280739c7-9d93-48b9-840e-694883e76700":174, //Stethoscope
+    "1c50d6e0-11c8-4cbc-be05-f51a8e5013be":175, //Modern Emetic Syringe
+    "9c649932-7329-4cc3-a8cb-a32cae5dd7ca":176, //Kettlebell
+    "a2fce6cb-7b4a-4d2e-81b7-919bf7c5b7ad":177, //Pearl
+    "b4d4ed1a-0687-48a9-a731-0e3b99494eb6":178, //Ornate Scimitar
+    "706cb615-e66d-49f3-86bb-899fa7117bcf":179, //Model of the Sceptre
+    "98bf7fc1-7857-4999-bc99-586c49f24017":180, //Classic Coin
+    "4eede7ee-582b-49a4-b438-2418d82671d9":181, //Walking Cane
+    "58769c58-3e70-4746-be8e-4c7114f8c2bb":182, //Unicorn Horn
+    "785c3c6b-1272-4853-94f0-a41d52f64795":183, //Bartoli Hunting Shotgun
+    "c45e59f4-d8e1-4c37-b079-8b74b1fe9b24":184, //Modern Sedative Syringe
+    "719ba201-3688-4984-afb0-81dc2cc95ec1":185, //Bartoli Woodsman Hunting Rifle
+    "fb5319c4-f3ff-4ce6-9a78-2fc2c33bd19c":186, //Bird's Egg
+    "8ee26350-67f9-48bd-983e-8f276eea04cc":187, //Poisonous (Emetic) Mushroom
+    "e30a5b15-ce4d-41d5-a2a5-08dec9c4fe79":188, //Concealable Knife
+    "407bf3c3-6319-4573-b193-2611b0ee397e":189, //ICA Remote Audio Distraction Mk III
+    "0f9608e9-6e42-49b9-b4cd-9aaebba8458f":190, //Hackl Leviathan Sniper Rifle Covert
+    "8a30c788-049a-4b83-b148-1a6db49d2ae5":191, //ICA SMG Raptor Covert
+    "f6f525d2-a28c-4548-825b-f7ce93f6577c":192, //Fusil X2000 Stealth
+    "299eae90-4744-4557-b30b-71382cba2839":193, //Cabernet Sauvignon
+    "2b1bd2af-554e-4ea7-a717-3f6d0eb0215f":194, //Grape Knife
+    "3fbd6da4-c61c-40d6-9494-8277d2e172e4":195, //Grapevine
+    "40766e9d-eb46-474e-b5ce-927e3e70f0c6":196, //Pinot Noir
+    "3f9ed406-8de0-4466-b393-38a7f905d859":197, //Malbec
+    "2d960bf0-217c-400d-a1ee-f721e18f2926":198, //1945 Grand Paladin
+    "a8309099-1b89-4492-bf37-37d4312b6615":199, //Sieger AR552 Tactical
+    "7d64d9df-5d30-4e98-9af0-7562ee145d5c":200, //Sieger 300 Tactical
+    "b1b40b14-eded-404f-b933-c4da15e85644":201, "d689f87e-c3b1-4018-8e78-2f0025cde2a9":201, //Icicle
+    "6294f1c4-68db-477f-b7c9-8c9825c077a1":202, //Rusty Crowbar
+    "a494c3c8-9a41-4398-9542-559e6a5dc1cb":203, //ICA SMG White Raptor Covert
+    "c716ebb8-cc0e-4e60-9335-844a0d7e645d":204, //HWK21 Pale
+    "ecf022db-ecfd-48c0-97b5-2258e4e89a65":205, //Rusty Screwdriver
+    "4e92b3c5-3358-44aa-8a87-f7f349f46f44":206, //ICA Tactical Shotgun Covert
+    "a02af9a5-aefb-47e0-9d67-51cc9ec89774":207, //Flash Grenade Mk III
+    "1a11a060-358c-4054-98ec-d3491af1d7c6":208, //Fiber Wire
+    "f93b99a3-aef6-419f-b303-59470577696d":209 //ICA19 Black Lily
+}
+const itempDepotAndLevelToApIdMap: Record<string,number> = {
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|ICA Facility":1500, //ICA Facility;Crowbar
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|ICA Facility":1501, //ICA Facility;Hammer
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|ICA Facility":1502, //ICA Facility;Coin
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|ICA Facility":1503, //ICA Facility;Emetic Rat Poison
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|ICA Facility":1504, //ICA Facility;Wrench
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|ICA Facility":1505, //ICA Facility;Lead Pipe
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|ICA Facility":1506, //ICA Facility;Pool Ball
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|ICA Facility":1507, //ICA Facility;Brick
+	"31f36818-623f-4c92-892f-d7b19bb325e1|ICA Facility":1508, "97d74fa2-4832-4186-a447-c4b2e37d537a|ICA Facility":1508, //ICA Facility;Bust
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Paris":1509, //Paris;Scissors
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Paris":1510, //Paris;Screwdriver
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Paris":1511, //Paris;Letter Opener
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Paris":1512, //Paris;Hammer
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Paris":1513, "97d74fa2-4832-4186-a447-c4b2e37d537a|Paris":1513, //Paris;Bust
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Paris":1514, //Paris;Emetic Rat Poison
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Paris":1515, //Paris;Fire Axe
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Paris":1516, //Paris;Crowbar
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Paris":1517, //Paris;Wrench
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Paris":1518, //Paris;Fusil G2
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Paris":1519, //Paris;Remote Explosive
+	"55ed7196-2303-4af6-9fa3-45b691134561|Paris":1520, //Paris;Bartoli 75R
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Paris":1521, //Paris;Fire Extinguisher
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Paris":1522, //Paris;Tactical Bartoli 12G
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Paris":1523, //Paris;Kitchen Knife
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Paris":1524, //Paris;Lead Pipe
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Paris":1525, //Paris;Propane Flask
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Paris":1526, //Paris;Cleaver
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Paris":1527, //Paris;Frying Pan
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Paris":1528, //Paris;Fire Poker
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Paris":1529, //Paris;Hatchet
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Paris":1530, //Paris;Coin
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Paris":1531, //Paris;Battle Axe
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Paris":1532, //Paris;Saber
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Paris":1533, //Paris;Brick
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Paris":1534, //Paris;Golf Club
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Paris":1535, //Paris;Police Baton
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Paris":1536, //Paris;Lethal Poison Pill Jar
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Sapienza":1537, //Sapienza;Wrench
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Sapienza":1538, //Sapienza;Crowbar
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Sapienza":1539, //Sapienza;Fire Extinguisher
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Sapienza":1540, "97d74fa2-4832-4186-a447-c4b2e37d537a|Sapienza":1540, //Sapienza;Bust
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Sapienza":1541, //Sapienza;Coin
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Sapienza":1542, //Sapienza;Lead Pipe
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Sapienza":1543, //Sapienza;Brick
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Sapienza":1544, //Sapienza;Shovel
+	"e312a416-5b56-4cb5-8994-1d4bc82fbb84|Sapienza":1545, //Sapienza;Circumcision Knife
+	"62c2ac2e-329e-4648-822a-e45a29a93cd0|Sapienza":1546, //Sapienza;Amputation Knife
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Sapienza":1547, //Sapienza;Fire Axe
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Sapienza":1548, //Sapienza;Propane Flask
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Sapienza":1549, //Sapienza;Letter Opener
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Sapienza":1550, //Sapienza;Toy Tank
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Sapienza":1551, //Sapienza;Expired Can of Spaghetti Sauce
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Sapienza":1552, "c19f796e-e23f-4429-a046-47ed3d324359|Sapienza":1552, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Sapienza":1552, "004ecac9-6aee-4b30-a073-4399a94535d8|Sapienza":1552, //Sapienza;Soda Can
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Sapienza":1553, //Sapienza;Fire Poker
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Sapienza":1554, //Sapienza;Emetic Rat Poison
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Sapienza":1555, //Sapienza;Screwdriver
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Sapienza":1556, //Sapienza;Hatchet
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Sapienza":1557, //Sapienza;Kitchen Knife
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Sapienza":1558, //Sapienza;Saber
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Sapienza":1559, //Sapienza;Bartoli 75S
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Sapienza":1560, //Sapienza;Scissors
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Sapienza":1561, //Sapienza;Golf Club
+	"22f8ffdb-073d-48a1-abb9-13075800008e|Sapienza":1562, //Sapienza;Virus Prototype
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Sapienza":1563, //Sapienza;Hammer
+	"2c037ef5-a01b-4532-8216-1d535193a837|Sapienza":1564, //Sapienza;Combat Knife
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Sapienza":1565, //Sapienza;Tactical Bartoli 12G
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Sapienza":1566, //Sapienza;Remote Explosive
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Sapienza":1567, //Sapienza;Baseball Bat
+	"55ed7196-2303-4af6-9fa3-45b691134561|Sapienza":1568, //Sapienza;Bartoli 75R
+	"c95c55aa-34e5-42bd-bf27-32be3978b269|Sapienza":1569, //Sapienza;Explosive Golf Ball
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Sapienza":1570, //Sapienza;Folding Knife
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Sapienza":1571, //Sapienza;Police Baton
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Sapienza":1572, //Sapienza;Old Axe
+	"25a4d780-3123-448d-a6e7-3dfdbb8c8260|Sapienza":1573, //Sapienza;Radio
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Sapienza":1574, //Sapienza;Bag of Gunpowder
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Sapienza":1575, //Sapienza;Cannonball
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Sapienza":1576, //Sapienza;Battle Axe
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Sapienza":1577, //Sapienza;Bartoli 12G
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Sapienza":1578, //Sapienza;Katana
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Sapienza":1579, //Sapienza;Cleaver
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Marrakesh":1580, //Marrakesh;Brick
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Marrakesh":1581, //Marrakesh;Screwdriver
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Marrakesh":1582, "c19f796e-e23f-4429-a046-47ed3d324359|Marrakesh":1582, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Marrakesh":1582, "004ecac9-6aee-4b30-a073-4399a94535d8|Marrakesh":1582, //Marrakesh;Soda Can
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Marrakesh":1583, //Marrakesh;Wrench
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Marrakesh":1584, //Marrakesh;Kitchen Knife
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Marrakesh":1585, //Marrakesh;Propane Flask
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Marrakesh":1586, //Marrakesh;Hammer
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Marrakesh":1587, //Marrakesh;Cleaver
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Marrakesh":1588, //Marrakesh;Scissors
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Marrakesh":1589, //Marrakesh;Fire Extinguisher
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Marrakesh":1590, //Marrakesh;Crowbar
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Marrakesh":1591, //Marrakesh;Emetic Rat Poison
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Marrakesh":1592, //Marrakesh;Letter Opener
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Marrakesh":1593, //Marrakesh;Remote Explosive
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Marrakesh":1594, //Marrakesh;Fire Axe
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Marrakesh":1595, //Marrakesh;Tactical Bartoli 12G
+	"55ed7196-2303-4af6-9fa3-45b691134561|Marrakesh":1596, //Marrakesh;Bartoli 75R
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Marrakesh":1597, //Marrakesh;Shashka A33
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Marrakesh":1598, //Marrakesh;Saber
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Marrakesh":1599, //Marrakesh;Coin
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Marrakesh":1600, //Marrakesh;Toy Tank
+	"16edb112-58cc-4069-a7dd-ebd258b14044|Marrakesh":1601, //Marrakesh;Fusil G1-4
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Marrakesh":1602, //Marrakesh;Pool Ball
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Marrakesh":1603, //Marrakesh;Lethal Poison Pill Jar
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Marrakesh":1604, //Marrakesh;Battle Axe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Bangkok":1605, //Bangkok;Fire Extinguisher
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Bangkok":1606, //Bangkok;Hammer
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Bangkok":1607, //Bangkok;Coin
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Bangkok":1608, //Bangkok;Shovel
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Bangkok":1609, //Bangkok;Hatchet
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Bangkok":1610, //Bangkok;Emetic Rat Poison
+	"aa532e88-2430-432f-9818-ddb8ad80615e|Bangkok":1611, "01048280-0358-4f0a-95b7-1f9f665c1648|Bangkok":1611, //Bangkok;Insecticide
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Bangkok":1612, "c19f796e-e23f-4429-a046-47ed3d324359|Bangkok":1612, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Bangkok":1612, "004ecac9-6aee-4b30-a073-4399a94535d8|Bangkok":1612, //Bangkok;Soda Can
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Bangkok":1613, //Bangkok;Fusil G2
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Bangkok":1614, //Bangkok;Lead Pipe
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Bangkok":1615, //Bangkok;Propane Flask
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Bangkok":1616, //Bangkok;Crowbar
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Bangkok":1617, //Bangkok;Wrench
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Bangkok":1618, //Bangkok;Fire Axe
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Bangkok":1619, //Bangkok;Screwdriver
+	"22183fd3-d837-47c6-9c44-05637300af93|Bangkok":1620, //Bangkok;Coconut
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Bangkok":1621, //Bangkok;Cleaver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Bangkok":1622, //Bangkok;Kitchen Knife
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Bangkok":1623, //Bangkok;Lethal Poison Pill Jar
+	"55ed7196-2303-4af6-9fa3-45b691134561|Bangkok":1624, //Bangkok;Bartoli 75R
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Bangkok":1625, //Bangkok;Police Baton
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Bangkok":1626, //Bangkok;Pool Ball
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Bangkok":1627, //Bangkok;Letter Opener
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Bangkok":1628, //Bangkok;Baseball Bat
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Bangkok":1629, //Bangkok;Katana
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Bangkok":1630, //Bangkok;Golf Club
+	"d2a7fa04-2cac-45d8-b696-47c566bb95ff|Bangkok":1631, //Bangkok;Sapper's Axe
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Bangkok":1632, //Bangkok;Tactical Bartoli 12G
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Colorado":1633, //Colorado;Apricot
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Colorado":1634, //Colorado;Wrench
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Colorado":1635, //Colorado;Screwdriver
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Colorado":1636, //Colorado;Crowbar
+	"ce633778-7424-4784-8bc2-f9d717a23709|Colorado":1637, //Colorado;Baseball
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Colorado":1638, //Colorado;Cowboy Bust
+	"ee25fc91-e42e-4044-99b4-b3c4206d250d|Colorado":1639, //Colorado;Explosive Watch Battery
+	"af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc|Colorado":1640, //Colorado;Nitroglycerin
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Colorado":1641, "c19f796e-e23f-4429-a046-47ed3d324359|Colorado":1641, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Colorado":1641, "004ecac9-6aee-4b30-a073-4399a94535d8|Colorado":1641, //Colorado;Soda Can
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Colorado":1642, //Colorado;Baseball Bat
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Colorado":1643, //Colorado;Emetic Rat Poison
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Colorado":1644, //Colorado;Hammer
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Colorado":1645, //Colorado;Bartoli 12G
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Colorado":1646, //Colorado;Fire Extinguisher
+	"af9ad679-6a7c-4f8e-9700-ceb5e6887666|Colorado":1647, //Colorado;Modern Lethal Syringe
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Colorado":1648, //Colorado;Shovel
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Colorado":1649, //Colorado;Propane Flask
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Colorado":1650, //Colorado;Coin
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Colorado":1651, //Colorado;Lead Pipe
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Colorado":1652, //Colorado;Brick
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Colorado":1653, //Colorado;Fusil G2
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Colorado":1654, //Colorado;Tactical Bartoli 12G
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Colorado":1655, //Colorado;Cleaver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Colorado":1656, //Colorado;Kitchen Knife
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Colorado":1657, //Colorado;HX-10
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Colorado":1658, //Colorado;Lethal Poison Pill Jar
+	"51f6ed96-4985-4d09-8218-e3b912d025b9|Colorado":1659, //Colorado;Branding Iron
+	"8d937ed4-dc85-476b-8048-e96a8900e7bf|Colorado":1660, //Colorado;Mannequin Arm
+	"3fd9825d-8aa5-48e0-97a9-ec8f541f871a|Colorado":1661, //Colorado;HX-7
+	"55ed7196-2303-4af6-9fa3-45b691134561|Colorado":1662, //Colorado;Bartoli 75R
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Colorado":1663, //Colorado;Old Axe
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Hokkaido":1664, //Hokkaido;Cowboy Bust
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Hokkaido":1665, "c19f796e-e23f-4429-a046-47ed3d324359|Hokkaido":1665, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Hokkaido":1665, "004ecac9-6aee-4b30-a073-4399a94535d8|Hokkaido":1665, //Hokkaido;Soda Can
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Hokkaido":1666, //Hokkaido;Fire Extinguisher
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Hokkaido":1667, //Hokkaido;Tactical Bartoli 12G
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Hokkaido":1668, //Hokkaido;Police Baton
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Hokkaido":1669, //Hokkaido;Wrench
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Hokkaido":1670, //Hokkaido;Hammer
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Hokkaido":1671, //Hokkaido;Emetic Rat Poison
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Hokkaido":1672, //Hokkaido;Fire Axe
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Hokkaido":1673, //Hokkaido;Fire Poker
+	"5d8ca32a-fe4c-4597-b074-51e36c3de898|Hokkaido":1674, //Hokkaido;Scalpel
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Hokkaido":1675, //Hokkaido;Screwdriver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Hokkaido":1676, //Hokkaido;Kitchen Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Hokkaido":1677, //Hokkaido;Cleaver
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Hokkaido":1678, //Hokkaido;Frying Pan
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Hokkaido":1679, //Hokkaido;Baseball Bat
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Hokkaido":1680, //Hokkaido;Crowbar
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Hokkaido":1681, //Hokkaido;Katana
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Hokkaido":1682, //Hokkaido;Coin
+	"3fd9825d-8aa5-48e0-97a9-ec8f541f871a|Hokkaido":1683, //Hokkaido;HX-7
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Hokkaido":1684, "97d74fa2-4832-4186-a447-c4b2e37d537a|Hokkaido":1684, //Hokkaido;Bust
+	"e45c295d-60dd-4cba-a01b-0dc1b6f1b17c|Hokkaido":1685, //Hokkaido;Botulinum Toxin
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Hokkaido":1686, //Hokkaido;Shovel
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Hokkaido":1687, //Hokkaido;Propane Flask
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Hokkaido":1688, //Hokkaido;Scissors
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Hokkaido":1689, //Hokkaido;Lead Pipe
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Hawkes Bay":1690, //Hawkes Bay;Screwdriver
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Hawkes Bay":1691, //Hawkes Bay;Tactical Bartoli 12G
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Hawkes Bay":1692, //Hawkes Bay;Bartoli 75S
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Hawkes Bay":1693, //Hawkes Bay;Hackl 9S Covert
+	"26b5496d-9a8c-4059-9d69-d8712078a33c|Hawkes Bay":1694, //Hawkes Bay;Kalmer 1 - Tranquilizer
+	"3fd9825d-8aa5-48e0-97a9-ec8f541f871a|Hawkes Bay":1695, //Hawkes Bay;HX-7
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Hawkes Bay":1696, "c19f796e-e23f-4429-a046-47ed3d324359|Hawkes Bay":1696, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Hawkes Bay":1696, "004ecac9-6aee-4b30-a073-4399a94535d8|Hawkes Bay":1696, //Hawkes Bay;Soda Can
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|Hawkes Bay":1697, //Hawkes Bay;Chloroform Flask
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Hawkes Bay":1698, //Hawkes Bay;Propane Flask
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Hawkes Bay":1699, //Hawkes Bay;Expired Can of Spaghetti Sauce
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Hawkes Bay":1700, //Hawkes Bay;Emetic Rat Poison
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Hawkes Bay":1701, //Hawkes Bay;Lethal Poison Pill Jar
+	"c664eb1a-41d8-4d0a-a393-d5f66f055e5e|Hawkes Bay":1702, //Hawkes Bay;Squeaky Toy
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Hawkes Bay":1703, //Hawkes Bay;Katana
+	"e55eb9a4-e79c-43c7-970b-79e94e7683b7|Hawkes Bay":1704, //Hawkes Bay;Shuriken
+	"1973ae7e-538c-4a43-98af-208b9893d246|Hawkes Bay":1705, //Hawkes Bay;Maori Paddle
+	"59b5731d-2de8-4175-9be0-92fbc2c3e603|Hawkes Bay":1706, //Hawkes Bay;Wristwatch Alarm
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Hawkes Bay":1707, //Hawkes Bay;Folding Knife
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Hawkes Bay":1708, //Hawkes Bay;Driftwood Log
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Hawkes Bay":1709, //Hawkes Bay;Kitchen Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Hawkes Bay":1710, //Hawkes Bay;Cleaver
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Hawkes Bay":1711, //Hawkes Bay;Wrench
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Hawkes Bay":1712, //Hawkes Bay;Car Battery
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Hawkes Bay":1713, //Hawkes Bay;Lead Pipe
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Hawkes Bay":1714, //Hawkes Bay;Apple
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Hawkes Bay":1715, //Hawkes Bay;Scissors
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Hawkes Bay":1716, //Hawkes Bay;Coin
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Hawkes Bay":1717, //Hawkes Bay;Fire Poker
+	"3f9cf03f-b84f-4419-b831-4704cff9775c|Hawkes Bay":1718, //Hawkes Bay;Fragmentation Grenade
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Hawkes Bay":1719, "97d74fa2-4832-4186-a447-c4b2e37d537a|Hawkes Bay":1719, //Hawkes Bay;Bust
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Hawkes Bay":1720, //Hawkes Bay;Shovel
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Miami":1721, //Miami;Shovel
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Miami":1722, //Miami;Crowbar
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Miami":1723, //Miami;Hammer
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Miami":1724, //Miami;Screwdriver
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Miami":1725, //Miami;Fire Axe
+	"c82fefa7-febe-46c8-90ec-c945fbef0cb4|Miami":1726, //Miami;Kronstadt Octane Booster
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Miami":1727, "c19f796e-e23f-4429-a046-47ed3d324359|Miami":1727, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Miami":1727, "004ecac9-6aee-4b30-a073-4399a94535d8|Miami":1727, //Miami;Soda Can
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Miami":1728, //Miami;Coin
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Miami":1729, //Miami;Lead Pipe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Miami":1730, //Miami;Fire Extinguisher
+	"74b04d1f-8ac9-46a0-9a6c-8579cf03276f|Miami":1731, //Miami;Didgeridoo
+	"d1f29c76-5751-4e06-b534-e6eb7522b128|Miami":1732, //Miami;Android Arm
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Miami":1733, //Miami;Wrench
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Miami":1734, //Miami;Emetic Rat Poison
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Miami":1735, //Miami;Scissors
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Miami":1736, //Miami;Propane Flask
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Miami":1737, //Miami;Apricot
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Miami":1738, //Miami;Police Baton
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Miami":1739, //Miami;Tactical Bartoli 12G
+	"55ed7196-2303-4af6-9fa3-45b691134561|Miami":1740, //Miami;Bartoli 75R
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Miami":1741, //Miami;Bag of Sugar
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Miami":1742, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Miami":1742, //Miami;Fish
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Miami":1743, //Miami;Frying Pan
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Miami":1744, //Miami;Kitchen Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Miami":1745, //Miami;Cleaver
+	"ce633778-7424-4784-8bc2-f9d717a23709|Miami":1746, //Miami;Baseball
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Miami":1747, //Miami;Baseball Bat
+	"606a9606-8c05-4dcd-93fa-ec9cdc13f357|Miami":1748, //Miami;Pneumatic Wrench
+	"53284129-c50a-47a7-9efa-caa3b7503826|Miami":1749, //Miami;Car Bomb
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Miami":1750, //Miami;Old Axe
+	"22183fd3-d837-47c6-9c44-05637300af93|Miami":1751, //Miami;Coconut
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Miami":1752, //Miami;Lethal Poison Pill Jar
+	"62c2ac2e-329e-4648-822a-e45a29a93cd0|Miami":1753, //Miami;Amputation Knife
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Miami":1754, //Miami;Brick
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Miami":1755, "97d74fa2-4832-4186-a447-c4b2e37d537a|Miami":1755, //Miami;Bust
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Miami":1756, //Miami;Golf Club
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Miami":1757, //Miami;Cocaine Brick
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Miami":1758, //Miami;Starfish
+	"af9ad679-6a7c-4f8e-9700-ceb5e6887666|Miami":1759, //Miami;Modern Lethal Syringe
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Miami":1760, //Miami;Battle Axe
+	"ac1f44ac-0542-4e3e-9805-81ceeb499804|Miami":1761, //Miami;Cannabis Joint
+	"ec31f55f-6109-4f97-9286-8f59fae666f6|Miami":1762, //Miami;The Big One
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Santa Fortuna":1763, //Santa Fortuna;Coin
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Santa Fortuna":1764, "c19f796e-e23f-4429-a046-47ed3d324359|Santa Fortuna":1764, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Santa Fortuna":1764, "004ecac9-6aee-4b30-a073-4399a94535d8|Santa Fortuna":1764, //Santa Fortuna;Soda Can
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Santa Fortuna":1765, //Santa Fortuna;Car Battery
+	"22183fd3-d837-47c6-9c44-05637300af93|Santa Fortuna":1766, //Santa Fortuna;Coconut
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Santa Fortuna":1767, //Santa Fortuna;Propane Flask
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Santa Fortuna":1768, //Santa Fortuna;Brick
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Santa Fortuna":1769, //Santa Fortuna;Lead Pipe
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Santa Fortuna":1770, //Santa Fortuna;Emetic Rat Poison
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Santa Fortuna":1771, //Santa Fortuna;Crowbar
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Santa Fortuna":1772, //Santa Fortuna;Screwdriver
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Santa Fortuna":1773, //Santa Fortuna;Hammer
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Santa Fortuna":1774, //Santa Fortuna;Apricot
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Santa Fortuna":1775, //Santa Fortuna;Kitchen Knife
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Santa Fortuna":1776, //Santa Fortuna;Baseball Bat
+	"ce633778-7424-4784-8bc2-f9d717a23709|Santa Fortuna":1777, //Santa Fortuna;Baseball
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Santa Fortuna":1778, //Santa Fortuna;Frying Pan
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Santa Fortuna":1779, //Santa Fortuna;Wrench
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Santa Fortuna":1780, //Santa Fortuna;Shovel
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Santa Fortuna":1781, //Santa Fortuna;Letter Opener
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Santa Fortuna":1782, //Santa Fortuna;Scissors
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Santa Fortuna":1783, //Santa Fortuna;Cleaver
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Santa Fortuna":1784, //Santa Fortuna;Meaty Bone
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Santa Fortuna":1785, //Santa Fortuna;Lethal Poison Pill Jar
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|Santa Fortuna":1786, //Santa Fortuna;DAK X2
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Santa Fortuna":1787, //Santa Fortuna;Bartoli 12G
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Santa Fortuna":1788, //Santa Fortuna;Shashka A33
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Santa Fortuna":1789, //Santa Fortuna;Bartoli 75S
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Santa Fortuna":1790, "aa62586e-d463-494e-b55f-177bcdf8c08c|Santa Fortuna":1790, //Santa Fortuna;Poisonous Flower (Emetic)
+	"cbf40151-cb96-435a-b683-6430370a07f2|Santa Fortuna":1791, //Santa Fortuna;Poisonous Flower (Lethal)
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Santa Fortuna":1792, "963123fd-8a53-41b6-8950-335495b3f3af|Santa Fortuna":1792, //Santa Fortuna;Lethal Poisonous Frog
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Santa Fortuna":1793, //Santa Fortuna;Fire Extinguisher
+	"30fa1ade-386f-49b7-bddd-a23cd912611d|Santa Fortuna":1794, //Santa Fortuna;Letterbomb Parcel
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Santa Fortuna":1795, //Santa Fortuna;Pool Ball
+	"248cbd89-9923-452a-8cda-a5f76d8930dc|Santa Fortuna":1796, //Santa Fortuna;Collectors Baseball Bat
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Santa Fortuna":1797, //Santa Fortuna;Driftwood Log
+	"3e3819ca-4d19-4e0a-a238-4bd16c730e61|Santa Fortuna":1798, //Santa Fortuna;Machete
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Santa Fortuna":1799, //Santa Fortuna;Cocaine Brick
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Santa Fortuna":1800, //Santa Fortuna;Remote Explosive
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Santa Fortuna":1801, //Santa Fortuna;Bag of Gunpowder
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|Santa Fortuna":1802, //Santa Fortuna;Claw Hammer
+	"79b48d90-26aa-4b17-9332-599ed8e0bd7f|Santa Fortuna":1803, //Santa Fortuna;Shashka A33 Gold
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Santa Fortuna":1804, //Santa Fortuna;Hackl 9S Covert
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Santa Fortuna":1805, //Santa Fortuna;Gold Idol
+	"b2321154-4520-4911-9d94-9256b85e0983|Santa Fortuna":1806, //Santa Fortuna;Sacrificial Knife
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Santa Fortuna":1807, //Santa Fortuna;Folding Knife
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Santa Fortuna":1808, //Santa Fortuna;Barber Razor
+	"77ecaad6-652f-480d-b365-cdf90820a5ec|Santa Fortuna":1809, //Santa Fortuna;\"El Matador\"
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Santa Fortuna":1810, //Santa Fortuna;Cowboy Bust
+	"d2f4e54f-1eb8-482d-9732-a9159b1a9229|Santa Fortuna":1811, //Santa Fortuna;Cocaine Souvenir
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Santa Fortuna":1812, //Santa Fortuna;Expired Can of Spaghetti Sauce
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Mumbai":1813, //Mumbai;Kitchen Knife
+	"b153112f-9cd1-4a49-a9c6-ba1a34f443ab|Mumbai":1814, //Mumbai;Beak Staff
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Mumbai":1815, //Mumbai;Brick
+	"7f31d897-a62f-448c-be0d-79d565e2faa7|Mumbai":1816, //Mumbai;Bartoli 12G
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Mumbai":1817, //Mumbai;Emetic Rat Poison
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Mumbai":1818, //Mumbai;Iron
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Mumbai":1819, //Mumbai;Expired Can of Spaghetti Sauce
+	"cf4838bf-2417-4baf-ad40-50b7793040c6|Mumbai":1820, //Mumbai;Chennai Cricket Ball
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Mumbai":1821, //Mumbai;Baseball Bat
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Mumbai":1822, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Mumbai":1822, //Mumbai;Fish
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Mumbai":1823, //Mumbai;Shovel
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Mumbai":1824, //Mumbai;Wrench
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Mumbai":1825, //Mumbai;Crowbar
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Mumbai":1826, //Mumbai;Propane Flask
+	"cbc38627-a3c4-4116-8731-ace217a831e7|Mumbai":1827, //Mumbai;Lever
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Mumbai":1828, //Mumbai;Car Battery
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Mumbai":1829, //Mumbai;Coin
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Mumbai":1830, //Mumbai;Old Axe
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Mumbai":1831, //Mumbai;Lead Pipe
+	"c008f9ce-4029-4ab4-a9c3-52868fe810ff|Mumbai":1832, //Mumbai;Colored Smoke
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Mumbai":1833, //Mumbai;Shashka A33
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Mumbai":1834, //Mumbai;Frying Pan
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Mumbai":1835, "c19f796e-e23f-4429-a046-47ed3d324359|Mumbai":1835, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Mumbai":1835, "004ecac9-6aee-4b30-a073-4399a94535d8|Mumbai":1835, //Mumbai;Soda Can
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Mumbai":1836, //Mumbai;Lethal Poison Pill Jar
+	"40e96ed0-7668-4d65-b88a-f44bfff5f537|Mumbai":1837, //Mumbai;Khatvanga
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Mumbai":1838, //Mumbai;Scissors
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Mumbai":1839, //Mumbai;Screwdriver
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Mumbai":1840, //Mumbai;Hammer
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Mumbai":1841, //Mumbai;Fire Extinguisher
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Mumbai":1842, //Mumbai;Barber Razor
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Mumbai":1843, //Mumbai;Fire Axe
+	"62c2ac2e-329e-4648-822a-e45a29a93cd0|Mumbai":1844, //Mumbai;Amputation Knife
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Mumbai":1845, //Mumbai;Cleaver
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Mumbai":1846, //Mumbai;Folding Knife
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Mumbai":1847, //Mumbai;Bartoli 75S
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Mumbai":1848, //Mumbai;Letter Opener
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|Mumbai":1849, //Mumbai;DAK X2
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Mumbai":1850, //Mumbai;Saber
+	"a804e004-7d45-42c8-87bd-b7cbcffa56cc|Mumbai":1851, //Mumbai;Measuring Tape
+	"43d15bea-d282-4a91-b625-8b7ba85c0ad5|Mumbai":1852, //Mumbai;Druzhina 34
+	"81654161-7711-4985-8056-8651a381d3ca|Mumbai":1853, //Mumbai;Rake
+	"e638b949-9b96-4c41-bec4-0a8fbfb05c75|Whittleton Creek":1854, //Whittleton Creek;DAK X2 Covert Special
+	"55ed7196-2303-4af6-9fa3-45b691134561|Whittleton Creek":1855, //Whittleton Creek;Bartoli 75R
+	"53284129-c50a-47a7-9efa-caa3b7503826|Whittleton Creek":1856, //Whittleton Creek;Car Bomb
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|Whittleton Creek":1857, //Whittleton Creek;Flash Grenade
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Whittleton Creek":1858, //Whittleton Creek;Kitchen Knife
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Whittleton Creek":1859, //Whittleton Creek;Apple
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Whittleton Creek":1860, //Whittleton Creek;Screwdriver
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Whittleton Creek":1861, //Whittleton Creek;Shovel
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Whittleton Creek":1862, "c19f796e-e23f-4429-a046-47ed3d324359|Whittleton Creek":1862, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Whittleton Creek":1862, "004ecac9-6aee-4b30-a073-4399a94535d8|Whittleton Creek":1862, //Whittleton Creek;Soda Can
+	"5952b621-fee9-4699-809c-8889abadfdb8|Whittleton Creek":1863, //Whittleton Creek;Blueberry Muffin
+	"ce633778-7424-4784-8bc2-f9d717a23709|Whittleton Creek":1864, //Whittleton Creek;Baseball
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Whittleton Creek":1865, //Whittleton Creek;Wrench
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Whittleton Creek":1866, //Whittleton Creek;Hammer
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Whittleton Creek":1867, //Whittleton Creek;Propane Flask
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Whittleton Creek":1868, //Whittleton Creek;Golf Club
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Whittleton Creek":1869, //Whittleton Creek;Fire Extinguisher
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Whittleton Creek":1870, //Whittleton Creek;Coin
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Whittleton Creek":1871, //Whittleton Creek;Newspaper
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Whittleton Creek":1872, //Whittleton Creek;Fire Axe
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Whittleton Creek":1873, "963123fd-8a53-41b6-8950-335495b3f3af|Whittleton Creek":1873, //Whittleton Creek;Lethal Poisonous Frog
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Whittleton Creek":1874, //Whittleton Creek;Emetic Rat Poison
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Whittleton Creek":1875, "97d74fa2-4832-4186-a447-c4b2e37d537a|Whittleton Creek":1875, //Whittleton Creek;Bust
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Whittleton Creek":1876, //Whittleton Creek;Car Battery
+	"ef63eda6-6411-4ce0-b35b-143fc5767fc0|Whittleton Creek":1877, //Whittleton Creek;Lethal Pills
+	"c5ec6168-2e5e-4340-b71a-c60f2ee6bd66|Whittleton Creek":1878, //Whittleton Creek;Emetic Pills
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Whittleton Creek":1879, //Whittleton Creek;Scissors
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Whittleton Creek":1880, //Whittleton Creek;Letter Opener
+	"092f6514-c34e-4d04-8d28-7ebbe14230d1|Whittleton Creek":1881, //Whittleton Creek;\"Rude Ruby\"
+	"ccdd6689-092d-49b2-85f8-416a02e25566|Whittleton Creek":1882, //Whittleton Creek;Remote CX Demo Block
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Whittleton Creek":1883, //Whittleton Creek;Crowbar
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|Whittleton Creek":1884, //Whittleton Creek;DAK X2
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Whittleton Creek":1885, //Whittleton Creek;Hackl 9S Covert
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Whittleton Creek":1886, //Whittleton Creek;Remote Explosive
+	"2f6eec38-45ea-49df-83a2-0b98a858e60a|Whittleton Creek":1887, //Whittleton Creek;RS-15
+	"a15af673-8e21-47e3-bdfa-f5dea7b5f9e9|Whittleton Creek":1888, //Whittleton Creek;TAC-4 AR Auto
+	"6b93848c-8f1d-42eb-816f-bab61b56d8a5|Whittleton Creek":1889, //Whittleton Creek;Fusil G1-4|C
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Whittleton Creek":1890, //Whittleton Creek;Fusil G2
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Whittleton Creek":1891, //Whittleton Creek;Lead Pipe
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Whittleton Creek":1892, //Whittleton Creek;Baseball Bat
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Whittleton Creek":1893, //Whittleton Creek;Meaty Bone
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Whittleton Creek":1894, //Whittleton Creek;Battle Axe
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Whittleton Creek":1895, //Whittleton Creek;Expired Can of Spaghetti Sauce
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Whittleton Creek":1896, //Whittleton Creek;Hatchet
+	"aa532e88-2430-432f-9818-ddb8ad80615e|Whittleton Creek":1897, "01048280-0358-4f0a-95b7-1f9f665c1648|Whittleton Creek":1897, //Whittleton Creek;Insecticide
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Whittleton Creek":1898, //Whittleton Creek;Paddle
+	"bad168bb-3629-42b3-bc57-604b03a81d30|Whittleton Creek":1899, //Whittleton Creek;Package
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Whittleton Creek":1900, //Whittleton Creek;Brick
+	"b153112f-9cd1-4a49-a9c6-ba1a34f443ab|Whittleton Creek":1901, //Whittleton Creek;Beak Staff
+	"ac1f44ac-0542-4e3e-9805-81ceeb499804|Whittleton Creek":1902, //Whittleton Creek;Cannabis Joint
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Whittleton Creek":1903, //Whittleton Creek;Cigar Box
+	"81654161-7711-4985-8056-8651a381d3ca|Whittleton Creek":1904, //Whittleton Creek;Rake
+	"2147b6cd-5a42-4cd6-b366-2c5c50d97db7|Ambrose Island":1905, //Ambrose Island;Fishing Line
+	"94c2b206-d011-4358-a6b3-c8a6042ab2c2|Ambrose Island":1906, //Ambrose Island;Wooden Torch
+	"22183fd3-d837-47c6-9c44-05637300af93|Ambrose Island":1907, //Ambrose Island;Coconut
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Ambrose Island":1908, //Ambrose Island;Driftwood Log
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Ambrose Island":1909, //Ambrose Island;Lead Pipe
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Ambrose Island":1910, //Ambrose Island;Garden Fork
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Ambrose Island":1911, //Ambrose Island;Brick
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Ambrose Island":1912, //Ambrose Island;Hammer
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Ambrose Island":1913, //Ambrose Island;Fire Extinguisher
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Ambrose Island":1914, //Ambrose Island;Crowbar
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Ambrose Island":1915, //Ambrose Island;Car Battery
+	"3a359494-ee05-4fea-beac-8726233a55bf|Ambrose Island":1916, //Ambrose Island;Whiskey Bottle
+	"5ad01c38-244a-4b75-94d6-624850d2dc92|Ambrose Island":1917, //Ambrose Island;Spray Can
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Ambrose Island":1918, //Ambrose Island;Apple
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Ambrose Island":1919, //Ambrose Island;Paddle
+	"1050c8d3-43d6-4bcf-a5d3-0ca994121871|Ambrose Island":1920, //Ambrose Island;Vodka Bottle
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Ambrose Island":1921, //Ambrose Island;Starfish
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Ambrose Island":1922, "c19f796e-e23f-4429-a046-47ed3d324359|Ambrose Island":1922, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Ambrose Island":1922, "004ecac9-6aee-4b30-a073-4399a94535d8|Ambrose Island":1922, //Ambrose Island;Soda Can
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Ambrose Island":1923, //Ambrose Island;Scissors
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Ambrose Island":1924, //Ambrose Island;Wrench
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Ambrose Island":1925, //Ambrose Island;Soap
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Ambrose Island":1926, //Ambrose Island;Cleaver
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Ambrose Island":1927, //Ambrose Island;Frying Pan
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Ambrose Island":1928, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Ambrose Island":1928, //Ambrose Island;Fish
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Ambrose Island":1929, //Ambrose Island;Bag of Sugar
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Ambrose Island":1930, //Ambrose Island;Emetic Rat Poison
+	"903d273c-c750-441d-916a-31557fea3382|Ambrose Island":1931, //Ambrose Island;Banana
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Ambrose Island":1932, //Ambrose Island;Shovel
+	"72cb6124-36eb-4c25-8da0-78d4c5fac459|Ambrose Island":1933, //Ambrose Island;Durian
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Ambrose Island":1934, //Ambrose Island;Kitchen Knife
+	"66024572-7838-42d3-8c7b-c651e259438e|Ambrose Island":1935, //Ambrose Island;Meat Fork
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Ambrose Island":1936, //Ambrose Island;Letter Opener
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Ambrose Island":1937, "963123fd-8a53-41b6-8950-335495b3f3af|Ambrose Island":1937, //Ambrose Island;Lethal Poisonous Frog
+	"5db9cefd-391e-4c35-a4c4-bb672ac9b996|Ambrose Island":1938, //Ambrose Island;Kukri Machete
+	"7bc45270-83fe-4cf6-ad10-7d1b0cf3a3fd|Ambrose Island":1939, //Ambrose Island;Seashell
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Ambrose Island":1940, "aa62586e-d463-494e-b55f-177bcdf8c08c|Ambrose Island":1940, //Ambrose Island;Poisonous Flower (Emetic)
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Ambrose Island":1941, //Ambrose Island;Cannonball
+	"40e96ed0-7668-4d65-b88a-f44bfff5f537|Ambrose Island":1942, //Ambrose Island;Khatvanga
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Ambrose Island":1943, //Ambrose Island;Screwdriver
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Ambrose Island":1944, //Ambrose Island;Apricot
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Ambrose Island":1945, //Ambrose Island;Propane Flask
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Ambrose Island":1946, //Ambrose Island;Folding Knife
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Ambrose Island":1947, //Ambrose Island;Coin
+	"7d668011-77f9-4cae-97f1-e3eda5e0c8b2|Ambrose Island":1948, //Ambrose Island;Lethal Poison Vial
+	"af82349c-259f-4bdd-8be7-d5ff61695c29|Ambrose Island":1949, //Ambrose Island;Emetic Gas Grenade
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Ambrose Island":1950, //Ambrose Island;Old Axe
+	"b5481de5-6446-46b3-903f-e0040f46b7f0|Ambrose Island":1951, //Ambrose Island;Sawed-Off Bartoli 12G
+	"58a036dc-79d4-4d64-8bf5-3faafa3cfead|Ambrose Island":1952, //Ambrose Island;Hook
+	"79f8c0e9-4690-4ebf-b2b3-fd8411a1407f|Ambrose Island":1953, //Ambrose Island;Brine-Damaged SMG
+	"a83349bf-3d9c-43ec-92ee-c8c98cbeabc1|Ambrose Island":1954, //Ambrose Island;Molotov Cocktail
+	"8f1bae41-3570-40cc-be87-77cb6a4af86c|Ambrose Island":1955, //Ambrose Island;Makeshift Explosive
+	"3dbbbb5e-61a7-4cae-8df0-0e911e744dca|Ambrose Island":1956, //Ambrose Island;Remote CX Demo Block MK II
+	"6e4afb04-417e-4cfc-aaa2-43f3ecca9037|Ambrose Island":1957, //Ambrose Island;Shashka A33
+	"d73251b4-4860-4b5b-8376-7c9cf2a054a2|Ambrose Island":1958, //Ambrose Island;Scrap Sword
+	"e98f44fd-7f36-46a8-ae3c-bf080e8454d3|Ambrose Island":1959, //Ambrose Island;Umbrella
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Ambrose Island":1960, //Ambrose Island;Gold Idol
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Ambrose Island":1961, //Ambrose Island;Newspaper
+	"42c7bb52-a71b-489c-8a74-7db0c09ba313|Ambrose Island":1962, //Ambrose Island;Shears
+	"79b48d90-26aa-4b17-9332-599ed8e0bd7f|Ambrose Island":1963, //Ambrose Island;Shashka A33 Gold
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Ambrose Island":1964, //Ambrose Island;Barber Razor
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Ambrose Island":1965, //Ambrose Island;Cigar Box
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Ambrose Island":1966, //Ambrose Island;Iron
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Ambrose Island":1967, //Ambrose Island;Meaty Bone
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Ambrose Island":1968, //Ambrose Island;Hobby Knife
+	"6738e8ad-b8d0-496a-9749-d27a93b40113|Ambrose Island":1969, //Ambrose Island;Militia-Issued HX-10 SMG
+	"fc715a9a-3bf1-4768-bd67-0def61b92551|Ambrose Island":1970, //Ambrose Island;Remote Breaching Charge
+	"dc10958c-e3dc-447b-b9f4-8c4bde86d108|Ambrose Island":1971, //Ambrose Island;Doubloon
+	"fba6e133-78d1-4af1-8450-1ff30466c553|Ambrose Island":1972, //Ambrose Island;Jarl's Pirate Saber
+	"af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc|Ambrose Island":1973, //Ambrose Island;Nitroglycerin
+	"23b8ad17-1913-40ce-b3bc-2c92317801dd|Isle of Sgail":1974, //Isle of Sgail;Mace
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Isle of Sgail":1975, //Isle of Sgail;Battle Axe
+	"d2a7fa04-2cac-45d8-b696-47c566bb95ff|Isle of Sgail":1976, //Isle of Sgail;Sapper's Axe
+	"12200bd8-9605-4111-8b26-4e73cb07d816|Isle of Sgail":1977, //Isle of Sgail;Broadsword
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Isle of Sgail":1978, //Isle of Sgail;Cigar Box
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Isle of Sgail":1979, //Isle of Sgail;Old Axe
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Isle of Sgail":1980, "97d74fa2-4832-4186-a447-c4b2e37d537a|Isle of Sgail":1980, //Isle of Sgail;Bust
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Isle of Sgail":1981, //Isle of Sgail;Saber
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Isle of Sgail":1982, //Isle of Sgail;Cannonball
+	"9a7711c7-ede9-4230-853e-ab94c65fc0c9|Isle of Sgail":1983, //Isle of Sgail;Viking Axe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Isle of Sgail":1984, //Isle of Sgail;Fire Extinguisher
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Isle of Sgail":1985, //Isle of Sgail;Fire Poker
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Isle of Sgail":1986, //Isle of Sgail;Bartoli 75S
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Isle of Sgail":1987, //Isle of Sgail;Hatchet
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Isle of Sgail":1988, //Isle of Sgail;Car Battery
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Isle of Sgail":1989, //Isle of Sgail;Propane Flask
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Isle of Sgail":1990, //Isle of Sgail;Baseball Bat
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Isle of Sgail":1991, //Isle of Sgail;Emetic Rat Poison
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Isle of Sgail":1992, //Isle of Sgail;Shovel
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|Isle of Sgail":1993, //Isle of Sgail;Chloroform Flask
+	"5d8ca32a-fe4c-4597-b074-51e36c3de898|Isle of Sgail":1994, //Isle of Sgail;Scalpel
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Isle of Sgail":1995, //Isle of Sgail;Paddle
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Isle of Sgail":1996, //Isle of Sgail;Crowbar
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Isle of Sgail":1997, //Isle of Sgail;Screwdriver
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Isle of Sgail":1998, //Isle of Sgail;Letter Opener
+	"22183fd3-d837-47c6-9c44-05637300af93|Isle of Sgail":1999, //Isle of Sgail;Coconut
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Isle of Sgail":2000, //Isle of Sgail;Cowboy Bust
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Isle of Sgail":2001, //Isle of Sgail;Coin
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Isle of Sgail":2002, //Isle of Sgail;Tactical Bartoli 12G
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Isle of Sgail":2003, "c19f796e-e23f-4429-a046-47ed3d324359|Isle of Sgail":2003, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Isle of Sgail":2003, "004ecac9-6aee-4b30-a073-4399a94535d8|Isle of Sgail":2003, //Isle of Sgail;Soda Can
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Isle of Sgail":2004, //Isle of Sgail;Wrench
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Isle of Sgail":2005, //Isle of Sgail;Hammer
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Isle of Sgail":2006, //Isle of Sgail;Apple
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Isle of Sgail":2007, //Isle of Sgail;Brick
+	"ac77e98d-4ffa-4755-80fc-cd6e7adc63fb|Isle of Sgail":2008, //Isle of Sgail;Expired Can of Spaghetti Sauce
+	"51f6ed96-4985-4d09-8218-e3b912d025b9|Isle of Sgail":2009, //Isle of Sgail;Branding Iron
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Isle of Sgail":2010, //Isle of Sgail;Meaty Bone
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Isle of Sgail":2011, //Isle of Sgail;Lead Pipe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Isle of Sgail":2012, //Isle of Sgail;Frying Pan
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Isle of Sgail":2013, //Isle of Sgail;Cleaver
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Isle of Sgail":2014, //Isle of Sgail;Kitchen Knife
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Isle of Sgail":2015, //Isle of Sgail;Apricot
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Isle of Sgail":2016, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Isle of Sgail":2016, //Isle of Sgail;Fish
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Isle of Sgail":2017, //Isle of Sgail;Fire Axe
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Isle of Sgail":2018, //Isle of Sgail;Bag of Gunpowder
+	"e0de34ce-f8d1-428b-8b37-0dae7398bde3|Isle of Sgail":2019, //Isle of Sgail;HX-7 Covert
+	"e312a416-5b56-4cb5-8994-1d4bc82fbb84|Isle of Sgail":2020, //Isle of Sgail;Circumcision Knife
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Isle of Sgail":2021, //Isle of Sgail;Scissors
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Isle of Sgail":2022, //Isle of Sgail;Newspaper
+	"e45c295d-60dd-4cba-a01b-0dc1b6f1b17c|Isle of Sgail":2023, //Isle of Sgail;Botulinum Toxin
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Isle of Sgail":2024, //Isle of Sgail;Gold Idol
+	"5631dace-7f4a-4df8-8e97-b47373b815ff|Isle of Sgail":2025, //Isle of Sgail;Katana
+	"92d68841-8552-40b1-b8a5-c36c6efdb6b1|Isle of Sgail":2026, //Isle of Sgail;Aztec Necklace
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Isle of Sgail":2027, //Isle of Sgail;Imperial Filigree Egg
+	"40e96ed0-7668-4d65-b88a-f44bfff5f537|Isle of Sgail":2028, //Isle of Sgail;Khatvanga
+	"cb34f363-3534-46ff-b036-d49f1329f300|Isle of Sgail":2029, //Isle of Sgail;Torch
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Isle of Sgail":2030, //Isle of Sgail;Fusil G2
+	"1e11fbea-cd51-48bf-8316-a050772d6135|Isle of Sgail":2031, //Isle of Sgail;Hackl 9S
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Isle of Sgail":2032, //Isle of Sgail;HX-10
+	"5952b621-fee9-4699-809c-8889abadfdb8|Isle of Sgail":2033, //Isle of Sgail;Blueberry Muffin
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Isle of Sgail":2034, //Isle of Sgail;Iron
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Isle of Sgail":2035, //Isle of Sgail;Hackl 9S Covert
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Isle of Sgail":2036, //Isle of Sgail;Cocaine Brick
+	"da6ae60b-092d-4ad9-aa3c-322c8cb21985|Isle of Sgail":2037, //Isle of Sgail;Commemorative Token
+	"af8a7b6c-692c-4a76-b9bc-2b91ce32bcbc|Isle of Sgail":2038, //Isle of Sgail;Nitroglycerin
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|Isle of Sgail":2039, //Isle of Sgail;Flash Grenade
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Isle of Sgail":2040, //Isle of Sgail;Driftwood Log
+	"25bc1a6d-c618-43ee-9c1f-81347ed430a6|Isle of Sgail":2041, //Isle of Sgail;Cheeseburger
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Isle of Sgail":2042, //Isle of Sgail;Starfish
+	"b2321154-4520-4911-9d94-9256b85e0983|Isle of Sgail":2043, //Isle of Sgail;Sacrificial Knife
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|New York":2044, //New York;Fire Extinguisher
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|New York":2045, //New York;Letter Opener
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|New York":2046, //New York;Screwdriver
+	"31f36818-623f-4c92-892f-d7b19bb325e1|New York":2047, "97d74fa2-4832-4186-a447-c4b2e37d537a|New York":2047, //New York;Bust
+	"bad168bb-3629-42b3-bc57-604b03a81d30|New York":2048, //New York;Package
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|New York":2049, //New York;Fire Axe
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|New York":2050, //New York;Wrench
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|New York":2051, //New York;Iron
+	"54b1ffd7-5290-4b58-8e1c-53fd038a08f5|New York":2052, //New York;Small Goldbar
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|New York":2053, //New York;Imperial Filigree Egg
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|New York":2054, //New York;Emetic Rat Poison
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|New York":2055, //New York;Propane Flask
+	"4fad7437-59e9-4ca9-9b31-a6d97484216b|New York":2056, //New York;Violin
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|New York":2057, //New York;Police Baton
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|New York":2058, //New York;Scissors
+	"7685be69-ff8f-479c-91b9-7347253f8bf1|New York":2059, //New York;Earphones
+	"9488fa1e-10e1-49c9-bb24-6635d2e5bd49|New York":2060, //New York;Tanto
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|New York":2061, //New York;Hobby Knife
+	"6d4c88f3-9a09-453c-9a6e-a081f1136bf3|New York":2062, //New York;Burial Dagger
+	"8598ae82-53ac-43ba-9f43-30140d6ba7ee|New York":2063, //New York;Golden Sawed Off Bartoli 12G
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|New York":2064, //New York;Crowbar
+	"59b5731d-2de8-4175-9be0-92fbc2c3e603|New York":2065, //New York;Wristwatch Alarm
+	"a1f89118-d345-4367-9423-620c3ef5dfba|New York":2066, //New York;Lethal Poison Pill Jar
+	"59e407df-c49b-4abe-a1be-0806b026e47e|New York":2067, //New York;Concussion Grenade
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|New York":2068, "c19f796e-e23f-4429-a046-47ed3d324359|New York":2068, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|New York":2068, "004ecac9-6aee-4b30-a073-4399a94535d8|New York":2068, //New York;Soda Can
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|New York":2069, //New York;Newspaper
+	"0576a20c-581b-4705-8b9d-464e077d117e|New York":2070, //New York;Wet Floor Sign
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|New York":2071, //New York;Kitchen Knife
+	"dac32c27-4c49-4933-bccb-56c8f526515f|New York":2072, //New York;Car Battery
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|New York":2073, //New York;Flash Grenade
+	"901a3b51-51a0-4236-bdf2-23d20696b358|New York":2074, //New York;Tactical Bartoli 12G
+	"25bc1a6d-c618-43ee-9c1f-81347ed430a6|New York":2075, //New York;Cheeseburger
+	"5c211971-235a-4856-9eea-fe890940f63a|New York":2076, //New York;Antique Carved Knife
+	"30fa1ade-386f-49b7-bddd-a23cd912611d|New York":2077, //New York;Letterbomb Parcel
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|New York":2078, //New York;Gold Idol
+	"55ed7196-2303-4af6-9fa3-45b691134561|New York":2079, //New York;Bartoli 75R
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|New York":2080, //New York;Chloroform Flask
+	"26b5496d-9a8c-4059-9d69-d8712078a33c|New York":2081, //New York;Kalmer 1 - Tranquilizer
+	"da6ae60b-092d-4ad9-aa3c-322c8cb21985|New York":2082, //New York;Commemorative Token
+	"4292fe64-aac6-4bbe-be73-31671640172a|New York":2083, //New York;Goldbar
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|New York":2084, //New York;Coin
+	"a2c56798-026f-4d0b-9480-de0d2525a119|New York":2085, //New York;Folding Knife
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|New York":2086, //New York;Apple
+	"5952b621-fee9-4699-809c-8889abadfdb8|New York":2087, //New York;Blueberry Muffin
+	"e755471f-e6fd-438f-b343-7c98fbb50107|New York":2088, //New York;Apricot
+	"6b87c27d-0d73-4c63-b852-5a9c7a9ffb90|New York":2089, //New York;Feather Duster
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|New York":2090, //New York;Golf Club
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|New York":2091, //New York;Pool Ball
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|New York":2092, //New York;Lead Pipe
+	"d75bef38-8a65-45f6-9cd1-ca5e23e2f79a|New York":2093, //New York;DAK X2
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|New York":2094, //New York;Claw Hammer
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|New York":2095, //New York;Toy Tank
+	"7685be69-ff8f-479c-91b9-7347253f8bf1|Haven Island":2096, //Haven Island;Earphones
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Haven Island":2097, "c19f796e-e23f-4429-a046-47ed3d324359|Haven Island":2097, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Haven Island":2097, "004ecac9-6aee-4b30-a073-4399a94535d8|Haven Island":2097, //Haven Island;Soda Can
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Haven Island":2098, //Haven Island;Fire Extinguisher
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Haven Island":2099, //Haven Island;Barber Razor
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Haven Island":2100, //Haven Island;Apple
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Haven Island":2101, //Haven Island;Coin
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Haven Island":2102, //Haven Island;Golf Club
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Haven Island":2103, //Haven Island;Scissors
+	"280739c7-9d93-48b9-840e-694883e76700|Haven Island":2104, //Haven Island;Stethoscope
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Haven Island":2105, //Haven Island;Iron
+	"ce633778-7424-4784-8bc2-f9d717a23709|Haven Island":2106, //Haven Island;Baseball
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Haven Island":2107, //Haven Island;Baseball Bat
+	"1c50d6e0-11c8-4cbc-be05-f51a8e5013be|Haven Island":2108, //Haven Island;Modern Emetic Syringe
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Haven Island":2109, //Haven Island;Lethal Poison Pill Jar
+	"5d8ca32a-fe4c-4597-b074-51e36c3de898|Haven Island":2110, //Haven Island;Scalpel
+	"3e3819ca-4d19-4e0a-a238-4bd16c730e61|Haven Island":2111, //Haven Island;Machete
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Haven Island":2112, //Haven Island;Emetic Rat Poison
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Haven Island":2113, //Haven Island;Shovel
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Haven Island":2114, //Haven Island;Bartoli 75S
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Haven Island":2115, //Haven Island;Remote Explosive
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Haven Island":2116, //Haven Island;Police Baton
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Haven Island":2117, //Haven Island;Crowbar
+	"5952b621-fee9-4699-809c-8889abadfdb8|Haven Island":2118, //Haven Island;Blueberry Muffin
+	"0576a20c-581b-4705-8b9d-464e077d117e|Haven Island":2119, //Haven Island;Wet Floor Sign
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Haven Island":2120, //Haven Island;Folding Knife
+	"903d273c-c750-441d-916a-31557fea3382|Haven Island":2121, //Haven Island;Banana
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Haven Island":2122, //Haven Island;Screwdriver
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Haven Island":2123, //Haven Island;Wrench
+	"cad726d7-331d-4601-9723-6b8a17e5f91b|Haven Island":2124, //Haven Island;Starfish
+	"9c649932-7329-4cc3-a8cb-a32cae5dd7ca|Haven Island":2125, //Haven Island;Kettlebell
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Haven Island":2126, //Haven Island;Lead Pipe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Haven Island":2127, //Haven Island;Frying Pan
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Haven Island":2128, //Haven Island;Meaty Bone
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Haven Island":2129, //Haven Island;Cleaver
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Haven Island":2130, //Haven Island;Propane Flask
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Haven Island":2131, //Haven Island;Kitchen Knife
+	"0705964d-dab5-45b6-96ae-30cd4c2f0dec|Haven Island":2132, //Haven Island;Paddle
+	"a2fce6cb-7b4a-4d2e-81b7-919bf7c5b7ad|Haven Island":2133, //Haven Island;Pearl
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Haven Island":2134, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Haven Island":2134, //Haven Island;Fish
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Haven Island":2135, //Haven Island;Hackl 9S Covert
+	"22183fd3-d837-47c6-9c44-05637300af93|Haven Island":2136, //Haven Island;Coconut
+	"25bc1a6d-c618-43ee-9c1f-81347ed430a6|Haven Island":2137, //Haven Island;Cheeseburger
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Haven Island":2138, //Haven Island;Gold Idol
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Haven Island":2139, //Haven Island;Tactical Bartoli 12G
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Haven Island":2140, //Haven Island;Hatchet
+	"d8aa6eba-0cb7-4ed4-ab99-975f2793d731|Haven Island":2141, //Haven Island;Fusil G2
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Haven Island":2142, //Haven Island;HX-10
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Haven Island":2143, //Haven Island;Hammer
+	"6b87c27d-0d73-4c63-b852-5a9c7a9ffb90|Haven Island":2144, //Haven Island;Feather Duster
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Haven Island":2145, //Haven Island;Letter Opener
+	"7bc45270-83fe-4cf6-ad10-7d1b0cf3a3fd|Haven Island":2146, //Haven Island;Seashell
+	"e887e8ea-4554-41e1-b37d-d002dad04fed|Haven Island":2147, "963123fd-8a53-41b6-8950-335495b3f3af|Haven Island":2147, //Haven Island;Lethal Poisonous Frog
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Haven Island":2148, //Haven Island;Newspaper
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Haven Island":2149, //Haven Island;Imperial Filigree Egg
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Haven Island":2150, "aa62586e-d463-494e-b55f-177bcdf8c08c|Haven Island":2150, //Haven Island;Poisonous Flower (Emetic)
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Haven Island":2151, //Haven Island;Driftwood Log
+	"fba6e133-78d1-4af1-8450-1ff30466c553|Haven Island":2152, //Haven Island;Jarl's Pirate Saber
+	"dc10958c-e3dc-447b-b9f4-8c4bde86d108|Haven Island":2153, //Haven Island;Doubloon
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Haven Island":2154, //Haven Island;Fire Axe
+	"1973ae7e-538c-4a43-98af-208b9893d246|Haven Island":2155, //Haven Island;Maori Paddle
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Dubai":2156, //Dubai;Golf Club
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Dubai":2157, //Dubai;Apple
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Dubai":2158, //Dubai;Coin
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Dubai":2159, //Dubai;Crowbar
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Dubai":2160, //Dubai;Car Battery
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Dubai":2161, //Dubai;Letter Opener
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Dubai":2162, //Dubai;Gold Idol
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Dubai":2163, //Dubai;Imperial Filigree Egg
+	"b4d4ed1a-0687-48a9-a731-0e3b99494eb6|Dubai":2164, //Dubai;Ornate Scimitar
+	"e206ed81-0559-4289-9fec-e6a3e9d4ee7c|Dubai":2165, //Dubai;HX-10
+	"3a359494-ee05-4fea-beac-8726233a55bf|Dubai":2166, //Dubai;Whiskey Bottle
+	"4292fe64-aac6-4bbe-be73-31671640172a|Dubai":2167, //Dubai;Goldbar
+	"706cb615-e66d-49f3-86bb-899fa7117bcf|Dubai":2168, //Dubai;Model of the Sceptre
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Dubai":2169, //Dubai;Kitchen Knife
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Dubai":2170, //Dubai;Frying Pan
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Dubai":2171, //Dubai;Meaty Bone
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Dubai":2172, //Dubai;Emetic Rat Poison
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Dubai":2173, //Dubai;Screwdriver
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Dubai":2174, //Dubai;Soap
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Dubai":2175, //Dubai;Propane Flask
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Dubai":2176, //Dubai;Fire Axe
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Dubai":2177, //Dubai;Hammer
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Dubai":2178, //Dubai;Cleaver
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Dubai":2179, "c19f796e-e23f-4429-a046-47ed3d324359|Dubai":2179, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Dubai":2179, "004ecac9-6aee-4b30-a073-4399a94535d8|Dubai":2179, //Dubai;Soda Can
+	"c5ec6168-2e5e-4340-b71a-c60f2ee6bd66|Dubai":2180, //Dubai;Emetic Pills
+	"0576a20c-581b-4705-8b9d-464e077d117e|Dubai":2181, //Dubai;Wet Floor Sign
+	"55ed7196-2303-4af6-9fa3-45b691134561|Dubai":2182, //Dubai;Bartoli 75R
+	"903d273c-c750-441d-916a-31557fea3382|Dubai":2183, //Dubai;Banana
+	"16edb112-58cc-4069-a7dd-ebd258b14044|Dubai":2184, //Dubai;Fusil G1-4
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Dubai":2185, //Dubai;Fire Extinguisher
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Dubai":2186, //Dubai;Wrench
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Dubai":2187, //Dubai;Scissors
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Dubai":2188, //Dubai;Shovel
+	"22183fd3-d837-47c6-9c44-05637300af93|Dubai":2189, //Dubai;Coconut
+	"c95c55aa-34e5-42bd-bf27-32be3978b269|Dubai":2190, //Dubai;Explosive Golf Ball
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Dubai":2191, //Dubai;Folding Knife
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Dubai":2192, //Dubai;Lethal Poison Pill Jar
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Dubai":2193, //Dubai;Hackl 9S Covert
+	"5952b621-fee9-4699-809c-8889abadfdb8|Dubai":2194, //Dubai;Blueberry Muffin
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Dubai":2195, //Dubai;Iron
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Dartmoor":2196, //Dartmoor;Hatchet
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Dartmoor":2197, //Dartmoor;Driftwood Log
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Dartmoor":2198, //Dartmoor;Brick
+	"42c7bb52-a71b-489c-8a74-7db0c09ba313|Dartmoor":2199, //Dartmoor;Shears
+	"81654161-7711-4985-8056-8651a381d3ca|Dartmoor":2200, //Dartmoor;Rake
+	"98bf7fc1-7857-4999-bc99-586c49f24017|Dartmoor":2201, //Dartmoor;Classic Coin
+	"a2c56798-026f-4d0b-9480-de0d2525a119|Dartmoor":2202, //Dartmoor;Folding Knife
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Dartmoor":2203, //Dartmoor;Emetic Rat Poison
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Dartmoor":2204, //Dartmoor;Shovel
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Dartmoor":2205, //Dartmoor;Garden Fork
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Dartmoor":2206, //Dartmoor;Cigar Box
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Dartmoor":2207, //Dartmoor;Hammer
+	"ce633778-7424-4784-8bc2-f9d717a23709|Dartmoor":2208, //Dartmoor;Baseball
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Dartmoor":2209, //Dartmoor;Crowbar
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Dartmoor":2210, "aa62586e-d463-494e-b55f-177bcdf8c08c|Dartmoor":2210, //Dartmoor;Poisonous Flower (Emetic)
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Dartmoor":2211, //Dartmoor;Wrench
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Dartmoor":2212, //Dartmoor;Screwdriver
+	"4eede7ee-582b-49a4-b438-2418d82671d9|Dartmoor":2213, //Dartmoor;Walking Cane
+	"58769c58-3e70-4746-be8e-4c7114f8c2bb|Dartmoor":2214, //Dartmoor;Unicorn Horn
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Dartmoor":2215, //Dartmoor;Letter Opener
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Dartmoor":2216, //Dartmoor;Barber Razor
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Dartmoor":2217, //Dartmoor;Newspaper
+	"31f36818-623f-4c92-892f-d7b19bb325e1|Dartmoor":2218, "97d74fa2-4832-4186-a447-c4b2e37d537a|Dartmoor":2218, //Dartmoor;Bust
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Dartmoor":2219, //Dartmoor;Lead Pipe
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Dartmoor":2220, //Dartmoor;Apple
+	"6b87c27d-0d73-4c63-b852-5a9c7a9ffb90|Dartmoor":2221, //Dartmoor;Feather Duster
+	"94f52181-b9ec-4363-baef-d53b4e424b74|Dartmoor":2222, //Dartmoor;Saber
+	"785c3c6b-1272-4853-94f0-a41d52f64795|Dartmoor":2223, //Dartmoor;Bartoli Hunting Shotgun
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Dartmoor":2224, //Dartmoor;Car Battery
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Dartmoor":2225, //Dartmoor;Coin
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Dartmoor":2226, //Dartmoor;Lethal Poison Pill Jar
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Dartmoor":2227, //Dartmoor;Fire Poker
+	"17615866-32e7-4e1e-951d-7ef2ada796e9|Dartmoor":2228, //Dartmoor;Golf Club
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Dartmoor":2229, //Dartmoor;Iron
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Dartmoor":2230, //Dartmoor;Apricot
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Dartmoor":2231, //Dartmoor;Bag of Sugar
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Dartmoor":2232, //Dartmoor;Cleaver
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Dartmoor":2233, //Dartmoor;Scissors
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Dartmoor":2234, //Dartmoor;Propane Flask
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Dartmoor":2235, "c19f796e-e23f-4429-a046-47ed3d324359|Dartmoor":2235, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Dartmoor":2235, "004ecac9-6aee-4b30-a073-4399a94535d8|Dartmoor":2235, //Dartmoor;Soda Can
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Dartmoor":2236, //Dartmoor;Kitchen Knife
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Dartmoor":2237, //Dartmoor;Soap
+	"903d273c-c750-441d-916a-31557fea3382|Dartmoor":2238, //Dartmoor;Banana
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Dartmoor":2239, //Dartmoor;Imperial Filigree Egg
+	"1973ae7e-538c-4a43-98af-208b9893d246|Dartmoor":2240, //Dartmoor;Maori Paddle
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Dartmoor":2241, //Dartmoor;Pool Ball
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Dartmoor":2242, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Dartmoor":2242, //Dartmoor;Fish
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Dartmoor":2243, //Dartmoor;Hackl 9S Covert
+	"c21f558b-2935-41e5-88ff-642eb1761ccc|Berlin":2244, //Berlin;Baseball Bat
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Berlin":2245, //Berlin;Toy Tank
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Berlin":2246, //Berlin;Tactical Bartoli 12G
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Berlin":2247, //Berlin;Fire Extinguisher
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Berlin":2248, "c19f796e-e23f-4429-a046-47ed3d324359|Berlin":2248, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Berlin":2248, "004ecac9-6aee-4b30-a073-4399a94535d8|Berlin":2248, //Berlin;Soda Can
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Berlin":2249, //Berlin;Coin
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Berlin":2250, //Berlin;Kitchen Knife
+	"903d273c-c750-441d-916a-31557fea3382|Berlin":2251, //Berlin;Banana
+	"22183fd3-d837-47c6-9c44-05637300af93|Berlin":2252, //Berlin;Coconut
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Berlin":2253, //Berlin;Emetic Rat Poison
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Berlin":2254, //Berlin;Screwdriver
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Berlin":2255, //Berlin;Fire Axe
+	"c45e59f4-d8e1-4c37-b079-8b74b1fe9b24|Berlin":2256, //Berlin;Modern Sedative Syringe
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Berlin":2257, //Berlin;Wrench
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Berlin":2258, //Berlin;Hobby Knife
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Berlin":2259, //Berlin;Propane Flask
+	"510c62c2-1f40-4a4d-9e42-da677bd116e7|Berlin":2260, //Berlin;Police Baton
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Berlin":2261, //Berlin;Crowbar
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Berlin":2262, //Berlin;Hammer
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Berlin":2263, //Berlin;Lead Pipe
+	"95d1c5bd-72de-4236-97c0-b96fc5d92fa8|Berlin":2264, //Berlin;Pool Ball
+	"58dceb1c-d7db-41dc-9750-55e3ab87fdf0|Berlin":2265, //Berlin;Battle Axe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Berlin":2266, //Berlin;Frying Pan
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Berlin":2267, //Berlin;Cocaine Brick
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Berlin":2268, //Berlin;Car Battery
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Berlin":2269, //Berlin;Shovel
+	"55ed7196-2303-4af6-9fa3-45b691134561|Berlin":2270, //Berlin;Bartoli 75R
+	"aa532e88-2430-432f-9818-ddb8ad80615e|Berlin":2271, "01048280-0358-4f0a-95b7-1f9f665c1648|Berlin":2271, //Berlin;Insecticide
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Berlin":2272, //Berlin;Garden Fork
+	"4b0def3b-7378-494d-b885-92c334f2f8cb|Berlin":2273, //Berlin;Gold Idol
+	"719ba201-3688-4984-afb0-81dc2cc95ec1|Berlin":2274, //Berlin;Bartoli Woodsman Hunting Rifle
+	"5ad01c38-244a-4b75-94d6-624850d2dc92|Berlin":2275, //Berlin;Spray Can
+	"45c0ccfe-1ac3-4747-9571-fe7588fe6971|Berlin":2276, //Berlin;Bag of Sugar
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Berlin":2277, //Berlin;Brick
+	"d73251b4-4860-4b5b-8376-7c9cf2a054a2|Berlin":2278, //Berlin;Scrap Sword
+	"5952b621-fee9-4699-809c-8889abadfdb8|Berlin":2279, //Berlin;Blueberry Muffin
+	"fb5319c4-f3ff-4ce6-9a78-2fc2c33bd19c|Berlin":2280, //Berlin;Bird's Egg
+	"2c037ef5-a01b-4532-8216-1d535193a837|Berlin":2281, //Berlin;Combat Knife
+	"ce633778-7424-4784-8bc2-f9d717a23709|Berlin":2282, //Berlin;Baseball
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Berlin":2283, //Berlin;Old Axe
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Berlin":2284, //Berlin;Iron
+	"8ee26350-67f9-48bd-983e-8f276eea04cc|Berlin":2285, //Berlin;Poisonous (Emetic) Mushroom
+	"785c3c6b-1272-4853-94f0-a41d52f64795|Berlin":2286, //Berlin;Bartoli Hunting Shotgun
+	"ef63eda6-6411-4ce0-b35b-143fc5767fc0|Berlin":2287, //Berlin;Lethal Pills
+	"af9ad679-6a7c-4f8e-9700-ceb5e6887666|Berlin":2288, //Berlin;Modern Lethal Syringe
+	"e30a5b15-ce4d-41d5-a2a5-08dec9c4fe79|Berlin":2289, //Berlin;Concealable Knife
+	"407bf3c3-6319-4573-b193-2611b0ee397e|Berlin":2290, //Berlin;ICA Remote Audio Distraction Mk III
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Chongqing":2291, //Chongqing;Brick
+	"3c24c96a-557c-472a-9d71-1a235d7383a7|Chongqing":2292, //Chongqing;Hammer
+	"7aeb740f-3d60-4e49-8d27-15a98067ce9f|Chongqing":2293, //Chongqing;Lead Pipe
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Chongqing":2294, //Chongqing;Frying Pan
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Chongqing":2295, //Chongqing;Apple
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Chongqing":2296, "c19f796e-e23f-4429-a046-47ed3d324359|Chongqing":2296, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Chongqing":2296, "004ecac9-6aee-4b30-a073-4399a94535d8|Chongqing":2296, //Chongqing;Soda Can
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Chongqing":2297, //Chongqing;Screwdriver
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Chongqing":2298, //Chongqing;Fire Axe
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Chongqing":2299, //Chongqing;Wrench
+	"9488fa1e-10e1-49c9-bb24-6635d2e5bd49|Chongqing":2300, //Chongqing;Tanto
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Chongqing":2301, //Chongqing;Crowbar
+	"f1f89faf-a441-4492-b442-9a923b5ecfd1|Chongqing":2302, //Chongqing;Letter Opener
+	"0f9608e9-6e42-49b9-b4cd-9aaebba8458f|Chongqing":2303, //Chongqing;Hackl Leviathan Sniper Rifle Covert
+	"e98f44fd-7f36-46a8-ae3c-bf080e8454d3|Chongqing":2304, //Chongqing;Umbrella
+	"d73251b4-4860-4b5b-8376-7c9cf2a054a2|Chongqing":2305, //Chongqing;Scrap Sword
+	"3a359494-ee05-4fea-beac-8726233a55bf|Chongqing":2306, //Chongqing;Whiskey Bottle
+	"5952b621-fee9-4699-809c-8889abadfdb8|Chongqing":2307, //Chongqing;Blueberry Muffin
+	"3cf48e44-6e0f-4e4d-9d21-6a4af476118c|Chongqing":2308, //Chongqing;Chloroform Flask
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Chongqing":2309, //Chongqing;Coin
+	"8d937ed4-dc85-476b-8048-e96a8900e7bf|Chongqing":2310, //Chongqing;Mannequin Arm
+	"7c691c03-7c6b-4eb4-9a68-898efe5eedaa|Chongqing":2311, //Chongqing;Remote Explosive
+	"55ed7196-2303-4af6-9fa3-45b691134561|Chongqing":2312, //Chongqing;Bartoli 75R
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Chongqing":2313, //Chongqing;Hackl 9S Covert
+	"8a30c788-049a-4b83-b148-1a6db49d2ae5|Chongqing":2314, //Chongqing;ICA SMG Raptor Covert
+	"f6f525d2-a28c-4548-825b-f7ce93f6577c|Chongqing":2315, //Chongqing;Fusil X2000 Stealth
+	"901a3b51-51a0-4236-bdf2-23d20696b358|Chongqing":2316, //Chongqing;Tactical Bartoli 12G
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Chongqing":2317, //Chongqing;Emetic Rat Poison
+	"bad168bb-3629-42b3-bc57-604b03a81d30|Chongqing":2318, //Chongqing;Package
+	"a96cdbd8-9657-416a-87bf-d2ed21840794|Chongqing":2319, //Chongqing;Newspaper
+	"903d273c-c750-441d-916a-31557fea3382|Chongqing":2320, //Chongqing;Banana
+	"e755471f-e6fd-438f-b343-7c98fbb50107|Chongqing":2321, //Chongqing;Apricot
+	"1bbf0ed5-0515-4599-a4c9-454ce59cff44|Chongqing":2322, //Chongqing;Cleaver
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Chongqing":2323, //Chongqing;Meaty Bone
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Chongqing":2324, //Chongqing;Kitchen Knife
+	"7268dbea-7a1c-47f5-b846-f0445404ec14|Chongqing":2325, //Chongqing;Iron
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Chongqing":2326, //Chongqing;Soap
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Chongqing":2327, //Chongqing;Car Battery
+	"ce8e7099-e60d-47e8-bfd6-4918777f2c8b|Chongqing":2328, //Chongqing;Toy Tank
+	"6ecf1f15-453c-4783-9c70-8777c83934d7|Chongqing":2329, //Chongqing;Scissors
+	"ffcb781c-42a1-4d6d-9e1f-30603b7b3e5f|Chongqing":2330, //Chongqing;Driftwood Log
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Chongqing":2331, //Chongqing;Hobby Knife
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Chongqing":2332, //Chongqing;Fire Extinguisher
+	"c86ce2f4-7bd1-4949-acc4-54e5428d9396|Chongqing":2333, //Chongqing;Cowboy Bust
+	"280739c7-9d93-48b9-840e-694883e76700|Chongqing":2334, //Chongqing;Stethoscope
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Chongqing":2335, //Chongqing;Lethal Poison Pill Jar
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Chongqing":2336, //Chongqing;Garden Fork
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Chongqing":2337, //Chongqing;Propane Flask
+	"0f901c2c-3bcc-42f8-abc0-1f9b81fcd72f|Chongqing":2338, //Chongqing;Cigar Box
+	"8b37a3a8-8a20-4262-81c5-0fcd15f4bba9|Mendoza":2339, //Mendoza;Emetic Rat Poison
+	"b86b9ece-c929-44f6-8903-8f2c817e2a19|Mendoza":2340, //Mendoza;Cannonball
+	"12200bd8-9605-4111-8b26-4e73cb07d816|Mendoza":2341, //Mendoza;Broadsword
+	"e65953cb-f954-4d21-9f11-52b454cac15e|Mendoza":2342, //Mendoza;Bag of Gunpowder
+	"fba6e133-78d1-4af1-8450-1ff30466c553|Mendoza":2343, //Mendoza;Jarl's Pirate Saber
+	"719ba201-3688-4984-afb0-81dc2cc95ec1|Mendoza":2344, //Mendoza;Bartoli Woodsman Hunting Rifle
+	"369c68f7-cbef-4e45-83c7-8acd0dc2d237|Mendoza":2345, //Mendoza;Old Axe
+	"a1f89118-d345-4367-9423-620c3ef5dfba|Mendoza":2346, //Mendoza;Lethal Poison Pill Jar
+	"d2a7fa04-2cac-45d8-b696-47c566bb95ff|Mendoza":2347, //Mendoza;Sapper's Axe
+	"42c7bb52-a71b-489c-8a74-7db0c09ba313|Mendoza":2348, //Mendoza;Shears
+	"4fad7437-59e9-4ca9-9b31-a6d97484216b|Mendoza":2349, //Mendoza;Violin
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Mendoza":2350, //Mendoza;Imperial Filigree Egg
+	"1a105af8-fd30-447f-8b2c-f908f702e81c|Mendoza":2351, //Mendoza;Garden Fork
+	"1066917f-2e04-4c54-b8cb-55cb1dcc2f26|Mendoza":2352, //Mendoza;Shovel
+	"e98f44fd-7f36-46a8-ae3c-bf080e8454d3|Mendoza":2353, //Mendoza;Umbrella
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Mendoza":2354, //Mendoza;Brick
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Mendoza":2355, "c19f796e-e23f-4429-a046-47ed3d324359|Mendoza":2355, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Mendoza":2355, "004ecac9-6aee-4b30-a073-4399a94535d8|Mendoza":2355, //Mendoza;Soda Can
+	"987d9c9f-203d-44d9-bbf8-bf703f349565|Mendoza":2356, //Mendoza;Fire Poker
+	"0ff22cf7-a472-48d6-87eb-1b307bc5c576|Mendoza":2357, //Mendoza;Apple
+	"bce6ce09-6ead-4d72-8438-2c7780770e70|Mendoza":2358, //Mendoza;Frying Pan
+	"acc9d7b8-80f1-4bb0-ba81-3a69b09e0543|Mendoza":2359, //Mendoza;Meaty Bone
+	"903d273c-c750-441d-916a-31557fea3382|Mendoza":2360, //Mendoza;Banana
+	"299eae90-4744-4557-b30b-71382cba2839|Mendoza":2361, //Mendoza;Cabernet Sauvignon
+	"785c3c6b-1272-4853-94f0-a41d52f64795|Mendoza":2362, //Mendoza;Bartoli Hunting Shotgun
+	"81654161-7711-4985-8056-8651a381d3ca|Mendoza":2363, //Mendoza;Rake
+	"6adddf7e-6879-4d51-a7e2-6a25ffdca6ae|Mendoza":2364, //Mendoza;Wrench
+	"2b1bd2af-554e-4ea7-a717-3f6d0eb0215f|Mendoza":2365, //Mendoza;Grape Knife
+	"dac32c27-4c49-4933-bccb-56c8f526515f|Mendoza":2366, //Mendoza;Car Battery
+	"cb34f363-3534-46ff-b036-d49f1329f300|Mendoza":2367, //Mendoza;Torch
+	"3fbd6da4-c61c-40d6-9494-8277d2e172e4|Mendoza":2368, //Mendoza;Grapevine
+	"4cc1765e-939e-4a5a-bee2-44403b47822b|Mendoza":2369, "aa62586e-d463-494e-b55f-177bcdf8c08c|Mendoza":2369, //Mendoza;Poisonous Flower (Emetic)
+	"40766e9d-eb46-474e-b5ce-927e3e70f0c6|Mendoza":2370, //Mendoza;Pinot Noir
+	"12cb6b51-a6dd-4bf5-9653-0ab727820cac|Mendoza":2371, //Mendoza;Screwdriver
+	"3f9ed406-8de0-4466-b393-38a7f905d859|Mendoza":2372, //Mendoza;Malbec
+	"2d960bf0-217c-400d-a1ee-f721e18f2926|Mendoza":2373, //Mendoza;1945 Grand Paladin
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Mendoza":2374, //Mendoza;Fire Extinguisher
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Mendoza":2375, //Mendoza;Fire Axe
+	"0576a20c-581b-4705-8b9d-464e077d117e|Mendoza":2376, //Mendoza;Wet Floor Sign
+	"01ed6d15-e26e-4362-b1a6-363684a7d0fd|Mendoza":2377, //Mendoza;Crowbar
+	"2c037ef5-a01b-4532-8216-1d535193a837|Mendoza":2378, //Mendoza;Combat Knife
+	"dda002e9-02b1-4208-82a5-cf059f3c79cf|Mendoza":2379, //Mendoza;Coin
+	"c6e9414e-e2ce-470a-95bd-14cd25225878|Mendoza":2380, //Mendoza;Cocaine Brick
+	"a8309099-1b89-4492-bf37-37d4312b6615|Mendoza":2381, //Mendoza;Sieger AR552 Tactical
+	"7d64d9df-5d30-4e98-9af0-7562ee145d5c|Mendoza":2382, //Mendoza;Sieger 300 Tactical
+	"3dbbbb5e-61a7-4cae-8df0-0e911e744dca|Mendoza":2383, //Mendoza;Remote CX Demo Block MK II
+	"3a8207bb-84f5-438f-8f30-5c83aef2af80|Mendoza":2384, //Mendoza;Hatchet
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|Mendoza":2385, //Mendoza;Claw Hammer
+	"3e3819ca-4d19-4e0a-a238-4bd16c730e61|Mendoza":2386, //Mendoza;Machete
+	"a8a0c154-c36f-413e-8f29-b83a1b7a22f0|Mendoza":2387, //Mendoza;Propane Flask
+	"2147b6cd-5a42-4cd6-b366-2c5c50d97db7|Mendoza":2388, //Mendoza;Fishing Line
+	"1f11f901-2dbe-4e48-a77a-74c110b93da0|Mendoza":2389, "4d0d6b2a-dd81-474c-a412-3bf19af8233d|Mendoza":2389, //Mendoza;Fish
+	"9e728dc1-3344-4615-be7a-1bcbdd7ad4aa|Mendoza":2390, //Mendoza;Hobby Knife
+	"b1b40b14-eded-404f-b933-c4da15e85644|Mendoza":2391, "d689f87e-c3b1-4018-8e78-2f0025cde2a9|Mendoza":2391, //Mendoza;Icicle
+	"e17172cc-bf70-4df6-9828-d9856b1a24fd|Mendoza":2392, //Mendoza;Kitchen Knife
+	"2953e9ac-e25b-41ae-afbf-4a47f86c4f54|Mendoza":2393, //Mendoza;Bartoli 75S
+	"35efd6dc-0387-4b56-83f0-4e6609bac93f|Mendoza":2394, //Mendoza;Hackl 9S Covert
+	"6294f1c4-68db-477f-b7c9-8c9825c077a1|Carpathian Mountains":2395, //Carpathian Mountains;Rusty Crowbar
+	"84f50c4c-de1d-41f3-8021-1cba7df987cd|Carpathian Mountains":2396, //Carpathian Mountains;Soap
+	"c88a59cd-d5cc-4435-a3f1-2312abcc817e|Carpathian Mountains":2397, //Carpathian Mountains;Imperial Filigree Egg
+	"042fae7b-fe9e-4a83-ac7b-5c914a71b2ca|Carpathian Mountains":2398, //Carpathian Mountains;Flash Grenade
+	"b1b40b14-eded-404f-b933-c4da15e85644|Carpathian Mountains":2399, "d689f87e-c3b1-4018-8e78-2f0025cde2a9|Carpathian Mountains":2399, //Carpathian Mountains;Icicle
+	"a494c3c8-9a41-4398-9542-559e6a5dc1cb|Carpathian Mountains":2400, //Carpathian Mountains;ICA SMG White Raptor Covert
+	"c716ebb8-cc0e-4e60-9335-844a0d7e645d|Carpathian Mountains":2401, //Carpathian Mountains;HWK21 Pale
+	"5cc4d1ea-b4fa-4667-ba3a-b6e859f03059|Carpathian Mountains":2402, //Carpathian Mountains;Brick
+	"ecf022db-ecfd-48c0-97b5-2258e4e89a65|Carpathian Mountains":2403, //Carpathian Mountains;Rusty Screwdriver
+	"afd1f201-d2a5-4d40-80b1-d81b0d9d2541|Carpathian Mountains":2404, "c19f796e-e23f-4429-a046-47ed3d324359|Carpathian Mountains":2404, "de69ce1e-a24d-4acc-895f-4c3a71f47ba8|Carpathian Mountains":2404, "004ecac9-6aee-4b30-a073-4399a94535d8|Carpathian Mountains":2404, //Carpathian Mountains;Soda Can
+	"4e92b3c5-3358-44aa-8a87-f7f349f46f44|Carpathian Mountains":2405, //Carpathian Mountains;ICA Tactical Shotgun Covert
+	"3f9cf03f-b84f-4419-b831-4704cff9775c|Carpathian Mountains":2406, //Carpathian Mountains;Fragmentation Grenade
+	"5952b621-fee9-4699-809c-8889abadfdb8|Carpathian Mountains":2407, //Carpathian Mountains;Blueberry Muffin
+	"c4747fa2-4958-4a02-926e-3b069cf218dc|Carpathian Mountains":2408, //Carpathian Mountains;Claw Hammer
+	"a02af9a5-aefb-47e0-9d67-51cc9ec89774|Carpathian Mountains":2409, //Carpathian Mountains;Flash Grenade Mk III
+	"5ce2f842-e091-4ead-a51c-1cc406309c8d|Carpathian Mountains":2410, //Carpathian Mountains;Barber Razor
+	"a8bc4325-718e-45ba-b0e4-000729c70ce4|Carpathian Mountains":2411, //Carpathian Mountains;Fire Axe
+	"d64eb5f2-1e9b-402d-855b-c714cfde50db|Carpathian Mountains":2412, //Carpathian Mountains;Fire Extinguisher
+	"1a11a060-358c-4054-98ec-d3491af1d7c6|Carpathian Mountains":2413, //Carpathian Mountains;Fiber Wire
+	"f93b99a3-aef6-419f-b303-59470577696d|Carpathian Mountains":2414 //Carpathian Mountains;ICA19 Black Lily
+}
+const locationNameToApIdMap: Record<string,number> = {
+    "ICA Facility Completed":1000,
+    "Paris Completed":1001,
+    "Sapienza Completed":1002,
+    "Marrakesh Completed":1003,
+    "Bangkok Completed":1004,
+    "Colorado Completed":1005,
+    "Hokkaido Completed":1006,
+    "Hawkes Bay Completed":1007,
+    "Miami Completed":1008,
+    "Santa Fortuna Completed":1009,
+    "Mumbai Completed":1010,
+    "Whittleton Creek Completed":1011,
+    "Isle of Sgail Completed":1012,
+    "New York Completed":1013,
+    "Haven Island Completed":1014,
+    "Dubai Completed":1015,
+    "Dartmoor Completed":1016,
+    "Berlin Completed":1017,
+    "Chongqing Completed":1018,
+    "Mendoza Completed":1019,
+    "Carpathian Mountains Completed":1020,
+    "Ambrose Island Completed":1021,
+    "ICA Facility Completed - Silent Assassin":1022,
+    "Paris Completed - Silent Assassin":1023,
+    "Sapienza Completed - Silent Assassin":1024,
+    "Marrakesh Completed - Silent Assassin":1025,
+    "Bangkok Completed - Silent Assassin":1026,
+    "Colorado Completed - Silent Assassin":1027,
+    "Hokkaido Completed - Silent Assassin":1028,
+    "Hawkes Bay Completed - Silent Assassin":1029,
+    "Miami Completed - Silent Assassin":1030,
+    "Santa Fortuna Completed - Silent Assassin":1031,
+    "Mumbai Completed - Silent Assassin":1032,
+    "Whittleton Creek Completed - Silent Assassin":1033,
+    "Isle of Sgail Completed - Silent Assassin":1034,
+    "New York Completed - Silent Assassin":1035,
+    "Haven Island Completed - Silent Assassin":1036,
+    "Dubai Completed - Silent Assassin":1037,
+    "Dartmoor Completed - Silent Assassin":1038,
+    "Berlin Completed - Silent Assassin":1039,
+    "Chongqing Completed - Silent Assassin":1040,
+    "Mendoza Completed - Silent Assassin":1041,
+    "Carpathian Mountains Completed - Silent Assassin":1042,
+    "Ambrose Island Completed - Silent Assassin":1043,
+    "ICA Facility Completed - Suit Only":1044,
+    "Paris Completed - Suit Only":1045,
+    "Sapienza Completed - Suit Only":1046,
+    "Marrakesh Completed - Suit Only":1047,
+    "Bangkok Completed - Suit Only":1048,
+    "Colorado Completed - Suit Only":1049,
+    "Hokkaido Completed - Suit Only":1050,
+    "Hawkes Bay Completed - Suit Only":1051,
+    "Miami Completed - Suit Only":1052,
+    "Santa Fortuna Completed - Suit Only":1053,
+    "Mumbai Completed - Suit Only":1054,
+    "Whittleton Creek Completed - Suit Only":1055,
+    "Isle of Sgail Completed - Suit Only":1056,
+    "New York Completed - Suit Only":1057,
+    "Haven Island Completed - Suit Only":1058,
+    "Dubai Completed - Suit Only":1059,
+    "Dartmoor Completed - Suit Only":1060,
+    "Berlin Completed - Suit Only":1061,
+    "Chongqing Completed - Suit Only":1062,
+    "Mendoza Completed - Suit Only":1063,
+    "Carpathian Mountains Completed - Suit Only":1064,
+    "Ambrose Island Completed - Suit Only":1065,
+    "ICA Facility Completed - Silent Assassin, Suit Only":1066,
+    "Paris Completed - Silent Assassin, Suit Only":1067,
+    "Sapienza Completed - Silent Assassin, Suit Only":1068,
+    "Marrakesh Completed - Silent Assassin, Suit Only":1069,
+    "Bangkok Completed - Silent Assassin, Suit Only":1070,
+    "Colorado Completed - Silent Assassin, Suit Only":1071,
+    "Hokkaido Completed - Silent Assassin, Suit Only":1072,
+    "Hawkes Bay Completed - Silent Assassin, Suit Only":1073,
+    "Miami Completed - Silent Assassin, Suit Only":1074,
+    "Santa Fortuna Completed - Silent Assassin, Suit Only":1075,
+    "Mumbai Completed - Silent Assassin, Suit Only":1076,
+    "Whittleton Creek Completed - Silent Assassin, Suit Only":1077,
+    "Isle of Sgail Completed - Silent Assassin, Suit Only":1078,
+    "New York Completed - Silent Assassin, Suit Only":1079,
+    "Haven Island Completed - Silent Assassin, Suit Only":1080,
+    "Dubai Completed - Silent Assassin, Suit Only":1081,
+    "Dartmoor Completed - Silent Assassin, Suit Only":1082,
+    "Berlin Completed - Silent Assassin, Suit Only":1083,
+    "Chongqing Completed - Silent Assassin, Suit Only":1084,
+    "Mendoza Completed - Silent Assassin, Suit Only":1085,
+    "Carpathian Mountains Completed - Silent Assassin, Suit Only":1086,
+    "Ambrose Island Completed - Silent Assassin, Suit Only":1087
+}
+const targetTemplate = {
+                "Id": "TARGET_ID", //normally not TARGET_ID but seams to work (should be Objective specific id)
+                "Definition": {
+                    "Context": {
+                        "KilledActors": [],
+                        "Targets": ["TARGET_ID"]
+                    },
+                    "Scope": "hit",
+                    "States": {
+                        "Start": {
+                            "Kill": {
+                                "Condition": {
+                                    "$eq": [
+                                        "$Value.RepositoryId",
+                                        "TARGET_ID"
+                                    ]
+                                },
+                                "Transition": "Success"
+                            }
+                        }
+                    }
+                },
+                "Primary": true,
+                "BriefingText": {
+                    "$loc": {
+                        "key": "UI_CONTRACT_GENERAL_OBJ_KILL",
+                        "data": "$($repository TARGET_ID).Name"
+                    }
+                },
+                "Type": "statemachine",
+                "HUDTemplate": {
+                    "display": {
+                        "$loc": {
+                            "key": "UI_CONTRACT_GENERAL_OBJ_KILL",
+                            "data": "$($repository TARGET_ID).Name"
+                        }
+                    }
+                }
+            }
+const baseId = 2023011800
+const apItemMap: Record<string, any> = {
+	"1":{apItemName:"Level - ICA Facility",unlockableId:"FACILITY"},
+	"2":{apItemName:"Level - Paris",unlockableId:"PARIS"},
+	"3":{apItemName:"Level - Sapienza",unlockableId:"SAPIENZA"},
+	"4":{apItemName:"Level - Marrakesh",unlockableId:"MARRAKESH"},
+	"5":{apItemName:"Level - Bangkok",unlockableId:"BANGKOK"},
+	"6":{apItemName:"Level - Colorado",unlockableId:"COLORADO"},
+	"7":{apItemName:"Level - Hokkaido",unlockableId:"HOKKAIDO"},
+	"8":{apItemName:"Level - Hawkes Bay",unlockableId:"NEWZEALAND"},
+	"9":{apItemName:"Level - Miami",unlockableId:"MIAMI"},
+	"10":{apItemName:"Level - Santa Fortuna",unlockableId:"COLOMBIA"},
+	"11":{apItemName:"Level - Mumbai",unlockableId:"MUMBAI"},
+	"12":{apItemName:"Level - Whittleton Creek",unlockableId:"NORTHAMERICA"},
+	"13":{apItemName:"Level - Isle of Sgail",unlockableId:"THEISLAND"},
+	"14":{apItemName:"Level - New York",unlockableId:"GREEDY"},
+	"15":{apItemName:"Level - Haven Island",unlockableId:"STINGRAY"},
+	"16":{apItemName:"Level - Dubai",unlockableId:"GOLDEN"},
+	"17":{apItemName:"Level - Dartmoor",unlockableId:"ANCESTRAL"},
+	"18":{apItemName:"Level - Berlin",unlockableId:"EDGY"},
+	"19":{apItemName:"Level - Chongqing",unlockableId:"WET"},
+	"20":{apItemName:"Level - Mendoza",unlockableId:"ELEGANT"},
+	"21":{apItemName:"Level - Carpathian Mountains",unlockableId:"TRAPPED"},
+	"22":{apItemName:"Level - Ambrose Island",unlockableId:"ROCKY"},
+	"23":{apItemName:"Suit - 47's Signature Suit",unlockableId:"TOKEN_OUTFIT_HITMANSUIT"},
+	"24":{apItemName:"Suit - Tuxedo",unlockableId:"TOKEN_OUTFIT_PARIS_HERO_PARISSUIT"},
+	"25":{apItemName:"Suit - Requiem Suit",unlockableId:"TOKEN_OUTFIT_LEGACY_HERO_REQUIEMSUIT"},
+	"26":{apItemName:"Suit - Tactical Turtleneck",unlockableId:"TOKEN_OUTFIT_GREENLAND_HERO_TRAININGSUIT"},
+	"27":{apItemName:"Suit - Italian Suit",unlockableId:"TOKEN_OUTFIT_SAPIENZA_HERO_SAPIENZASUIT"},
+	"28":{apItemName:"Suit - Italian Suit (No Glasses)",unlockableId:"TOKEN_OUTFIT_SAPIENZA_HERO_SAPIENZASUIT_NOGLASSES"},
+	"29":{apItemName:"Suit - Summer Suit",unlockableId:"TOKEN_OUTFIT_MARRAKESH_HERO_MARRAKESHSUIT"},
+	"30":{apItemName:"Suit - Casual Suit",unlockableId:"TOKEN_OUTFIT_BANGKOK_HERO_BANGKOKSUIT"},
+	"31":{apItemName:"Suit - Recon Gear",unlockableId:"TOKEN_OUTFIT_HOKKAIDO_HERO_FLUSUIT"},
+	"32":{apItemName:"Suit - Tactical Gear",unlockableId:"TOKEN_OUTFIT_COLORADO_HERO_COLORADOSUIT"},
+	"33":{apItemName:"Suit - VIP Patient",unlockableId:"TOKEN_OUTFIT_HOKKAIDO_HERO_HOKKAIDOSUIT"},
+	"34":{apItemName:"Suit - Ninja",unlockableId:"TOKEN_OUTFIT_HOKKAIDO_HERO_NINJASUIT"},
+	"35":{apItemName:"Suit - Absolution Suit",unlockableId:"TOKEN_OUTFIT_LEGACY_HERO_ABSOLUTIONSUIT"},
+	"36":{apItemName:"Suit - Blood Money Suit with Gloves",unlockableId:"TOKEN_OUTFIT_LEGACY_HERO_BLOODMONEYSUIT"},
+	"37":{apItemName:"Suit - 47's Signature Suit with Gloves",unlockableId:"TOKEN_OUTFIT_LEGACY_HERO_SIGNATURESUITANDGLOVES"},
+	"38":{apItemName:"Suit - Tuxedo with Gloves",unlockableId:"TOKEN_OUTFIT_HERO_PARISSUITANDGLOVES"},
+	"39":{apItemName:"Suit - Italian Suit with Gloves",unlockableId:"TOKEN_OUTFIT_HERO_SAPIENZASUITANDGLOVES"},
+	"40":{apItemName:"Suit - Summer Suit with Gloves",unlockableId:"TOKEN_OUTFIT_HERO_MARRAKESHSUITANDGLOVES"},
+	"41":{apItemName:"Suit - Casual Suit with Gloves",unlockableId:"TOKEN_OUTFIT_HERO_BANGKOKSUITANDGLOVES"},
+	"42":{apItemName:"Suit - Tactical Gear with Hunter's Hat",unlockableId:"TOKEN_OUTFIT_HERO_COLORADOSUIT_ALTERNATIVE"},
+	"43":{apItemName:"Suit - White Yukata",unlockableId:"TOKEN_OUTFIT_HERO_HOKKAIDOSUIT_ET_ALTERNATIVE"},
+	"44":{apItemName:"Suit - Terminus",unlockableId:"TOKEN_OUTFIT_HERO_TERMINUS_SUIT"},
+	"45":{apItemName:"Suit - Winter Suit",unlockableId:"TOKEN_OUTFIT_HERO_WINTER_SUIT"},
+	"46":{apItemName:"Suit - Futo Suit",unlockableId:"TOKEN_OUTFIT_HERO_MINININJA_SUIT"},
+	"47":{apItemName:"Suit - Freedom Phantom Suit",unlockableId:"TOKEN_OUTFIT_HERO_FREEDOMFIGHTERS_SUIT"},
+	"48":{apItemName:"Suit - Lynch Suit",unlockableId:"TOKEN_OUTFIT_HERO_LYNCH_SUIT"},
+	"49":{apItemName:"Suit - Santa 47",unlockableId:"TOKEN_OUTFIT_HERO_SANTACLAUS_SUIT"},
+	"50":{apItemName:"Starting Location - Hokkaido - Tobias Rieper's Suite",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_DEFAULT"},
+	"51":{apItemName:"Starting Location - Hokkaido - Infiltrating Along the Mountain Path",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_NINJA"},
+	"52":{apItemName:"Starting Location - Hokkaido - Undercover in the Operating Theater",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_OPERATINGTHEATER"},
+	"53":{apItemName:"Starting Location - Hokkaido - Undercover in the Kitchen",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_KITCHEN"},
+	"54":{apItemName:"Starting Location - Hokkaido - Spa",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_SPA"},
+	"55":{apItemName:"Starting Location - Hokkaido - Morgue",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_MORGUE"},
+	"56":{apItemName:"Starting Location - Hokkaido - Undercover in the Garden",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_GARDEN"},
+	"57":{apItemName:"Starting Location - Hokkaido - Undercover in the Staff Quarters",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_SLEEPINGQUARTERS"},
+	"58":{apItemName:"Starting Location - Hokkaido - Restaurant",unlockableId:"STARTING_LOCATION_HOKKAIDO_SNOWCRANE_RESTAURANT"},
+	"59":{apItemName:"Starting Location - Colorado - Undercover in the Farm House",unlockableId:"STARTING_LOCATION_COLORADO_BULL_HACKER_ROOM"},
+	"60":{apItemName:"Starting Location - Colorado - West Bridge",unlockableId:"STARTING_LOCATION_COLORADO_WEST_BRIDGE"},
+	"61":{apItemName:"Starting Location - Colorado - Old Orchard",unlockableId:"STARTING_LOCATION_COLORADO_ORCHARD"},
+	"62":{apItemName:"Starting Location - Colorado - Water Tower",unlockableId:"STARTING_LOCATION_COLORADO_WATER_TOWER"},
+	"63":{apItemName:"Starting Location - Colorado - Undercover in the Garage",unlockableId:"STARTING_LOCATION_COLORADO_BULL_COURTYARD_GARAGE"},
+	"64":{apItemName:"Starting Location - Colorado - Undercover by the Greenhouse",unlockableId:"STARTING_LOCATION_COLORADO_BULL_GREENHOUSE"},
+	"65":{apItemName:"Starting Location - Colorado - Undercover on the Demolition Range",unlockableId:"STARTING_LOCATION_COLORADO_BULL_DEMOLITION_AREA"},
+	"66":{apItemName:"Starting Location - Bangkok - 47's Suite",unlockableId:"STARTING_LOCATION_BANGKOK_TIGER_47_SUITE"},
+	"67":{apItemName:"Starting Location - Bangkok - Undercover by the Security Hut",unlockableId:"STARTING_LOCATION_BANGKOK_SECURITY_HUT"},
+	"68":{apItemName:"Starting Location - Bangkok - Undercover at the Himmapan Bar",unlockableId:"STARTING_LOCATION_BANGKOK_BAR"},
+	"69":{apItemName:"Starting Location - Bangkok - Undercover in the Restaurant Kitchen",unlockableId:"STARTING_LOCATION_BANGKOK_TIGER_RESTAURANT_KITCHEN"},
+	"70":{apItemName:"Starting Location - Bangkok - Undercover in the Linen Room",unlockableId:"STARTING_LOCATION_BANGKOK_TIGER_LINEN_ROOM"},
+	"71":{apItemName:"Starting Location - Bangkok - Undercover in the 2nd Floor Hallway",unlockableId:"STARTING_LOCATION_BANGKOK_TIGER_CREW_ROOM"},
+	"72":{apItemName:"Starting Location - Bangkok - Riverside Landing",unlockableId:"STARTING_LOCATION_BANGKOK_TIGER_FUMIGATION_AREA"},
+	"73":{apItemName:"Starting Location - Bangkok - Undercover in the Side Garden",unlockableId:"STARTING_LOCATION_BANGKOK_GARDEN"},
+	"74":{apItemName:"Starting Location - Marrakesh - Lamp Store Rooftop",unlockableId:"STARTING_LOCATION_MARRAKESH_LAMPSTORE_ROOF"},
+	"75":{apItemName:"Starting Location - Marrakesh - Undercover in the Courtyard Club",unlockableId:"STARTING_LOCATION_MARRAKESH_SHISHA_CAFE"},
+	"76":{apItemName:"Starting Location - Marrakesh - Undercover on the West Bazaar Rooftop",unlockableId:"STARTING_LOCATION_MARRAKESH_SNIPER_ROOF"},
+	"77":{apItemName:"Starting Location - Marrakesh - Undercover at the Snail Stand",unlockableId:"STARTING_LOCATION_MARRAKESH_SNAIL_VENDOR"},
+	"78":{apItemName:"Starting Location - Marrakesh - Consulate Parking Garage",unlockableId:"STARTING_LOCATION_MARRAKESH_SPIDER_CONSULATE_BASEMENT"},
+	"79":{apItemName:"Starting Location - Hokkaido - Bar",unlockableId:"STARTING_LOCATION_HOKKAIDO_BAR"},
+	"80":{apItemName:"Starting Location - Paris - STARTING_LOCATION_PARIS_WATER",unlockableId:"STARTING_LOCATION_PARIS_WATER"},
+	"81":{apItemName:"Starting Location - STARTING_LOCATION_MAGNOLIA",unlockableId:"STARTING_LOCATION_MAGNOLIA"},
+	"82":{apItemName:"Starting Location - STARTING_LOCATION_BELLFLOWER_LEVEL1",unlockableId:"STARTING_LOCATION_BELLFLOWER_LEVEL1"},
+	"83":{apItemName:"Starting Location - STARTING_LOCATION_BELLFLOWER_LEVEL2",unlockableId:"STARTING_LOCATION_BELLFLOWER_LEVEL2"},
+	"84":{apItemName:"Starting Location - STARTING_LOCATION_BELLFLOWER_LEVEL3",unlockableId:"STARTING_LOCATION_BELLFLOWER_LEVEL3"},
+	"85":{apItemName:"Suit - TOKEN_OUTFIT_NEWZEALAND_HERO_NEWZEALANDSUIT",unlockableId:"TOKEN_OUTFIT_NEWZEALAND_HERO_NEWZEALANDSUIT"},
+	"86":{apItemName:"Suit - TOKEN_OUTFIT_MIAMI_HERO_MIAMISUIT",unlockableId:"TOKEN_OUTFIT_MIAMI_HERO_MIAMISUIT"},
+	"87":{apItemName:"Suit - Florida Fit With Gloves",unlockableId:"TOKEN_OUTFIT_FLAMINGO_ELUSIVE_SUIT"},
+	"88":{apItemName:"Suit - TOKEN_OUTFIT_COLOMBIA_HERO_COLOMBIASUIT",unlockableId:"TOKEN_OUTFIT_COLOMBIA_HERO_COLOMBIASUIT"},
+	"89":{apItemName:"Suit - Casual Tourist With Gloves",unlockableId:"TOKEN_OUTFIT_HIPPO_ELUSIVE_SUIT"},
+	"90":{apItemName:"Suit - TOKEN_OUTFIT_MUMBAI_HERO_MUMBAISUIT",unlockableId:"TOKEN_OUTFIT_MUMBAI_HERO_MUMBAISUIT"},
+	"91":{apItemName:"Suit - Imperial Classic With Gloves",unlockableId:"TOKEN_OUTFIT_MONGOOSE_ELUSIVE_SUIT"},
+	"92":{apItemName:"Suit - TOKEN_OUTFIT_NORTHAMERICA_HERO_NORTHAMERICASUIT",unlockableId:"TOKEN_OUTFIT_NORTHAMERICA_HERO_NORTHAMERICASUIT"},
+	"93":{apItemName:"Suit - Subburban Suit With Driving Gloves",unlockableId:"TOKEN_OUTFIT_NORTHAMERICA_ELUSIVE_SUIT"},
+	"94":{apItemName:"Suit - TOKEN_OUTFIT_NORTHSEA_HERO_NORTHSEASUIT",unlockableId:"TOKEN_OUTFIT_NORTHSEA_HERO_NORTHSEASUIT"},
+	"95":{apItemName:"Suit - Tuxedo, Mask and Gloves",unlockableId:"TOKEN_OUTFIT_MAGPIE_ELUSIVE_SUIT"},
+	"96":{apItemName:"Suit - The New Yorker",unlockableId:"TOKEN_OUTFIT_GREEDY_HERO_GREEDYSUIT"},
+	"97":{apItemName:"Suit - The Tropical Islander",unlockableId:"TOKEN_OUTFIT_OPULENT_HERO_OPULENTSUIT"},
+	"98":{apItemName:"Suit - Midnight Black Suit",unlockableId:"TOKEN_OUTFIT_MIDNIGHT_BLACK_COLLECTORS"},
+	"99":{apItemName:"Suit - Black Winter Suit",unlockableId:"TOKEN_OUTFIT_PLAYED_ELUSIVE_SUIT"},
+	"100":{apItemName:"Suit - The Undying Look",unlockableId:"TOKEN_OUTFIT_ELUSIVE_COMPLETE_12_SUIT"},
+	"101":{apItemName:"Suit - Casual Undercover",unlockableId:"TOKEN_OUTFIT_ELUSIVE_COMPLETE_15_SUIT"},
+	"102":{apItemName:"Suit - Classic All-Black Suit",unlockableId:"TOKEN_OUTFIT_CLASSICS_REWARD_BLACK_SUIT"},
+	"103":{apItemName:"Suit - Blue Flamingo Suit",unlockableId:"TOKEN_OUTFIT_REWARD_CHLORINE_FLAMINGO_SUIT"},
+	"104":{apItemName:"Suit - Phantom Suit",unlockableId:"TOKEN_OUTFIT_GHOSTMODE_PHANTOM_REWARD_SUIT"},
+	"105":{apItemName:"Suit - Snow Festival Suit",unlockableId:"TOKEN_OUTFIT_REWARD_SNOWFESTIVAL_SUIT"},
+	"106":{apItemName:"Suit - Winter Sports Suit",unlockableId:"TOKEN_OUTFIT_ARCTICPACK_SUIT"},
+	"107":{apItemName:"Suit - Clown Suit",unlockableId:"TOKEN_OUTFIT_PARIS_CLOWN"},
+	"108":{apItemName:"Suit - Smart Casual Suit",unlockableId:"TOKEN_OUTFIT_URBAN_CLASSIC"},
+	"109":{apItemName:"Suit - The Tropical Suit",unlockableId:"TOKEN_OUTFIT_STINGRAY_MASTERY_REWARD_SUIT"},
+	"110":{apItemName:"Suit - Summer Suave Suit",unlockableId:"TOKEN_OUTFIT_HOT_SUMMER_SUIT"},
+	"111":{apItemName:"Suit - Tactical Wetsuit",unlockableId:"TOKEN_OUTFIT_WET_SUIT"},
+	"112":{apItemName:"Suit - The Cashmerian",unlockableId:"TOKEN_OUTFIT_SNAKE_CHARMER_SUIT"},
+	"113":{apItemName:"Suit - Raven Suit",unlockableId:"TOKEN_OUTFIT_MARRAKESH_DARK_SNIPER"},
+	"114":{apItemName:"Suit - Cowboy Suit",unlockableId:"TOKEN_OUTFIT_HOKKAIDO_COWBOY"},
+	"115":{apItemName:"Suit - TOKEN_OUTFIT_WELCOME_SUIT",unlockableId:"TOKEN_OUTFIT_WELCOME_SUIT"},
+	"116":{apItemName:"Suit - The New Yorker with Gloves",unlockableId:"TOKEN_OUTFIT_BANK_STARTING_SUIT_REWARD"},
+	"117":{apItemName:"Suit - The Greek Fire Suit",unlockableId:"TOKEN_OUTFIT_TOMORROWLAND_SUIT_REWARD"},
+	"118":{apItemName:"Suit - The Club Boom DJ Suit",unlockableId:"TOKEN_OUTFIT_TOMORROWLAND_DJSUIT_REWARD"},
+	"119":{apItemName:"Starting Location - Marrakesh - STARTING_LOCATION_MARRAKESH_DARK_ROOFTOP",unlockableId:"STARTING_LOCATION_MARRAKESH_DARK_ROOFTOP"},
+	"120":{apItemName:"Starting Location - Marrakesh - Undercover in the Consulate",unlockableId:"STARTING_LOCATION_MARRAKESH_SPIDER_CONSULATE_CLEANING_TROLLEY"},
+	"121":{apItemName:"Starting Location - Marrakesh - Undercover in Zaydan's Compound",unlockableId:"STARTING_LOCATION_MARRAKESH_SPIDER_SCHOOL_DORMITORY"},
+	"122":{apItemName:"Starting Location - Marrakesh - School Alley",unlockableId:"STARTING_LOCATION_MARRAKESH_SPIDER_SCHOOL_ALLEY"},
+	"123":{apItemName:"Starting Location - Paris - Undercover at IAGO Auction",unlockableId:"STARTING_LOCATION_PARIS_PEACOCK_AUCTION"},
+	"124":{apItemName:"Starting Location - Paris - Undercover in Locker Room",unlockableId:"STARTING_LOCATION_PARIS_PEACOCK_LOCKERROOM"},
+	"125":{apItemName:"Starting Location - Paris - Undercover in Kitchen",unlockableId:"STARTING_LOCATION_PARIS_PEACOCK_BASEMENT_KITCHEN"},
+	"126":{apItemName:"Starting Location - Paris - Undercover in Dressing Area",unlockableId:"STARTING_LOCATION_PARIS_PEACOCK_DRESSINGROOM"},
+	"127":{apItemName:"Starting Location - Paris - Pile-Driver Barge",unlockableId:"STARTING_LOCATION_PARIS_SNIPERBARGE"},
+	"128":{apItemName:"Starting Location - Paris - Undercover in AV Center",unlockableId:"STARTING_LOCATION_PARIS_PEACOCK_AVTECH"},
+	"129":{apItemName:"Starting Location - Paris - Attic",unlockableId:"STARTING_LOCATION_PARIS_PEACOCK_ATTIC"},
+	"130":{apItemName:"Starting Location - Paris - Palace Garden",unlockableId:"STARTING_LOCATION_PARIS_PALACEGARDEN"},
+	"131":{apItemName:"Starting Location - Sapienza - Undercover in Field Lab",unlockableId:"STARTING_LOCATION_SAPIENZA_OCTOPUS_BIOLAB"},
+	"132":{apItemName:"Starting Location - Sapienza - Undercover as Security Staff",unlockableId:"STARTING_LOCATION_SAPIENZA_OCTOPUS_LEMONGARDEN"},
+	"133":{apItemName:"Starting Location - Sapienza - Undercover in Mansion Garden",unlockableId:"STARTING_LOCATION_SAPIENZA_OCTOPUS_MANSIONGARDEN"},
+	"134":{apItemName:"Starting Location - Sapienza - Undercover in Mansion Kitchen",unlockableId:"STARTING_LOCATION_SAPIENZA_OCTOPUS_MANSIONKITCHEN"},
+	"135":{apItemName:"Starting Location - Sapienza - Via Valle del Sole 9",unlockableId:"STARTING_LOCATION_SAPIENZA_ABANDONEDSHOP"},
+	"136":{apItemName:"Starting Location - Sapienza - Main Square Tower",unlockableId:"STARTING_LOCATION_SAPIENZA_CAFETOWER"},
+	"137":{apItemName:"Starting Location - Sapienza - Church Morgue",unlockableId:"STARTING_LOCATION_SAPIENZA_CHURCHMORGUE"},
+	"138":{apItemName:"Starting Location - Sapienza - Harbor",unlockableId:"STARTING_LOCATION_SAPIENZA_HARBOUR"},
+	"139":{apItemName:"Starting Location - Sapienza - Sapienza Ruins",unlockableId:"STARTING_LOCATION_SAPIENZA_RUINS"},
+	"140":{apItemName:"Starting Location - Sapienza - ICA Safe House",unlockableId:"STARTING_LOCATION_SAPIENZA_APARTMENT"},
+	"141":{apItemName:"Hidden Stash - Hokkaido - Operating Theater Restroom",unlockableId:"AGENCYPICKUP_HOKKAIDO_SNOWCRANE_OPERATIONTOILET"},
+	"142":{apItemName:"Hidden Stash - Hokkaido - Restaurant Restroom",unlockableId:"AGENCYPICKUP_HOKKAIDO_SNOWCRANE_RESTAURANTRESTROOM"},
+	"143":{apItemName:"Agency Pickup - Hokkaido - Mountain Path",unlockableId:"AGENCYPICKUP_HOKKAIDO_SNOWCRANE_MOUNTAINPATH"},
+	"144":{apItemName:"Agency Pickup - Hokkaido - Kitchen Food Storage",unlockableId:"AGENCYPICKUP_HOKKAIDO_SNOWCRANE_KITCHEN"},
+	"145":{apItemName:"Agency Pickup - Hokkaido - Garage",unlockableId:"AGENCYPICKUP_HOKKAIDO_SNOWCRANE_GARAGE"},
+	"146":{apItemName:"Agency Pickup - Hokkaido - Morgue Storage",unlockableId:"AGENCYPICKUP_HOKKAIDO_SNOWCRANE_MORGUE"},
+	"147":{apItemName:"Hidden Stash - Hokkaido - Staff Wardrobe",unlockableId:"AGENCYPICKUP_HOKKAIDO_SNOWCRANE_SLEEPINGQUARTERS"},
+	"148":{apItemName:"Agency Pickup - Colorado - Red Barn",unlockableId:"AGENCYPICKUP_COLORADO_BULL_RED_BARN"},
+	"149":{apItemName:"Agency Pickup - Colorado - Water Tower",unlockableId:"AGENCYPICKUP_COLORADO_WATERTOWER"},
+	"150":{apItemName:"Agency Pickup - Colorado - West Bridge",unlockableId:"AGENCYPICKUP_COLORADO_WESTBRIDGE"},
+	"151":{apItemName:"Hidden Stash - Colorado - Hay Shed",unlockableId:"AGENCYPICKUP_COLORADO_HAYBARN"},
+	"152":{apItemName:"Hidden Stash - Colorado - Courtyard Shed",unlockableId:"AGENCYPICKUP_COLORADO_COURTYARD_OUTHOUSE"},
+	"153":{apItemName:"Hidden Stash - Colorado - Ground Floor Laundry Room",unlockableId:"AGENCYPICKUP_COLORADO_BULL_HOUSE_LAUNDRYROOM"},
+	"154":{apItemName:"Hidden Stash - Colorado - Orchard Road",unlockableId:"AGENCYPICKUP_COLORADO_BULL_ORCHARD_BOX"},
+	"155":{apItemName:"Hidden Stash - Colorado - Truck Loading Area",unlockableId:"AGENCYPICKUP_COLORADO_BULL_ORCHARD_PARKINGAREA"},
+	"156":{apItemName:"Agency Pickup - Bangkok - 47's Suite",unlockableId:"AGENCYPICKUP_BANGKOK_47S_SUITE"},
+	"157":{apItemName:"Agency Pickup - Bangkok - Storage Room",unlockableId:"AGENCYPICKUP_BANGKOK_STORAGE_ROOM"},
+	"158":{apItemName:"Agency Pickup - Bangkok - Garden Shed",unlockableId:"AGENCYPICKUP_BANGKOK_GARDEN_SHED"},
+	"159":{apItemName:"Agency Pickup - Bangkok - AGENCYPICKUP_BANGKOK_TIGER_MEDITATION",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_MEDITATION"},
+	"160":{apItemName:"Agency Pickup - Bangkok - North Wing Basement",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_BASEMENT_NORTHWING_A"},
+	"161":{apItemName:"Agency Pickup - Bangkok - South Wing Basement",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_BASEMENT_SOUTHWING_B"},
+	"162":{apItemName:"Agency Pickup - Bangkok - Penthouse",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_PENTHOUSE"},
+	"163":{apItemName:"Agency Pickup - Bangkok - Recording Studio",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_STUDIO"},
+	"164":{apItemName:"Hidden Stash - Bangkok - 1st Floor South Wing Balcony",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_BALCONY_PLANTER"},
+	"165":{apItemName:"Hidden Stash - Bangkok - Ground Floor Restaurant Restroom",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_RESTAURANT_TOILET"},
+	"166":{apItemName:"Hidden Stash - Bangkok - Room 102 Bathroom",unlockableId:"AGENCYPICKUP_BANGKOK_TIGER_BATHROOM_TOWELS"},
+	"167":{apItemName:"Agency Pickup - Marrakesh - West Bazaar Rooftops",unlockableId:"AGENCYPICKUP_MARRAKESH_SNIPER_ROOF"},
+	"168":{apItemName:"Agency Pickup - Marrakesh - Old Headmaster's Terrace",unlockableId:"AGENCYPICKUP_MARRAKESH_HEADMASTER"},
+	"169":{apItemName:"Agency Pickup - Marrakesh - Lamp Shop Alley",unlockableId:"AGENCYPICKUP_MARRAKESH_LAMPSHOP_ALLEY_DEFAULT"},
+	"170":{apItemName:"Hidden Stash - Marrakesh - Carpet Shop",unlockableId:"AGENCYPICKUP_MARRAKESH_BAZAAR_CARPETSHOP"},
+	"171":{apItemName:"Hidden Stash - Marrakesh - Shisha Café Restroom",unlockableId:"AGENCYPICKUP_MARRAKESH_CAFE_RESTROOM"},
+	"172":{apItemName:"Hidden Stash - Marrakesh - Mechanic Shop",unlockableId:"AGENCYPICKUP_MARRAKESH_MECHANIC_SHOP"},
+	"173":{apItemName:"Agency Pickup - Marrakesh - Consulate Parking Garage",unlockableId:"AGENCYPICKUP_MARRAKESH_SPIDER_CONSULATE_BASEMENT"},
+	"174":{apItemName:"Agency Pickup - Marrakesh - School Gate",unlockableId:"AGENCYPICKUP_MARRAKESH_SPIDER_SCHOOL_BACKENTRANCE"},
+	"175":{apItemName:"Hidden Stash - Marrakesh - Consulate Top Floor",unlockableId:"AGENCYPICKUP_MARRAKESH_SPIDER_CONSULATE_TROLLEY"},
+	"176":{apItemName:"Agency Pickup - Paris - Basement Stairwell",unlockableId:"AGENCYPICKUP_PARIS_BASEMENT_CORRIDOR"},
+	"177":{apItemName:"Hidden Stash - Paris - AGENCYPICKUP_PARIS_OFFICE_CURTAINS",unlockableId:"AGENCYPICKUP_PARIS_OFFICE_CURTAINS"},
+	"178":{apItemName:"Agency Pickup - Paris - Shed",unlockableId:"AGENCYPICKUP_PARIS_BARGE"},
+	"179":{apItemName:"Agency Pickup - Paris - Empty Attic Room",unlockableId:"AGENCYPICKUP_PARIS_ATTIC_ROOM"},
+	"180":{apItemName:"Hidden Stash - Paris - Top Floor Bathroom",unlockableId:"AGENCYPICKUP_PARIS_TOILET"},
+	"181":{apItemName:"Hidden Stash - Paris - Pantry",unlockableId:"AGENCYPICKUP_PARIS_PEACOCK_PANTRY"},
+	"182":{apItemName:"Hidden Stash - Paris - First Floor Apartments",unlockableId:"AGENCYPICKUP_PARIS_PEACOCK_NEWSPAPERS"},
+	"183":{apItemName:"Agency Pickup - Paris - Logistics Trailer",unlockableId:"AGENCYPICKUP_PARIS_PEACOCK_LOGISTICS_TRAILER"},
+	"184":{apItemName:"Agency Pickup - Sapienza - Ether Field Lab",unlockableId:"AGENCYPICKUP_SAPIENZA_OCTOPUS_BIOLAB"},
+	"185":{apItemName:"Hidden Stash - Sapienza - Mansion Pantry",unlockableId:"AGENCYPICKUP_SAPIENZA_OCTOPUS_KITCHENPANTRY"},
+	"186":{apItemName:"Hidden Stash - Sapienza - Mansion Garage",unlockableId:"AGENCYPICKUP_SAPIENZA_OCTOPUS_MANSIONGARAGE"},
+	"187":{apItemName:"Agency Pickup - Sapienza - Via Valle del Sole 9",unlockableId:"AGENCYPICKUP_SAPIENZA_ABANDONEDSHOP"},
+	"188":{apItemName:"Agency Pickup - Sapienza - ICA Safe House",unlockableId:"AGENCYPICKUP_SAPIENZA_APARTMENT"},
+	"189":{apItemName:"Agency Pickup - Sapienza - Café Basement",unlockableId:"AGENCYPICKUP_SAPIENZA_CAFEBASEMENT"},
+	"190":{apItemName:"Hidden Stash - Sapienza - Confessional Booth",unlockableId:"AGENCYPICKUP_SAPIENZA_CHURCHCONFESSIONAL"},
+	"191":{apItemName:"Agency Pickup - Sapienza - Sapienza Ruins",unlockableId:"AGENCYPICKUP_SAPIENZA_RUINSTOWER"},
+	"192":{apItemName:"Agency Pickup - Sapienza - Sewers",unlockableId:"AGENCYPICKUP_SAPIENZA_SEWERS"},
+	"193":{apItemName:"Melee - Fiber Wire",unlockableId:"TOKEN_FIBERWIRE"},
+	"194":{apItemName:"Melee - Fiber  Wire Classic",unlockableId:"PROP_MELEE_CLASSIC_FIBER_WIRE"},
+	"195":{apItemName:"Melee - Earphones",unlockableId:"PROP_MELEE_PHONE_CORD"},
+	"196":{apItemName:"Melee - IO Elite S2VP Earphones",unlockableId:"PROP_MELEE_BLACK_PHONE_CORD"},
+	"197":{apItemName:"Melee - The Straitjacket Belt",unlockableId:"PROP_MELEE_LEATHERBELT_ASYLUM"},
+	"198":{apItemName:"Melee - Quickdraw",unlockableId:"PROP_MELEE_QUICKDRAW"},
+	"199":{apItemName:"Melee - Fishing Line",unlockableId:"PROP_MELEE_FISHING_LINE"},
+	"200":{apItemName:"Melee - Measuring Tape",unlockableId:"PROP_MELEE_MEASURING_TAPE"},
+	"201":{apItemName:"Melee - Combat Knife",unlockableId:"PROP_MELEE_COMBAT_KNIFE"},
+	"202":{apItemName:"Melee - Antique Carved Knife",unlockableId:"PROP_MELEE_ANTIQUE_KNIFE_CURVED"},
+	"203":{apItemName:"Melee - Hobby Knife",unlockableId:"PROP_MELEE_HOBBY_KNIFE"},
+	"204":{apItemName:"Tool - ICA Titanium Crowbar",unlockableId:"PROP_TOOL_BURGLARCROWBAR"},
+	"205":{apItemName:"Melee - Piton",unlockableId:"PROP_MELEE_PITON"},
+	"206":{apItemName:"Melee - Walking Cane",unlockableId:"PROP_MELEE_CANE"},
+	"207":{apItemName:"Melee - The Devil's Cane",unlockableId:"PROP_MELEE_CANE_GREED"},
+	"208":{apItemName:"Melee - Shuriken",unlockableId:"PROP_MELEE_SHURIKEN"},
+	"209":{apItemName:"Melee - Bat Shuriken",unlockableId:"PROP_MELEE_SHURIKEN_BAT"},
+	"210":{apItemName:"Melee - The Club Boom 12\" Vinyl Sampler",unlockableId:"PROP_MELEE_SHURIKEN_LP_TOMORROWLAND"},
+	"211":{apItemName:"Melee - Concealable Knife",unlockableId:"PROP_MELEE_HIDDEN_BLADE"},
+	"212":{apItemName:"Melee - HF Championship Bat",unlockableId:"PROP_MELEE_JAPANESE_BASEBALLBAT"},
+	"213":{apItemName:"Melee - The Purple Streak Baseball Bat",unlockableId:"PROP_MELEE_BASEBALLBAT_PURPLE"},
+	"214":{apItemName:"Melee - Nne Obara's Machete",unlockableId:"PROP_MELEE_MACHETE_BLOODY"},
+	"215":{apItemName:"Melee - Kukri Machette",unlockableId:"PROP_MELEE_MACHETE_JUNGLE"},
+	"216":{apItemName:"Melee - Jarl's Pirate Saber",unlockableId:"PROP_MELEE_PIRATE_SABRE"},
+	"217":{apItemName:"Melee - The Proud Swashbuckler",unlockableId:"PROP_MELEE_PRIDE_SABER"},
+	"218":{apItemName:"Melee - Okinawan Tonfa",unlockableId:"PROP_MELEE_NINJATONFA"},
+	"219":{apItemName:"Melee - Feather Duster",unlockableId:"PROP_MELEE_FEATHER_DUSTER"},
+	"220":{apItemName:"Melee - Masamune",unlockableId:"PROP_MELEE_KATANA_ENGRAVED"},
+	"221":{apItemName:"Melee - White Katana",unlockableId:"PROP_MELEE_KATANA_WHITE_NINJA"},
+	"222":{apItemName:"Melee - Concealable Baton",unlockableId:"PROP_MELEE_EXPANDABLE_BATON"},
+	"223":{apItemName:"Melee - Janbiya",unlockableId:"PROP_MELEE_CEREMONIAL_DAGGER"},
+	"224":{apItemName:"Melee - Eiffel Tower Souvenir",unlockableId:"PROP_MELEE_EIFFELSOUVENIR_CLUB"},
+	"225":{apItemName:"Melee - Crystal Ball",unlockableId:"PROP_MELEE_CRYSTALBALL"},
+	"226":{apItemName:"Melee - Burj Al-Ghazali Snowglobe",unlockableId:"PROP_MELEE_SHOWGLOBE"},
+	"227":{apItemName:"Melee - Claw Hammer",unlockableId:"PROP_MELEE_MODERN_HAMMER"},
+	"228":{apItemName:"Pistol - HWK21",unlockableId:"FIREARMS_HERO_PISTOL_HWK_21"},
+	"229":{apItemName:"Shotgun - Enram HV",unlockableId:"FIREARMS_HERO_SHOTGUN_SEMIAUTO_ENRAM_HV"},
+	"230":{apItemName:"Assault Rifle - TAC-4 AR Desert",unlockableId:"FIREARMS_HERO_RIFLE_FULLAUTO_016_SU_SKIN06"},
+	"231":{apItemName:"Pistol - ICA19",unlockableId:"FIREARMS_HERO_PISTOL_TACTICAL_ICA_19"},
+	"232":{apItemName:"Pistol - ICA19 Black Lilly",unlockableId:"FIREARMS_HERO_PISTOL_TACTICAL_ICA_19_BLACK_LILLY"},
+	"233":{apItemName:"Assault Rifle - TAC-4 AR Auto",unlockableId:"FIREARMS_HERO_RIFLE_FULLAUTO_TAC_4_AUTO"},
+	"234":{apItemName:"SMG - TAC-SMG",unlockableId:"FIREARMS_HERO_SMG_TAC_SMG"},
+	"235":{apItemName:"Assault Rifle - TAC-4 S/A Jungle",unlockableId:"FIREARMS_HERO_RIFLE_SEMIAUTO_011_SU_SKIN10"},
+	"236":{apItemName:"Pistol - ICA19 Chrome",unlockableId:"FIREARMS_HERO_PISTOL_TACTICAL_015_SU_SKIN05"},
+	"237":{apItemName:"Pistol - ICA19 Silverballer",unlockableId:"FIREARMS_HERO_PISTOL_TACTICAL_SILVERBALLER"},
+	"238":{apItemName:"Pistol - HWK21 Pale Homemade Silencer",unlockableId:"FIREARMS_HERO_PISTOL_SILENCED_HOMEMADE"},
+	"239":{apItemName:"Pistol - Custom 5mm",unlockableId:"FIREARMS_HERO_PISTOL_CUSTOM5MM"},
+	"240":{apItemName:"Pistol - ICA19 F/A",unlockableId:"FIREARMS_HERO_PISTOL_TACTICAL_ICA_19_FA"},
+	"241":{apItemName:"Pistol - HWK21 Covert",unlockableId:"FIREARMS_HERO_PISTOL_LIGHT_HWK_21_COVERT"},
+	"242":{apItemName:"Pistol - ICA19 Shortballer",unlockableId:"FIREARMS_HERO_PISTOL_SHORT_BALLER"},
+	"243":{apItemName:"SMG - TAC-SMG S",unlockableId:"FIREARMS_HERO_SMG_TACTICAL_TAC_SMG_S"},
+	"244":{apItemName:"Assault Rifle - TAC-4 AR Stealth",unlockableId:"FIREARMS_HERO_RIFLE_FULLAUTO_TAC_4_AR_STEALTH"},
+	"245":{apItemName:"Shotgun - Enram HV CM",unlockableId:"FIREARMS_HERO_SHOTGUN_SEMIAUTO_ENRAM_HV_CM"},
+	"246":{apItemName:"SMG - TAC-SMG Covert",unlockableId:"FIREARMS_HERO_SMG_TACTICAL_012_ST_AIM_SU_SKIN03"},
+	"247":{apItemName:"Sniper - Jaeger 7 Lancer",unlockableId:"FIREARMS_HERO_SNIPER_HEAVY_JAEAGER_LANCER"},
+	"248":{apItemName:"Assault Rifle - RS-15",unlockableId:"FIREARMS_HERO_RIFLE_FULLAUTO_RS_15"},
+	"249":{apItemName:"Assault Rifle - TAC-4 S/A",unlockableId:"FIREARMS_HERO_RIFLE_SEMIAUTO_TAC_4_SA_STEALTH"},
+	"250":{apItemName:"Sniper - Sieger 300",unlockableId:"FIREARMS_HERO_SNIPER_MEDIUM_SIEGER_300"},
+	"251":{apItemName:"Sniper - Siger 300 Viper",unlockableId:"FIREARMS_SNIPER_MEDIUM_SIEGER_300_VIPER"},
+	"252":{apItemName:"Shotgun - ENRAM HV Covert",unlockableId:"FIREARMS_HERO_SHOTGUN_SEMIAUTO_ENRAM_HV_COVERT"},
+	"253":{apItemName:"Sniper - Jaeger 7 Tiger",unlockableId:"FIREARMS_HERO_SNIPER_HEAVY_JAEGER_TIGER"},
+	"254":{apItemName:"Pistol - Krugermeier 2-2",unlockableId:"FIREARMS_HERO_PISTOL_KRUGERMEIER"},
+	"255":{apItemName:"Pistol - Krugermeier 2-2 Silver",unlockableId:"FIREARMS_HERO_PISTOL_KRUGERMEIER_SILVER"},
+	"256":{apItemName:"Pistol - Krugermeier 2-2 Dark",unlockableId:"FIREARMS_HERO_PISTOL_KRUGERMEIER_SPECTRE"},
+	"257":{apItemName:"Assault Rifle - Sieger AR552 Tactical",unlockableId:"FIREARMS_HERO_RIFLE_SIEGER_AR552_TACTICAL"},
+	"258":{apItemName:"Pistol - Striker V3",unlockableId:"FIREARMS_HERO_PISTOL_STRIKER_V3"},
+	"259":{apItemName:"Sniper - Jaeger 7",unlockableId:"FIREARMS_HERO_SNIPER_JAEGER"},
+	"260":{apItemName:"Sniper - Jaeger 7 MKII",unlockableId:"FIREARMS_HERO_SNIPER_JAEGER_S2"},
+	"261":{apItemName:"Explosive - The Pale Duck",unlockableId:"PROP_DEVICE_SONYPREORDER_WHITE_RUBBERDUCK_REMOTE_EXPLOSIVE"},
+	"262":{apItemName:"Distraction - Coin",unlockableId:"PROP_TOOL_COIN"},
+	"263":{apItemName:"Distraction - Classic Coin",unlockableId:"PROP_TOOL_COIN_CLASSIC"},
+	"264":{apItemName:"Explosive - ICA Proximity Explosive",unlockableId:"PROP_DEVICE_ICA_MODULAR_PROXIMITY_EXPLOSIVE"},
+	"265":{apItemName:"Explosive - The Serpent's Bite",unlockableId:"PROP_DEVICE_REMOTE_EXPLOSIVE_LUST"},
+	"266":{apItemName:"Explosive - The Roar Flash Grenade",unlockableId:"PROP_DEVICE_PROXIMITY_FLASH_WRATH"},
+	"267":{apItemName:"Poision - Modern Lethal Syringe",unlockableId:"PROP_MELEE_SYRINGE_LETHAL"},
+	"268":{apItemName:"Poision - Emetic Poison Vial  MK III",unlockableId:"PROP_POISON_EMETIC_VIAL_S3"},
+	"269":{apItemName:"Poision - \"Bubble Queen\"Gum Pack",unlockableId:"PROP_POISON_SEDATIVE_GUM_GLUTTONY"},
+	"270":{apItemName:"Poision - Sedative Poision Vial MK III",unlockableId:"PROP_POISON_SEDATIVE_VIAL_S3"},
+	"271":{apItemName:"Tool - Lockpick",unlockableId:"PROP_TOOL_LOCK_PICK"},
+	"272":{apItemName:"Tool - Lockpick MK II",unlockableId:"PROP_TOOL_LOCK_PICK_S2"},
+	"273":{apItemName:"Tool - Lockpick MK III",unlockableId:"PROP_TOOL_LOCK_PICK_S3"},
+	"274":{apItemName:"Tool - Classic Lockpick",unlockableId:"PROP_TOOL_LOCK_PICK_CLASSIC"},
+	"275":{apItemName:"Tool - Bone Lockpick",unlockableId:"PROP_TOOL_LOCK_PICK_BONE"},
+	"276":{apItemName:"Tool - Handyman Wrench",unlockableId:"PROP_TOOL_WRENCH_HANDYMAN"},
+	"277":{apItemName:"Tool - Professional Screwdriver",unlockableId:"PROP_TOOL_SCREWDRIVER_PROFESSIONAL"},
+	"278":{apItemName:"Distraction - ICA Remote Audio Distraction",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_AUDIODISTRACTION"},
+	"279":{apItemName:"Distraction - \"Mixtape 47\"",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_MUSICDISTRACTION"},
+	"280":{apItemName:"Explosive - ICA Remote Explosive",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_EXPLOSIVE"},
+	"281":{apItemName:"Explosive - ICA Remote Explosive MK III",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_EXPLOSIVE_S3"},
+	"282":{apItemName:"Explosive - Proximity Explosive Duck",unlockableId:"PROP_DEVICE_ICA_RUBBERDUCK_PROXIMITY_EXPLOSIVE"},
+	"283":{apItemName:"Explosive - Remote Explosive Classic Rubber Duck",unlockableId:"PROP_DEVICE_ICA_CLASSIC_RUBBERDUCK_PROXIMITY_EXPLOSIVE"},
+	"284":{apItemName:"Explosive - Remove Explosive Devil Rubber Duck",unlockableId:"PROP_DEVICE_DEVIL_RUBBERDUCK_REMOTE_EXPLOSIVE"},
+	"285":{apItemName:"Explosive - The Iconator",unlockableId:"PROP_DEVICE_ACTIONFIGURE_PROXIMITY_EXPLOSIVE"},
+	"286":{apItemName:"Explosive - ICA Proximity Explosive MK III",unlockableId:"PROP_DEVICE_ICA_PROXIMITY_EXPLOSIVE_S3"},
+	"287":{apItemName:"Explosive - Proximity Semtex Demo Block MK III",unlockableId:"PROP_DEVICE_ICA_SEMTEX_PROXIMITY_EXPLOSIVE_S3"},
+	"288":{apItemName:"Explosive - Remote Semetex Demo Block MK III",unlockableId:"PROP_DEVICE_ICA_SEMTEX_REMOTE_EXPLOSIVE_S3"},
+	"289":{apItemName:"Explosive - Napolen Blownaparte",unlockableId:"PROP_DEVICE_NAPOLEON_FIGURE_REMOTE_EXPLOSIVE"},
+	"290":{apItemName:"Explosive - Lil' Flashy",unlockableId:"PROP_DEVICE_LIL_FLASHY_REMOTE_FLASH"},
+	"291":{apItemName:"Explosive - Explosive Xmas Gift",unlockableId:"PROP_DEVICE_EXPLOSIVE_PRESENT"},
+	"292":{apItemName:"Explosive - Explosive Pen",unlockableId:"PROP_DEVICE_EXPLODING_FOUNTAIN_PEN"},
+	"293":{apItemName:"Explosive - The Ancestral Fountain Pen",unlockableId:"PROP_DEVICE_EXPLODING_FOUNTAIN_PEN_ANCESTRAL"},
+	"294":{apItemName:"Explosive - Remote Explosive Duck",unlockableId:"PROP_DEVICE_ICA_RUBBERDUCK_REMOTE_EXPLOSIVE"},
+	"295":{apItemName:"Explosive - Proximity Explosive Duck MK III",unlockableId:"PROP_DEVICE_ICA_RUBBERDUCK_PROXIMITY_EXPLOSIVE_S3"},
+	"296":{apItemName:"Explosive - Sunset Rubber Duck",unlockableId:"PROP_DEVICE_ICA_RUBBERDUCK_REMOTE_EXPLOSIVE_STA"},
+	"297":{apItemName:"Explosive - Proximity CX Demo Block",unlockableId:"PROP_DEVICE_ICA_C4_PROXIMITY_EXPLOSIVE"},
+	"298":{apItemName:"Explosive - Remote CX Demo Block",unlockableId:"PROP_DEVICE_ICA_C4_REMOTE_EXPLOSIVE"},
+	"299":{apItemName:"Explosive - Remote Breaching Charge",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_BREACHCHARGE"},
+	"300":{apItemName:"Explosive - ICA Explosive Phone",unlockableId:"PROP_DEVICE_ICA_PHONE_EXPLOSIVE"},
+	"301":{apItemName:"Explosive - Explosive Compound",unlockableId:"PROP_EXPLOSIVE_EXPLOSIVE_COMPOUND"},
+	"302":{apItemName:"Explosive - Explosive Golf Ball",unlockableId:"PROP_EXPLOSIVE_GOLFBALL"},
+	"303":{apItemName:"Distraction - The Big One",unlockableId:"PROP_DISTRACTION_FIRECRACKER"},
+	"304":{apItemName:"Tool - Remote EMP Charge",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_EMP"},
+	"305":{apItemName:"Distraction - Gold Coin",unlockableId:"PROP_TOOL_GOLD_COIN"},
+	"306":{apItemName:"Melee - Blueberry Muffin",unlockableId:"PROP_MELEE_MUFFIN_BLUEBERRY"},
+	"307":{apItemName:"Poision - Emetic Poison Vial",unlockableId:"PROP_POISON_VIAL_SICK"},
+	"308":{apItemName:"Poision - Sedative Poision Vial",unlockableId:"PROP_POISON_VIAL_SEDATIVE"},
+	"309":{apItemName:"Poision - Lethal Poison Vial MK III",unlockableId:"PROP_POISON_VIAL_LETHAL_S3"},
+	"310":{apItemName:"Poision - Lethal Poison Vial",unlockableId:"PROP_POISON_VIAL_FAST"},
+	"311":{apItemName:"Poision - Antique Emetic Syringe",unlockableId:"PROP_MELEE_ANTIQUE_SYRINGE_EMETIC"},
+	"312":{apItemName:"Poision - ICA Pen Syringe Emetic",unlockableId:"PROP_EMETIC_POISON_PEN_SYRINGE"},
+	"313":{apItemName:"Poision - Guru's Pen Syringe Emetic",unlockableId:"PROP_EMETIC_POISON_PEN_SYRINGE_GURU"},
+	"314":{apItemName:"Poision - Modern Sedative Syringe",unlockableId:"PROP_MELEE_SYRINGE_SEDATIVE"},
+	"315":{apItemName:"Poision - Antique Lethal Syringe",unlockableId:"PROP_MELEE_ANTIQUE_SYRINGE_LETHAL"},
+	"316":{apItemName:"Poision - Modern Emetic Syringe",unlockableId:"PROP_MELEE_SYRINGE_EMETIC"},
+	"317":{apItemName:"Tool - Disposable Scrambler",unlockableId:"PROP_TOOL_ELECTRICAL_KIT"},
+	"318":{apItemName:"Melee - Fish",unlockableId:"PROP_MELEE_FISH"},
+	"319":{apItemName:"Melee - Violin",unlockableId:"PROP_MELEE_VIOLIN_SMALL"},
+	"320":{apItemName:"Melee - Broadsword",unlockableId:"PROP_MELEE_LONG_SWORD"},
+	"321":{apItemName:"Melee - Ornate Scimitar",unlockableId:"PROP_MELEE_SCIMITAR"},
+	"322":{apItemName:"Melee - Mace",unlockableId:"PROP_MELEE_MACE"},
+	"323":{apItemName:"Explosive - Explosive Baseball",unlockableId:"PROP_EXPLOSIVE_BASEBALL"},
+	"324":{apItemName:"Melee - Small Goldbar",unlockableId:"PROP_TOOL_GOLD_BAR_SMALL"},
+	"325":{apItemName:"Explosive - Magnesium Pouch",unlockableId:"PROP_EXPLOSIVE_MAGNESIUM_POWDER"},
+	"326":{apItemName:"Explosive - Shaman Powder",unlockableId:"PROP_EXPLOSIVE_SHAMAN_POWDER"},
+	"327":{apItemName:"Tool - ICA Proximity Taser",unlockableId:"PROP_DEVICE_ICA_PROXIMITY_TASER"},
+	"328":{apItemName:"Tool - ICA Remote Taser",unlockableId:"PROP_DEVICE_ICA_REMOTE_TASER"},
+	"329":{apItemName:"Tool - ICA Remote Micro Taser",unlockableId:"PROP_DEVICE_ICA_REMOTE_MICROTASER_S3"},
+	"330":{apItemName:"Tool - Remote Emetic Gas Device",unlockableId:"PROP_DEVICE_ICA_REMOTE_GAS_EMETIC"},
+	"331":{apItemName:"Tool - ICA Flash Phone",unlockableId:"PROP_DEVICE_ICA_REMOTE_FLASH_PHONE"},
+	"332":{apItemName:"Explosive - ICA Proximity Concussion Device",unlockableId:"PROP_DEVICE_PROXIMITY_CONCUSSION"},
+	"333":{apItemName:"Explosive - ICA Proximity Concussion Device MK III",unlockableId:"PROP_DEVICE_PROXIMITY_CONCUSSION_S3"},
+	"334":{apItemName:"Explosive - ICA Remote Concussion Device",unlockableId:"PROP_DEVICE_REMOTE_CONCUSSION"},
+	"335":{apItemName:"Explosive - Remote Concussion Rubber Duck",unlockableId:"PROP_DEVICE_REMOTE_RUBBERDUCK_CONCUSSION"},
+	"336":{apItemName:"Explosive - Goldbrick Proximity Mine",unlockableId:"PROP_DEVICE_AUDIO_SEDATIVE_MINE_SLOTH"},
+	"337":{apItemName:"Explosive - Remote Concussion Collectors Duck",unlockableId:"PROP_DEVICE_REMOTE_RUBBERDUCK_CONCUSSION_COLLECTORS"},
+	"338":{apItemName:"Explosive - Concussion Grenade",unlockableId:"PROP_EXPLOSIVE_GRENADE_CONCUSSION"},
+	"339":{apItemName:"Explosive - Nitroglycerin",unlockableId:"PROP_EXPLOSIVE_NITROGLYCERINE"},
+	"340":{apItemName:"Explosive - Molotov Cocktail",unlockableId:"PROP_EXPLOSIVE_GRENADE_MOLOTOV"},
+	"341":{apItemName:"Tool - Emetic Grenade",unlockableId:"PROP_GAS_GRENADE_EMETIC"},
+	"342":{apItemName:"Tool - Emetic Gas Grenade",unlockableId:"PROP_GAS_GRENADE_EMETIC_FROG"},
+	"343":{apItemName:"Tool - Guru's Emetic Grenade",unlockableId:"PROP_GAS_GRENADE_EMETIC_GURU"},
+	"344":{apItemName:"Explosive - Flash Grenade",unlockableId:"PROP_EXPLOSIVE_GRENADE_FLASH"},
+	"345":{apItemName:"Explosive - Flash Grenade MK III",unlockableId:"PROP_EXPLOSIVE_GRENADE_FLASH_S3"},
+	"346":{apItemName:"Explosive - Fragmentation Grenade",unlockableId:"PROP_EXPLOSIVE_GRENADE_FRAG"},
+	"347":{apItemName:"Explosive - The Red Light Flash Grenade",unlockableId:"PROP_EXPLOSIVE_GRENADE_FLASH_TOMORROWLAND"},
+	"348":{apItemName:"Explosive - ICA Proximity Micro Explosive",unlockableId:"PROP_DEVICE_ICA_MICRO_PROXIMITY_EXPLOSIVE"},
+	"349":{apItemName:"Explosive - ICA Tripwire Mine",unlockableId:"PROP_DEVICE_ICA_TRIPWIRE_EXPLOSIVE"},
+	"350":{apItemName:"Explosive - ICA Micro Remote Explosive",unlockableId:"PROP_DEVICE_ICA_MICRO_REMOTE_EXPLOSIVE"},
+	"351":{apItemName:"Explosive - ICA Remote Flash Device",unlockableId:"PROP_DEVICE_ICA_REMOTE_FLASH"},
+	"352":{apItemName:"Explosive - Proximity CX Demo Block MK II",unlockableId:"PROP_DEVICE_ICA_PROXIMITY_SEMTEX_BLOCK"},
+	"353":{apItemName:"Explosive - Remote CX Demo Block MK II",unlockableId:"PROP_DEVICE_ICA_REMOTE_SEMTEX_BLOCK"},
+	"354":{apItemName:"Explosive - ICA Remote Explosive MK II",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_EXPLOSIVE_S2"},
+	"355":{apItemName:"Explosive - ICA Proximity Explosive MK II",unlockableId:"PROP_DEVICE_ICA_MODULAR_PROXIMITY_EXPLOSIVE_S2"},
+	"356":{apItemName:"Explosive - Proximity Explosive Rubber Duck MK II",unlockableId:"PROP_DEVICE_ICA_RUBBER_DUCK_PROXIMITY_EXPLOSIVE_S2"},
+	"357":{apItemName:"Explosive - Remote Explosive Rubber Duck MK II",unlockableId:"PROP_DEVICE_ICA_RUBBER_DUCK_REMOTE_EXPLOSIVE_S2"},
+	"358":{apItemName:"Poision - Emetic Syringe Mk II",unlockableId:"PROP_MELEE_SYRINGE_EMETIC_S2"},
+	"359":{apItemName:"Poision - Lethal Syringe Mk II",unlockableId:"PROP_MELEE_SYRINGE_LETHAL_S2"},
+	"360":{apItemName:"Poision - Lethal Syringe Mk III",unlockableId:"PROP_MELEE_SYRINGE_LETHAL_S3"},
+	"361":{apItemName:"Distraction - ICA Remote Audio Distraction MKII",unlockableId:"PROP_DEVICE_ICA_REMOTE_AUDIO_DISTRACTION_S2"},
+	"362":{apItemName:"Distraction - ICA Remote Audio Distraction MKIII",unlockableId:"PROP_DEVICE_ICA_REMOTE_AUDIO_DISTRACTION_S3"},
+	"363":{apItemName:"Tool - Electronic Key Hacker",unlockableId:"PROP_DEVICE_KEYCARD_HACKER_S2"},
+	"364":{apItemName:"Tool - Electronic Key Hacker MK III",unlockableId:"PROP_DEVICE_KEYCARD_HACKER_S3"},
+	"365":{apItemName:"Explosive - Breaching Charge MK II",unlockableId:"PROP_DEVICE_ICA_MODULAR_REMOTE_BREACHCHARGE_S2"},
+	"366":{apItemName:"Explosive - Breaching Charge MK III",unlockableId:"PROP_DEVICE_ICA_MODULAR_BREACHCHARGE_S3"},
+	"367":{apItemName:"Distraction - ICA Remote Micro Audio Distraction",unlockableId:"PROP_DEVICE_ICA_MICRO_AUDIO_DISTRACTION"},
+	"368":{apItemName:"Sniper - Jaeger 7 Tuatara",unlockableId:"FIREARMS_SNIPER_JAEGER_7_TUATARA"},
+	"369":{apItemName:"Sniper - Jaeger 7 Green Eye",unlockableId:"FIREARMS_SNIPER_JAEGER_7_TUATARA_ENVY"},
+	"370":{apItemName:"Sniper - Druzhina 34 ICA Arctic",unlockableId:"FIREARMS_SNIPER_DRUZHINA_34_ARCTIC"},
+	"371":{apItemName:"Sniper - Druzhina 34 DTI",unlockableId:"FIREARMS_SNIPER_DRUZHINA_34_DTI"},
+	"372":{apItemName:"Sniper - Sieger 300 Tactical",unlockableId:"FIREARMS_SNIPER_SIEGER_300_TACTICAL"},
+	"373":{apItemName:"Sniper - Druzhina 34",unlockableId:"FIREARMS_SNIPER_DRUZHINA_34"},
+	"374":{apItemName:"Sniper - The Golden Dragon",unlockableId:"FIREARMS_SNIPER_CHINESE_DRAGON"},
+	"375":{apItemName:"Sniper - The Majestic",unlockableId:"FIREARMS_SNIPER_PRIDE"},
+	"376":{apItemName:"Assault Rifle - Shashka A33 H",unlockableId:"FIREARMS_HERO_RIFLE_AK47_HEROVERSION"},
+	"377":{apItemName:"Assault Rifle - The Shashka Beast",unlockableId:"FIREARMS_HERO_RIFLE_SHASKA_A33_WRATH"},
+	"378":{apItemName:"Assault Rifle - Shashka A33 Gold",unlockableId:"FIREARMS_HERO_RIFLE_SHASKA_A33_GOLD"},
+	"379":{apItemName:"Sniper - Bartoli Woodsman Hunting Rifle",unlockableId:"FIREARMS_HERO_SNIPER_WOODSMAN"},
+	"380":{apItemName:"Assault Rifle - TAC-4 AR MKII",unlockableId:"FIREARMS_HERO_RIFLE_TAC_4_AR_AUTO_S2"},
+	"381":{apItemName:"Shotgun - Bartoli 12G Short H",unlockableId:"FIREARMS_HERO_SHOTGUN_BARTOLI_12G_HEROVERSION"},
+	"382":{apItemName:"Shotgun - Bartoli Hunting Shotgun Deluxe",unlockableId:"HUNTING_SHOTGUN_REWARD_DELUXE"},
+	"383":{apItemName:"Shotgun - ICA Tactical Shotgun",unlockableId:"FIREARMS_SHOTGUN_SEMIAUTO_ICA_12G_SHORT"},
+	"384":{apItemName:"Shotgun - Sawed-Off Bartoli 12G",unlockableId:"FIREARMS_HERO_SHOTGUN_BARTOLI_12G_SAWED_OFF"},
+	"385":{apItemName:"Shotgun - The Maximalist Shotgun",unlockableId:"FIREARMS_HERO_SHOTGUN_SAWED_OFF_GLUTTONY"},
+	"386":{apItemName:"Shotgun - ICA Tactical Shotgun Covert",unlockableId:"FIREARMS_HERO_SHOTGUN_SILENCED"},
+	"387":{apItemName:"Shotgun - ICA Tactical White Shotgun Covert",unlockableId:"FIREARMS_HERO_SHOTGUN_SILENCED_WOLVERINE"},
+	"388":{apItemName:"Pistol - \"Rude Ruby\"",unlockableId:"FIREARMS_PISTOL_RUDE_RUBY"},
+	"389":{apItemName:"SMG - SMG Raptor Rude Ruby Covert",unlockableId:"FIREARMS_SMG_RUDE_RUBY"},
+	"390":{apItemName:"Sniper - The White Ruby Rude 300 Sniper Rifle",unlockableId:"FIREARMS_SNIPER_RIFLE_RUDE_RUBY"},
+	"391":{apItemName:"Melee - The Iridescent Katana",unlockableId:"PROP_MELEE_KATANA_NEON"},
+	"392":{apItemName:"Pistol - Kalmer 1 - Tranquilizer",unlockableId:"FIREARMS_PISTOL_DARTGUN_SEDATIVE"},
+	"393":{apItemName:"Pistol - Sieker 1",unlockableId:"FIREARMS_PISTOL_DARTGUN_SICK"},
+	"394":{apItemName:"Pistol - The Serpent's Tounge",unlockableId:"FIREARMS_PISTOL_DARTGUN_BLINDING_LUST"},
+	"395":{apItemName:"Pistol - Kalmer 2 - Tranquilizer",unlockableId:"FIREARMS_PISTOL_DARTGUN_SEDATIVE_KALMER_2"},
+	"396":{apItemName:"Pistol - The Taunton Dart Gun",unlockableId:"FIREARMS_PISTOL_DARTGUN_SEDATIVE_ASYLUM"},
+	"397":{apItemName:"Pistol - FIREARMS_PISTOL_DARTGUN",unlockableId:"FIREARMS_PISTOL_DARTGUN"},
+	"398":{apItemName:"Pistol - ICA19 Silverballer MK II",unlockableId:"FIREARMS_PISTOL_SILVERBALLER_S2"},
+	"399":{apItemName:"Pistol - ICA19 Classicballer",unlockableId:"FIREARMS_PISTOL_CLASSIC_SILVERBALLER"},
+	"400":{apItemName:"Pistol - ICA19 White Trinity",unlockableId:"FIREARMS_PISTOL_LIFE_BALLER"},
+	"401":{apItemName:"Pistol - ICA19 Black Trinity",unlockableId:"FIREARMS_PISTOL_DEATH_BALLER"},
+	"402":{apItemName:"Pistol - ICA19 White Trinity",unlockableId:"FIREARMS_PISTOL_BIRTH_BALLER"},
+	"403":{apItemName:"Pistol - ICA19 Goldballer",unlockableId:"FIREARMS_PISTOL_GOLD_BALLER"},
+	"404":{apItemName:"Pistol - Concept 5",unlockableId:"FIREARMS_PISTOL_CONCEPT_5"},
+	"405":{apItemName:"Pistol - HWK21 MK II",unlockableId:"FIREARMS_PISTOL_HWK_21_S2"},
+	"406":{apItemName:"SMG - DAK X2 Covert Special",unlockableId:"FIREARMS_HERO_SMG_MAC10_COVERT"},
+	"407":{apItemName:"SMG - Slapdash SMG",unlockableId:"FIREARMS_HERO_SMG_DAKX2_COVERT_SLOTH"},
+	"408":{apItemName:"SMG - TAC-SMAG MKII",unlockableId:"FIREARMS_HERO_SMG_TAC_SMG_S2"},
+	"409":{apItemName:"SMG - DAK Black Covert",unlockableId:"FIREARMS_SMG_TACTICAL_DAK_DTI_BLACK_COVERT"},
+	"410":{apItemName:"SMG - DAK Gold Covert",unlockableId:"FIREARMS_SMG_TACTICAL_DAK_DTI_GOLD_COVERT"},
+	"411":{apItemName:"SMG - ICA SMG Raptor Covert",unlockableId:"FIREARMS_SMG_ICA_RAPTOR_COVERT"},
+	"412":{apItemName:"SMG - Malitia-Issued HX-10 SMG",unlockableId:"FIREARMS_SMG_HX10_MILITIA"},
+	"413":{apItemName:"SMG - Brine-Damaged SMG",unlockableId:"FIREARMS_SMG_DAK_X2_RUSTY"},
+	"414":{apItemName:"Shotgun - Enram HV Covert MKII",unlockableId:"FIREARMS_HERO_SHOTGUN_ENRAM_HV_COVERT_S2"},
+	"415":{apItemName:"Pistol - \"El Matador\"",unlockableId:"FIREARMS_HERO_PISTOL_EL_MATADOR"},
+	"416":{apItemName:"Poision - Sedative Pills",unlockableId:"PROP_POISON_PILLS_SEDATIVE"},
+	"417":{apItemName:"Poision - Emetic Pills",unlockableId:"PROP_POISON_PILLS_EMETIC"},
+	"418":{apItemName:"Poision - Lethal Pills",unlockableId:"PROP_POISON_PILLS_LETHAL"},
+	"419":{apItemName:"Poision - Lethal Pills MK III",unlockableId:"PROP_POISON_CLASSIC_PILLS_LETHAL"},
+	"420":{apItemName:"Sniper - Jaeger 7 Covert",unlockableId:"FIREARMS_HERO_SNIPER_HEAVY_009_SU_SUB_SCOUT_SKIN03"},
+	"421":{apItemName:"Sniper - Sieger 300 Advanced",unlockableId:"FIREARMS_HERO_SNIPER_MEDIUM_SIEGER_300_ADVANCED"},
+	"422":{apItemName:"Pistol - ICA19 F/A Stealth",unlockableId:"FIREARMS_HERO_PISTOL_TACTICAL_ICA_19_FA_STEALTH"},
+	"423":{apItemName:"Pistol - ICA19 F/A Stealth \"Ducky\" Edition",unlockableId:"FIREARMS_HERO_PISTOL_TACTICAL_ICA_19_FA_STEALTH_DUCKY"},
+	"424":{apItemName:"Pistol - The Floral Baller",unlockableId:"FIREARMS_HERO_PISTOL_FLOWERBALLER"},
+	"425":{apItemName:"Pistol - ICA19 Iceballer",unlockableId:"FIREARMS_HERO_PISTOL_ICEBALLER"},
+	"426":{apItemName:"Pistol - ICA DTI Stealth",unlockableId:"FIREARMS_PISTOL_ICA_STEALTH_DTI"},
+	"427":{apItemName:"Pistol - Striker",unlockableId:"FIREARMS_PISTOL_STRIKER"},
+	"428":{apItemName:"Pistol - Custom 5mm DTI",unlockableId:"FIREARMS_PISTOL_CUSTOM_5MM_DTI"},
+	"429":{apItemName:"Melee - A New Bat",unlockableId:"PROP_MELEE_A_NEW_BAT"},
+	"430":{apItemName:"Melee - Meaty Bone",unlockableId:"PROP_MELEE_MEAT_ITEM"},
+	"431":{apItemName:"Melee - Sacrificial Knife",unlockableId:"PROP_MELEE_SACRIFICIAL_KNIFE"},
+	"432":{apItemName:"Melee - The Black Almond's Dagger",unlockableId:"PROP_MELEE_TREASURE_KNIFE"},
+	"433":{apItemName:"Melee - Kukri Knife",unlockableId:"PROP_MELEE_KUKRI_KNIFE"},
+	"434":{apItemName:"Melee - The Cat's Claw",unlockableId:"PROP_MELEE_DAGGER_ENVY"},
+	"435":{apItemName:"Melee - Tanto",unlockableId:"PROP_MELEE_TANTO"},
+	"436":{apItemName:"Melee - Ice Pick",unlockableId:"PROP_MELEE_ICE_PICK"},
+	"437":{apItemName:"Melee - Ice Axe",unlockableId:"PROP_MELEE_ICE_AXE"},
+	"438":{apItemName:"Melee - ICA combat axe",unlockableId:"PROP_MELEE_AXE_ICA"},
+	"439":{apItemName:"Melee - Butcher's Saw",unlockableId:"PROP_MELEE_BUTCHERS_SAW"},
+	"440":{apItemName:"Melee - Meat Hook",unlockableId:"PROP_MELEE_BUTCHERS_MEATHOOK"},
+	"441":{apItemName:"Melee - Hook",unlockableId:"PROP_MELEE_DUGONG_GRIPHOOK"},
+	"442":{apItemName:"Melee - Snowball",unlockableId:"PROP_MELEE_SNOWBALL"},
+	"443":{apItemName:"Melee - Banana",unlockableId:"PROP_MELEE_BANANA"},
+	"444":{apItemName:"Sniper - Sieger 300 Ghost",unlockableId:"FIREARMS_SNIPER_SIEGER_300_GHOST"},
+	"445":{apItemName:"Sniper - Sieger 300 Arctic",unlockableId:"FIREARMS_SNIPER_SIEGER_300_WHITE_NINJA"},
+	"446":{apItemName:"Sniper - Hackl Leviathan Sniper Rifle Covert",unlockableId:"FIREARMS_SNIPER_ICA_HACKL_LEVIATHAN_COVERT"},
+	"447":{apItemName:"Sniper - Hackl Sniper Riffle Covert \"Ducky\" Edition",unlockableId:"FIREARMS_SNIPER_ICA_HACKL_LEVIATHAN_COVERT_DUCKY"},
+	"448":{apItemName:"Pistol - The Ducky Gun",unlockableId:"FIREARMS_PISTOL_CUSTOM_5MM_DUCKY"},
+	"449":{apItemName:"Sniper - ICA Bartoli Woodsman Hunting Rifle Covert",unlockableId:"FIREARMS_SNIPER_HEAVY_ICA_WOODSMAN_COVERT"},
+	"450":{apItemName:"Agency Pickup - Hawkes Bay - Beach Shack",unlockableId:"AGENCYPICKUP_NEWZEALAND_LARGE"},
+	"451":{apItemName:"Hidden Stash - Hawkes Bay - Garbage Container",unlockableId:"AGENCYPICKUP_NEWZEALAND_SMALL"},
+	"452":{apItemName:"Agency Pickup - Miami - Pit Building Locker Room",unlockableId:"AGENCYPICKUP_MIAMI_LARGE_PITBUILDING_BASEMENT"},
+	"453":{apItemName:"Agency Pickup - Miami - Bayside Center Car Park",unlockableId:"AGENCYPICKUP_MIAMI_LARGE_UNDERGROUND_STORAGE"},
+	"454":{apItemName:"Agency Pickup - Miami - Kronstadt Storage Area",unlockableId:"AGENCYPICKUP_MIAMI_LARGE_STORAGE_CONTAINER"},
+	"455":{apItemName:"Agency Pickup - Miami - Thwack Paddock",unlockableId:"AGENCYPICKUP_MIAMI_LARGE_STORAGE_PADDOCK"},
+	"456":{apItemName:"Agency Pickup - Miami - Backstage Truck",unlockableId:"AGENCYPICKUP_MIAMI_LARGE_TRUCK"},
+	"457":{apItemName:"Agency Pickup - Miami - Parkside Food Stands",unlockableId:"AGENCYPICKUP_MIAMI_LARGE_FOOD_AREA"},
+	"458":{apItemName:"Agency Pickup - Miami - Boat Rental Hut",unlockableId:"AGENCYPICKUP_MIAMI_LARGE_BOAT_RENTAL"},
+	"459":{apItemName:"Hidden Stash - Miami - Kronstadt Reception",unlockableId:"AGENCYPICKUP_MIAMI_SMALL_EXPO_RECEPTION"},
+	"460":{apItemName:"Hidden Stash - Miami - Podium Storage",unlockableId:"AGENCYPICKUP_MIAMI_SMALL_PODIUM"},
+	"461":{apItemName:"Hidden Stash - Miami - Stands Toilet",unlockableId:"AGENCYPICKUP_MIAMI_SMALL_STANDS_TOILET"},
+	"462":{apItemName:"Agency Pickup - Santa Fortuna - Village Contruction Building",unlockableId:"AGENCYPICKUP_COLOMBIA_LARGE_VILLAGE_CONSTRUCTIONBUILDING"},
+	"463":{apItemName:"Agency Pickup - Santa Fortuna - Coca Fields",unlockableId:"AGENCYPICKUP_COLOMBIA_LARGE_COCAFIELD"},
+	"464":{apItemName:"Agency Pickup - Santa Fortuna - Construction Site",unlockableId:"AGENCYPICKUP_COLOMBIA_LARGE_CONSTRUCTIONSITE"},
+	"465":{apItemName:"Agency Pickup - Santa Fortuna - Wine cellar",unlockableId:"AGENCYPICKUP_COLOMBIA_LARGE_MANSION_WINECELLAR"},
+	"466":{apItemName:"Hidden Stash - Santa Fortuna - Hostel",unlockableId:"AGENCYPICKUP_COLOMBIA_SMALL_HOSTEL"},
+	"467":{apItemName:"Hidden Stash - Santa Fortuna - Jungle",unlockableId:"AGENCYPICKUP_COLOMBIA_SMALL_JUNGLE"},
+	"468":{apItemName:"Hidden Stash - Santa Fortuna - Caves",unlockableId:"AGENCYPICKUP_COLOMBIA_SMALL_CAVES"},
+	"469":{apItemName:"Hidden Stash - Santa Fortuna - Fishing village",unlockableId:"AGENCYPICKUP_COLOMBIA_SMALL_FISHINGVILLAGE"},
+	"470":{apItemName:"Agency Pickup - Isle of Sgail - Cistern",unlockableId:"AGENCYPICKUP_THEISLAND_LARGE_CISTERN"},
+	"471":{apItemName:"Agency Pickup - Isle of Sgail - Morgue",unlockableId:"AGENCYPICKUP_THEISLAND_LARGE_CONSTANTS_BASEMENT"},
+	"472":{apItemName:"Agency Pickup - Isle of Sgail - Chapel",unlockableId:"AGENCYPICKUP_THEISLAND_LARGE_CHAPEL"},
+	"473":{apItemName:"Agency Pickup - Isle of Sgail - Hyperborean Showrooms",unlockableId:"AGENCYPICKUP_THEISLAND_LARGE_KEEP"},
+	"474":{apItemName:"Agency Pickup - Isle of Sgail - Gallery Stairwell",unlockableId:"AGENCYPICKUP_THEISLAND_SMALL_CONFERENCE_ROOM"},
+	"475":{apItemName:"Agency Pickup - Isle of Sgail - Gatehouse",unlockableId:"AGENCYPICKUP_THEISLAND_SMALL_GATEHOUSE"},
+	"476":{apItemName:"Agency Pickup - Isle of Sgail - Warehouse",unlockableId:"AGENCYPICKUP_THEISLAND_SMALL_ARK"},
+	"477":{apItemName:"Agency Pickup - Isle of Sgail - Kitchen",unlockableId:"AGENCYPICKUP_THEISLAND_SMALL_BASEMENT"},
+	"478":{apItemName:"Agency Pickup - Mumbai - Mumbai Laundry",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_LAUNDRY"},
+	"479":{apItemName:"Agency Pickup - Mumbai - Construction site",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_BARGE"},
+	"480":{apItemName:"Agency Pickup - Mumbai - Rooftop North",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_ROOFTOP"},
+	"481":{apItemName:"Agency Pickup - Mumbai - Rooftop South",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_FORGE"},
+	"482":{apItemName:"Agency Pickup - Mumbai - Train yard",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_TRAINYARD"},
+	"483":{apItemName:"Agency Pickup - Mumbai - The Hill",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_HILL"},
+	"484":{apItemName:"Agency Pickup - Mumbai - Train Tracks",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_TRAIN"},
+	"485":{apItemName:"Agency Pickup - Mumbai - Carpark",unlockableId:"AGENCYPICKUP_MUMBAI_LARGE_GARAGE"},
+	"486":{apItemName:"Hidden Stash - Mumbai - Channel",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_SEWER"},
+	"487":{apItemName:"Hidden Stash - Mumbai - Homeless Tent",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_NEST"},
+	"488":{apItemName:"Hidden Stash - Mumbai - Balcony Pot",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_KASHMERIAN"},
+	"489":{apItemName:"Hidden Stash - Mumbai - Old Tyre",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_TYRE"},
+	"490":{apItemName:"Hidden Stash - Mumbai - Washing Stalls",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_CLOTH"},
+	"491":{apItemName:"Hidden Stash - Mumbai - Beach",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_BOAT"},
+	"492":{apItemName:"Hidden Stash - Mumbai - Shoeshop",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_SHOESHOP"},
+	"493":{apItemName:"Hidden Stash - Mumbai - Slum Apartment",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_BAG"},
+	"494":{apItemName:"Hidden Stash - Mumbai - Meat Market",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_MEAT"},
+	"495":{apItemName:"Hidden Stash - Mumbai - Streets on the Hill",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_FLOWER"},
+	"496":{apItemName:"Hidden Stash - Mumbai - Pottery Market",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_POT"},
+	"497":{apItemName:"Hidden Stash - Mumbai - Rangan Tower",unlockableId:"AGENCYPICKUP_MUMBAI_SMALL_APARTMENT"},
+	"498":{apItemName:"Agency Pickup - Whittleton Creek - Bench",unlockableId:"AGENCYPICKUP_NORTHAMERICA_LARGE_BENCH"},
+	"499":{apItemName:"Agency Pickup - Whittleton Creek - Park Shed",unlockableId:"AGENCYPICKUP_NORTHAMERICA_LARGE_PARK_SHED"},
+	"500":{apItemName:"Agency Pickup - Whittleton Creek - Hansons Basement",unlockableId:"AGENCYPICKUP_NORTHAMERICA_LARGE_VACATIONHOUSE"},
+	"501":{apItemName:"Agency Pickup - Whittleton Creek - Treehouse",unlockableId:"AGENCYPICKUP_NORTHAMERICA_LARGE_TREEHOUSE"},
+	"502":{apItemName:"Agency Pickup - Whittleton Creek - Cassidys Attic",unlockableId:"AGENCYPICKUP_NORTHAMERICA_LARGE_CASSIDYS_ATTIC"},
+	"503":{apItemName:"Hidden Stash - Whittleton Creek - R. Cross Driveway",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_GARROS_DRIVEWAY"},
+	"504":{apItemName:"Hidden Stash - Whittleton Creek - Park",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_PARK"},
+	"505":{apItemName:"Hidden Stash - Whittleton Creek - Lewinskys House",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_RENOVATION_HOUSE"},
+	"506":{apItemName:"Hidden Stash - Whittleton Creek - Creek Shed",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_CREEK_SHED"},
+	"507":{apItemName:"Hidden Stash - Whittleton Creek - Helens Garage",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_HELENS_GARAGE"},
+	"508":{apItemName:"Hidden Stash - Whittleton Creek - Battys Garden",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_BATTYS_GARDEN"},
+	"509":{apItemName:"Hidden Stash - Whittleton Creek - House For Sale",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_HOUSE_FOR_SALE"},
+	"510":{apItemName:"Hidden Stash - Whittleton Creek - Janus Kitchen",unlockableId:"AGENCYPICKUP_NORTHAMERICA_SMALL_JANUS_KITCHEN"},
+	"511":{apItemName:"Starting Location - Sapienza - Portico",unlockableId:"STARTING_LOCATION_SAPIENZA_EBOLA"},
+	"512":{apItemName:"Starting Location - Bangkok - Hotel Front Terrace",unlockableId:"STARTING_LOCATION_BANGKOK_ZIKA"},
+	"513":{apItemName:"Starting Location - Colorado - Sniper Tower",unlockableId:"STARTING_LOCATION_COLORADO_RABIES"},
+	"514":{apItemName:"Starting Location - Hokkaido - Infiltrating below the Helipad",unlockableId:"STARTING_LOCATION_HOKKAIDO_FLU"},
+	"515":{apItemName:"Starting Location - Hokkaido - STARTING_LOCATION_HOKKAIDO_MAMUSHI",unlockableId:"STARTING_LOCATION_HOKKAIDO_MAMUSHI"},
+	"516":{apItemName:"Explosive - RFID Triggered Explosive",unlockableId:"PROP_DEVICE_ICA_RFID_COIN_EXPLOSIVE"},
+	"517":{apItemName:"Distraction - ICA Commendable Performance Coin",unlockableId:"PROP_TOOL_COPPER_COIN_H2_REWARD"},
+	"518":{apItemName:"Distraction - ICA Superior Performance Coin",unlockableId:"PROP_TOOL_SILVER_COIN_H2_REWARD"},
+	"519":{apItemName:"Distraction - ICA Outstanding Performance Coin",unlockableId:"PROP_TOOL_GOLD_COIN_H2_REWARD"},
+	"520":{apItemName:"Distraction - ICA Commendable Service Coin",unlockableId:"PROP_TOOL_COMMENDABLE_COIN_H3_REWARD"},
+	"521":{apItemName:"Distraction - ICA Outstanding Service Coin",unlockableId:"PROP_TOOL_OUTSTANDING_COIN_H3_REWARD"},
+	"522":{apItemName:"Distraction - ICA Superior Service Coin",unlockableId:"PROP_TOOL_SUPPERIOR_COIN_H3_REWARD"},
+	"523":{apItemName:"Distraction - Greedy Little Coin",unlockableId:"PROP_TOOL_GREED_COIN"},
+	"524":{apItemName:"Distraction - Red-Tie Kiwi",unlockableId:"PROP_TOOL_SQUEAKY_TOY_KIWI"},
+	"525":{apItemName:"Starting Location - Hawkes Bay - Boat",unlockableId:"STARTING_LOCATION_NEWZEALAND_BOAT"},
+	"526":{apItemName:"Starting Location - Hawkes Bay - Beach",unlockableId:"STARTING_LOCATION_NEWZEALAND_BEACH"},
+	"527":{apItemName:"Starting Location - Hawkes Bay - STARTING_LOCATION_NEWZEALAND_HUT",unlockableId:"STARTING_LOCATION_NEWZEALAND_HUT"},
+	"528":{apItemName:"Starting Location - Hawkes Bay - Office",unlockableId:"STARTING_LOCATION_NEWZEALAND_OFFICE"},
+	"529":{apItemName:"Starting Location - Hawkes Bay - STARTING_LOCATION_NEWZEALAND_BED",unlockableId:"STARTING_LOCATION_NEWZEALAND_BED"},
+	"530":{apItemName:"Suit - The Jack-O'-Lantern Suit",unlockableId:"TOKEN_OUTFIT_NEWZEALAND_HERO_OPUNTIA_SUIT"},
+	"531":{apItemName:"Starting Location - Miami - Event Entrance",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_MAIN_ENTRANCE"},
+	"532":{apItemName:"Starting Location - Miami - Dolphin Fountain",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_EXPO_ENTRANCE"},
+	"533":{apItemName:"Starting Location - Miami - Kronstadt Bayside Center",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_EXPO"},
+	"534":{apItemName:"Starting Location - Miami - Medical Area",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_MEDICAL_AREA"},
+	"535":{apItemName:"Starting Location - Miami - Stands",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_STANDS"},
+	"536":{apItemName:"Starting Location - Miami - STARTING_LOCATION_MIAMI_SAMBUCA_EXPO",unlockableId:"STARTING_LOCATION_MIAMI_SAMBUCA_EXPO"},
+	"537":{apItemName:"Starting Location - Miami - Marina",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_MARINA"},
+	"538":{apItemName:"Starting Location - Miami - Food Stand",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_FOOD_TRUCK"},
+	"539":{apItemName:"Starting Location - Miami - Podium",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_PODIUM"},
+	"540":{apItemName:"Starting Location - Miami - Kowoon Pit",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_GARAGEPIT"},
+	"541":{apItemName:"Starting Location - Miami - Drivers' Lounge",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_VIPLOUNGE"},
+	"542":{apItemName:"Starting Location - Miami - Overpass",unlockableId:"STARTING_LOCATION_MIAMI_FLAMINGO_HOTEL"},
+	"543":{apItemName:"Starting Location - Santa Fortuna - Coca Fields",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_COCAFIELD"},
+	"544":{apItemName:"Starting Location - Santa Fortuna - Construction Site",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_CONSTRUCTIONSITE"},
+	"545":{apItemName:"Starting Location - Santa Fortuna - Submarine Cave",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_SUBMARINECAVE"},
+	"546":{apItemName:"Starting Location - Santa Fortuna - Village Hostel",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_HOSTEL"},
+	"547":{apItemName:"Starting Location - Santa Fortuna - Shaman's Hut",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_JUNGLE"},
+	"548":{apItemName:"Starting Location - Santa Fortuna - Mansion Basement",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_MANSION"},
+	"549":{apItemName:"Starting Location - Santa Fortuna - Village Bus Stop",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_VILLAGEBUS"},
+	"550":{apItemName:"Starting Location - Santa Fortuna - Steel Bridge",unlockableId:"STARTING_LOCATION_COLOMBIA_ANACONDA_BRIDGE"},
+	"551":{apItemName:"Starting Location - Santa Fortuna - Village Bar",unlockableId:"STARTING_LOCATION_COLOMBIA_HIPPO_VILLAGEBAR"},
+	"552":{apItemName:"Starting Location - Santa Fortuna - STARTING_LOCATION_COLOMBIA_CALLUNA_COCAFIELD",unlockableId:"STARTING_LOCATION_COLOMBIA_CALLUNA_COCAFIELD"},
+	"553":{apItemName:"Starting Location - Santa Fortuna - STARTING_LOCATION_COLOMBIA_OUTBREAK_FISHING_VILLAGE",unlockableId:"STARTING_LOCATION_COLOMBIA_OUTBREAK_FISHING_VILLAGE"},
+	"554":{apItemName:"Starting Location - Santa Fortuna - STARTING_LOCATION_COLOMBIA_OUTBREAK_VILLAGE",unlockableId:"STARTING_LOCATION_COLOMBIA_OUTBREAK_VILLAGE"},
+	"555":{apItemName:"Starting Location - Santa Fortuna - STARTING_LOCATION_COLOMBIA_OUTBREAK_COCAFIELDS",unlockableId:"STARTING_LOCATION_COLOMBIA_OUTBREAK_COCAFIELDS"},
+	"556":{apItemName:"Starting Location - Santa Fortuna - STARTING_LOCATION_COLOMBIA_OUTBREAK_CAVES",unlockableId:"STARTING_LOCATION_COLOMBIA_OUTBREAK_CAVES"},
+	"557":{apItemName:"Starting Location - Mumbai - Main street",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_MAIN_ENTRANCE"},
+	"558":{apItemName:"Starting Location - Mumbai - Outside Chawl",unlockableId:"STARTING_LOCATION_MUMBAI_KINGCOBRA_CHAWL"},
+	"559":{apItemName:"Starting Location - Mumbai - Train",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_TRAIN"},
+	"560":{apItemName:"Starting Location - Mumbai - Boat",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_BOAT"},
+	"561":{apItemName:"Starting Location - Mumbai - Taxi",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_TAXI"},
+	"562":{apItemName:"Starting Location - Mumbai - Skywalk",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_SKYWALK"},
+	"563":{apItemName:"Starting Location - Mumbai - Chawls",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_KASHMERIAN"},
+	"564":{apItemName:"Starting Location - Mumbai - Laundry",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_LAUNDRY"},
+	"565":{apItemName:"Starting Location - Mumbai - Train yard",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_TRAINYARD"},
+	"566":{apItemName:"Starting Location - Mumbai - Slums",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_SLUMS"},
+	"567":{apItemName:"Starting Location - Mumbai - Photoshoot",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_APARTMENT"},
+	"568":{apItemName:"Starting Location - Mumbai - Barge",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_BARGE"},
+	"569":{apItemName:"Starting Location - Mumbai - Metal Forge",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_FORGE"},
+	"570":{apItemName:"Starting Location - Mumbai - Hill",unlockableId:"STARTING_LOCATION_MUMBAI_MONGOOSE_HILL"},
+	"571":{apItemName:"Starting Location - Whittleton Creek - Whittleton Creek",unlockableId:"STARTING_LOCATION_NORTHAMERICA_SKUNK_BENCH"},
+	"572":{apItemName:"Starting Location - Whittleton Creek - Garbage Removal",unlockableId:"STARTING_LOCATION_NORTHAMERICA_SKUNK_GARBAGE"},
+	"573":{apItemName:"Starting Location - Whittleton Creek - Construction Area",unlockableId:"STARTING_LOCATION_NORTHAMERICA_SKUNK_CONSTRUCTION"},
+	"574":{apItemName:"Starting Location - Whittleton Creek - BBQ Party",unlockableId:"STARTING_LOCATION_NORTHAMERICA_SKUNK_BBQ"},
+	"575":{apItemName:"Starting Location - Whittleton Creek - Suburb Sign",unlockableId:"STARTING_LOCATION_NORTHAMERICA_SKUNK_GARDENER"},
+	"576":{apItemName:"Starting Location - Whittleton Creek - Fumigation",unlockableId:"STARTING_LOCATION_NORTHAMERICA_SKUNK_FUMIGATION"},
+	"577":{apItemName:"Starting Location - Whittleton Creek - STARTING_LOCATION_NORTHAMERICA_SKUNK_OUTBREAK_HELICOPTER",unlockableId:"STARTING_LOCATION_NORTHAMERICA_SKUNK_OUTBREAK_HELICOPTER"},
+	"578":{apItemName:"Suit - The Arkian Tuxedo",unlockableId:"TOKEN_OUTFIT_GOLDEN_MASK"},
+	"579":{apItemName:"Starting Location - Isle of Sgail - Harbor",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_HARBOUR"},
+	"580":{apItemName:"Starting Location - Isle of Sgail - Keep",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_KEEP"},
+	"581":{apItemName:"Starting Location - Isle of Sgail - Chapel",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_EFFIGY"},
+	"582":{apItemName:"Starting Location - Isle of Sgail - Kitchens",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_WORKER_CHEF"},
+	"583":{apItemName:"Starting Location - Isle of Sgail - Reception Area",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_WORKER_WAITER"},
+	"584":{apItemName:"Starting Location - Isle of Sgail - Gallery",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_ARKIAN_TIER2"},
+	"585":{apItemName:"Starting Location - Isle of Sgail - Architects' Lounge",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_ARKIAN_TIER3"},
+	"586":{apItemName:"Starting Location - Isle of Sgail - Warehouse",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_WORKER_CUSTODIAN"},
+	"587":{apItemName:"Starting Location - Isle of Sgail - STARTING_LOCATION_THE_ISLAND_MAGPIE_LOTUS",unlockableId:"STARTING_LOCATION_THE_ISLAND_MAGPIE_LOTUS"},
+	"588":{apItemName:"Suitcase - ICA Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_ICA"},
+	"589":{apItemName:"Suitcase - Toolbox",unlockableId:"PROP_CONTAINER_SUITCASE_TOOL_BOX"},
+	"590":{apItemName:"Suitcase - ICA Executive Briefcase MK II",unlockableId:"PROP_CONTAINER_SUITCASE_SLOW_MK_II"},
+	"591":{apItemName:"Suitcase - Artic Toolbox",unlockableId:"PROP_CONTAINER_SUITCASE_ARCTIC_TOOL_BOX"},
+	"592":{apItemName:"Suitcase - Black Leather Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_ICA_CLASSIC"},
+	"593":{apItemName:"Suitcase - ICA Briefcase MK III",unlockableId:"PROP_CONTAINER_SUITCASE_ICA_S3"},
+	"594":{apItemName:"Suitcase - Aluminum Travel Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_TRAVELER"},
+	"595":{apItemName:"Suitcase - Aluminum Travel Briefcase (H3)",unlockableId:"PROP_CONTAINER_SUITCASE_TRAVELER_H3"},
+	"596":{apItemName:"Suitcase - ICA Executive Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_ICA_DELUXE"},
+	"597":{apItemName:"Suitcase - Orange Pinstripe Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_ICA_STA"},
+	"598":{apItemName:"Suitcase - Golden Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_GOLDEN"},
+	"599":{apItemName:"Suitcase - Hunters Breifcase",unlockableId:"PROP_CONTAINER_SUITCASE_HUNTING"},
+	"600":{apItemName:"Suitcase - Chinese Briefase",unlockableId:"PROP_CONTAINER_SUITCASE_CHINESE"},
+	"601":{apItemName:"Suitcase - Premiere White Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_BIRTH"},
+	"602":{apItemName:"Suitcase - Crimson Red Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_LIFE"},
+	"603":{apItemName:"Suitcase - Ultimate Black Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_DEATH"},
+	"604":{apItemName:"Suitcase - The Club Boom 12\" Flightcase",unlockableId:"PROP_CONTAINER_SUITCASE_DJ_BAG"},
+	"605":{apItemName:"Suitcase - Siger 300 Sniper Case",unlockableId:"PROP_CONTAINER_SUITCASE_SIEGER300"},
+	"606":{apItemName:"Starting Location - STARTING_LOCATION_MANTIS_OUTBREAK_ROOF",unlockableId:"STARTING_LOCATION_MANTIS_OUTBREAK_ROOF"},
+	"607":{apItemName:"Starting Location - New York - Bank Entrance",unlockableId:"STARTING_LOCATION_GREEDY_RACCOON_MAIN_ENTRANCE"},
+	"608":{apItemName:"Starting Location - New York - Investment Floor",unlockableId:"STARTING_LOCATION_GREEDY_RACCOON_INVESTMENTFLOOR_ENTRANCE"},
+	"609":{apItemName:"Starting Location - New York - First Floor Mezzanine",unlockableId:"STARTING_LOCATION_GREEDY_RACCOON_MAINTENANCE_ENTRANCE"},
+	"610":{apItemName:"Starting Location - New York - Deposit Box Room",unlockableId:"STARTING_LOCATION_GREEDY_RACCOON_DEPOSITBOXROOM_ENTRANCE"},
+	"611":{apItemName:"Starting Location - New York - Garage",unlockableId:"STARTING_LOCATION_GREEDY_RACCOON_GARAGE_ENTRANCE"},
+	"612":{apItemName:"Starting Location - New York - STARTING_LOCATION_GREEDY_RACCOON_DANDELION_GARAGE_ENTRANCE",unlockableId:"STARTING_LOCATION_GREEDY_RACCOON_DANDELION_GARAGE_ENTRANCE"},
+	"613":{apItemName:"Starting Location - New York - Audit Hall",unlockableId:"STARTING_LOCATION_GREEDY_RACCOON_AUDITHALL_ENTRANCE"},
+	"614":{apItemName:"Agency Pickup - New York - Vault's Loading Bay",unlockableId:"AGENCYPICKUP_GREEDY_LARGE_GARAGE"},
+	"615":{apItemName:"Agency Pickup - New York - First Floor Janitor Room",unlockableId:"AGENCYPICKUP_GREEDY_LARGE_FIRSTFLOORJANITOR"},
+	"616":{apItemName:"Hidden Stash - New York - Deposit Box",unlockableId:"AGENCYPICKUP_GREEDY_SMALL_DEPOSITBOX"},
+	"617":{apItemName:"Hidden Stash - New York - Second Floor Bathroom",unlockableId:"AGENCYPICKUP_GREEDY_SMALL_2NDFLOORTOILET"},
+	"618":{apItemName:"Agency Pickup - New York - Executive Floor",unlockableId:"AGENCYPICKUP_GREEDY_LARGE_ASSISTANTSROOM"},
+	"619":{apItemName:"Hidden Stash - New York - Waiting Area Bathroom",unlockableId:"AGENCYPICKUP_GREEDY_SMALL_1STFLOORTOILET"},
+	"620":{apItemName:"Starting Location - Haven Island - Resort Pier",unlockableId:"STARTING_LOCATION_OPULENT_STINGRAY_MAIN_PIER"},
+	"621":{apItemName:"Starting Location - Haven Island - Shark Hut",unlockableId:"STARTING_LOCATION_OPULENT_STINGRAY_47HUT"},
+	"622":{apItemName:"Starting Location - Haven Island - Resort Pool Area",unlockableId:"STARTING_LOCATION_OPULENT_STINGRAY_POOL"},
+	"623":{apItemName:"Starting Location - Haven Island - Resort Gym",unlockableId:"STARTING_LOCATION_OPULENT_STINGRAY_GYM"},
+	"624":{apItemName:"Starting Location - Haven Island - Restaurant's Kitchen",unlockableId:"STARTING_LOCATION_OPULENT_STINGRAY_KITCHEN"},
+	"625":{apItemName:"Starting Location - Haven Island - Private Villa Pier",unlockableId:"STARTING_LOCATION_OPULENT_STINGRAY_VILLA_PIER"},
+	"626":{apItemName:"Hidden Stash - Haven Island - Buried In Sand",unlockableId:"AGENCYPICKUP_STINGRAY_SMALL_HIDDENINSAND"},
+	"627":{apItemName:"Hidden Stash - Haven Island - Laundry Room",unlockableId:"AGENCYPICKUP_STINGRAY_SMALL_LAUNDRYROOM"},
+	"628":{apItemName:"Hidden Stash - Haven Island - Restaurant Storage Room",unlockableId:"AGENCYPICKUP_STINGRAY_SMALL_STAFFROOM"},
+	"629":{apItemName:"Agency Pickup - Haven Island - Shark Hut",unlockableId:"AGENCYPICKUP_STINGRAY_LARGE_47HUT"},
+	"630":{apItemName:"Agency Pickup - Haven Island - Villa Beach Storage Area",unlockableId:"AGENCYPICKUP_STINGRAY_LARGE_VILLABEACH"},
+	"631":{apItemName:"Agency Pickup - Haven Island - Security Hut",unlockableId:"AGENCYPICKUP_STINGRAY_LARGE_SECURITYHUT"},
+	"632":{apItemName:"Hidden Stash - Haven Island - Changing Room",unlockableId:"AGENCYPICKUP_STINGRAY_SMALL_SPACHANGINGROOM"},
+	"633":{apItemName:"Hidden Stash - Haven Island - Villa Bathroom",unlockableId:"AGENCYPICKUP_STINGRAY_SMALL_VILLA_BATHROOM"},
+	"634":{apItemName:"Hidden Stash - Haven Island - Underground Storage Room",unlockableId:"AGENCYPICKUP_STINGRAY_SMALL_UNDERGROUND_STORAGE"},
+	"635":{apItemName:"Suit - The Buccaneer",unlockableId:"TOKEN_OUTFIT_HERO_PIRATE_SUIT"},
+	"636":{apItemName:"Starting Location - STARTING_LOCATION_OPULENT_ARCTICTHYME_PIRATE",unlockableId:"STARTING_LOCATION_OPULENT_ARCTICTHYME_PIRATE"},
+	"637":{apItemName:"Suit - The Devil's Own",unlockableId:"TOKEN_OUTFIT_HERO_GOLDEN_DEVIL_SUIT"},
+	"638":{apItemName:"Suit - Formal Hunting Attire",unlockableId:"TOKEN_OUTFIT_HERO_HUNTING_SUIT"},
+	"639":{apItemName:"Suit - The Black Dragon",unlockableId:"TOKEN_OUTFIT_HERO_CHINESE_SUIT"},
+	"640":{apItemName:"Suit - Guru Suit",unlockableId:"TOKEN_OUTFIT_HERO_GURU_SUIT"},
+	"641":{apItemName:"Suit - The Yellow Rabbit",unlockableId:"TOKEN_OUTFIT_HERO_EASTER_SUIT"},
+	"642":{apItemName:"Suit - The White Shadow",unlockableId:"TOKEN_OUTFIT_HERO_WHITE_NINJA_SUIT"},
+	"643":{apItemName:"Suit - The Butcher",unlockableId:"TOKEN_OUTFIT_HERO_BUTCHER_SUIT"},
+	"644":{apItemName:"Suit - The Big, Bad Wolf Suit",unlockableId:"TOKEN_OUTFIT_HERO_BBW_SUIT"},
+	"645":{apItemName:"Suit - The Strait Jacket",unlockableId:"TOKEN_OUTFIT_HERO_ASYLUM_SUIT"},
+	"646":{apItemName:"Suit - The Raver",unlockableId:"TOKEN_OUTFIT_HERO_EASTER_RAVER_SUIT"},
+	"647":{apItemName:"Suit - TOKEN_OUTFIT_HERO_EASTER_RAVER_BUNNY_SUIT",unlockableId:"TOKEN_OUTFIT_HERO_EASTER_RAVER_BUNNY_SUIT"},
+	"648":{apItemName:"Suit - The Ruby Rude Track Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_RUBYRUDE_SUIT"},
+	"649":{apItemName:"Suit - The Neon Ninja Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_NEON_SUIT"},
+	"650":{apItemName:"Suit - The Lucky Ducky Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_DUCKY_SUIT"},
+	"651":{apItemName:"Suit - The Sandman Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_HALLOWEENSANSPUMPKIN_SUIT"},
+	"652":{apItemName:"Suit - Super Fan",unlockableId:"TOKEN_OUTFIT_HERO_SUPERFAN"},
+	"653":{apItemName:"Suit - Plague Doctor",unlockableId:"TOKEN_OUTFIT_HERO_PLAGUEDOCTOR"},
+	"654":{apItemName:"Suit - Summer Sightseeing Suit With Gloves",unlockableId:"TOKEN_OUTFIT_HERO_SUMMER_SUIT"},
+	"655":{apItemName:"Suit - Agent 17's Signature Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_AGENT17_SUIT"},
+	"656":{apItemName:"Suit - The Codename 47 Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_LEGACY47_SUIT"},
+	"657":{apItemName:"Suit - The Cozy Christmas Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_CHRISTMASJUMPER_SUIT"},
+	"658":{apItemName:"Suit - The Rapacious Suit",unlockableId:"TOKEN_OUTFIT_HERO_GREED_SUIT"},
+	"659":{apItemName:"Suit - The Narcissus Suit",unlockableId:"TOKEN_OUTFIT_HERO_PRIDE_SUIT"},
+	"660":{apItemName:"Suit - The Lotophage Suit",unlockableId:"TOKEN_OUTFIT_HERO_SLOTH_SUIT"},
+	"661":{apItemName:"Suit - The Scarlet Suit",unlockableId:"TOKEN_OUTFIT_HERO_LUST_SUIT"},
+	"662":{apItemName:"Suit - The Profligacy Suit",unlockableId:"TOKEN_OUTFIT_HERO_GLUTTONY_SUIT"},
+	"663":{apItemName:"Suit - The Temper Suit",unlockableId:"TOKEN_OUTFIT_HERO_WRATH_SUIT"},
+	"664":{apItemName:"Suit - The Odium Suit",unlockableId:"TOKEN_OUTFIT_HERO_ENVY_SUIT"},
+	"665":{apItemName:"Suit - Premiere White Suit",unlockableId:"TOKEN_OUTFIT_HERO_BIRTH_SUIT"},
+	"666":{apItemName:"Suit - Crimson Red Suit",unlockableId:"TOKEN_OUTFIT_HERO_LIFE_SUIT"},
+	"667":{apItemName:"Suit - Ultimate Black Suit",unlockableId:"TOKEN_OUTFIT_HERO_DEATH_SUIT"},
+	"668":{apItemName:"Suit - The Blue Streak Suit",unlockableId:"TOKEN_OUTFIT_HERO_BLUESPECIAL_SUIT"},
+	"669":{apItemName:"Suit - White Sunset Suit",unlockableId:"TOKEN_OUTFIT_HERO_REDSPECIAL_SUIT"},
+	"670":{apItemName:"Suit - The Green Streak Suit",unlockableId:"TOKEN_OUTFIT_HERO_GREENSPECIAL_SUIT"},
+	"671":{apItemName:"Suit - The Black Streak Suit",unlockableId:"TOKEN_OUTFIT_HERO_BLACKSPECIAL_SUIT"},
+	"672":{apItemName:"Suit - The Purple Streak Suit",unlockableId:"TOKEN_OUTFIT_HERO_PURPLESPECIAL_SUIT"},
+	"673":{apItemName:"Suit - Solstice Suit",unlockableId:"TOKEN_OUTFIT_HERO_H3_LEGACYREWARD_SUIT"},
+	"674":{apItemName:"Suit - Ashen Suit With Gloves",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_GECKO_SUIT"},
+	"675":{apItemName:"Suit - The Public Enemy Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_PUBLICENEMY_SUIT"},
+	"676":{apItemName:"Suit - Classic Cut Long Coat Suit With Gloves",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_BULLDOG_SUIT"},
+	"677":{apItemName:"Suit - Number Six With Gloves",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_FOX_SUIT"},
+	"678":{apItemName:"Suit - Rave On Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_RAVING_SUIT"},
+	"679":{apItemName:"Suit - Polar Survival Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_FALCON_ICE_SUIT"},
+	"680":{apItemName:"Suit - Neon City Suit With Gloves",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_RAT_SUIT"},
+	"681":{apItemName:"Suit - Black & White Tuxedo Set With Gloves",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_LLAMA_SUIT"},
+	"682":{apItemName:"Suit - Subject 47",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_WOLVERINE_SUIT"},
+	"683":{apItemName:"Suit - TOKEN_OUTFIT_HERO_GECKO_SUIT",unlockableId:"TOKEN_OUTFIT_HERO_GECKO_SUIT"},
+	"684":{apItemName:"Starting Location - Dubai - Burj Al-Ghazali Exterior",unlockableId:"STARTING_LOCATION_GOLDEN_GECKO_OUTSIDE_DEFAULT"},
+	"685":{apItemName:"Starting Location - Dubai - STARTING_LOCATION_GOLDEN_GECKO_OUTSIDE_DEFAULT_COMMENTARY",unlockableId:"STARTING_LOCATION_GOLDEN_GECKO_OUTSIDE_DEFAULT_COMMENTARY"},
+	"686":{apItemName:"Starting Location - Dubai - Atrium Lobby",unlockableId:"STARTING_LOCATION_GOLDEN_GECKO_INSIDE_DEFAULT"},
+	"687":{apItemName:"Starting Location - Dubai - Meeting Room",unlockableId:"STARTING_LOCATION_GOLDEN_GECKO_MEETING_ROOM_STAFF"},
+	"688":{apItemName:"Starting Location - Dubai - Art Installation",unlockableId:"STARTING_LOCATION_GOLDEN_GECKO_ART_INSTALLATION_TECHNICIAN"},
+	"689":{apItemName:"Starting Location - Dubai - Guard Room",unlockableId:"STARTING_LOCATION_GOLDEN_GECKO_GUARD_ROOM_GUARD"},
+	"690":{apItemName:"Starting Location - Dubai - Penthouse",unlockableId:"STARTING_LOCATION_GOLDEN_GECKO_PENTHOUSE_STAFF"},
+	"691":{apItemName:"Starting Location - Dubai - STARTING_LOCATION_GOLDEN_ANGELICA_GOLDBAR",unlockableId:"STARTING_LOCATION_GOLDEN_ANGELICA_GOLDBAR"},
+	"692":{apItemName:"Starting Location - Dubai - STARTING_LOCATION_GOLDEN_GIBSON_INSIDE_DEFAULT",unlockableId:"STARTING_LOCATION_GOLDEN_GIBSON_INSIDE_DEFAULT"},
+	"693":{apItemName:"Agency Pickup - Dubai - Maintenance Room",unlockableId:"AGENCYPICKUP_GOLDEN_LARGE_JANITORROOM"},
+	"694":{apItemName:"Agency Pickup - Dubai - Penthouse Supply Room",unlockableId:"AGENCYPICKUP_GOLDEN_LARGE_PENTHOUSESUPPLYROOM"},
+	"695":{apItemName:"Agency Pickup - Dubai - Art Backstage Balcony",unlockableId:"AGENCYPICKUP_GOLDEN_LARGE_BACKSTAGEBALCONY"},
+	"696":{apItemName:"Agency Pickup - Dubai - Penthouse Ventilation Area",unlockableId:"AGENCYPICKUP_GOLDEN_LARGE_PENTHOUSEMAINTENANCE"},
+	"697":{apItemName:"Hidden Stash - Dubai - Kitchen",unlockableId:"AGENCYPICKUP_GOLDEN_SMALL_KITCHEN"},
+	"698":{apItemName:"Hidden Stash - Dubai - Laundry Room",unlockableId:"AGENCYPICKUP_GOLDEN_SMALL_LAUNDRYROOM"},
+	"699":{apItemName:"Hidden Stash - Dubai - Atrium Toilet",unlockableId:"AGENCYPICKUP_GOLDEN_SMALL_ATRIUMTOILET"},
+	"700":{apItemName:"Suit - TOKEN_OUTFIT_ANCESTRAL_HERO_ANCESTRALSUIT",unlockableId:"TOKEN_OUTFIT_ANCESTRAL_HERO_ANCESTRALSUIT"},
+	"701":{apItemName:"Suit - TOKEN_OUTFIT_ANCESTRAL_HERO_SMOOTHSNAKESUIT",unlockableId:"TOKEN_OUTFIT_ANCESTRAL_HERO_SMOOTHSNAKESUIT"},
+	"702":{apItemName:"Starting Location - Dartmoor - Main Road",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_DEFAULT_SUIT"},
+	"703":{apItemName:"Starting Location - Dartmoor - Directors Commentary - Mission Introduction",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_DEFAULT_COMMENTARY_SUIT"},
+	"704":{apItemName:"Starting Location - Dartmoor - Main Road (Skipped)",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_DEFAULT_SUIT_B"},
+	"705":{apItemName:"Starting Location - Dartmoor - Behind Mansion",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_BEHINDMANSION_SUIT"},
+	"706":{apItemName:"Starting Location - Dartmoor - Behind Mansion (Skipped)",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_BEHINDMANSION_SUIT_B"},
+	"707":{apItemName:"Starting Location - Dartmoor - Garden",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_GARDEN_GARDENER"},
+	"708":{apItemName:"Starting Location - Dartmoor - Library",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_LIBRARY_MANSIONSTAFF"},
+	"709":{apItemName:"Starting Location - Dartmoor - Staff Room",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_STAFFROOM_MANSIONGUARD"},
+	"710":{apItemName:"Starting Location - Dartmoor - Zachery's Bedroom",unlockableId:"STARTING_LOCATION_ANCESTRAL_BULLDOG_ZACHARYSROOM_INVESTIGATOR"},
+	"711":{apItemName:"Starting Location - Dartmoor - STARTING_LOCATION_ANCESTRAL_FERN_BEHINDMANSION_HUNTINGSUIT_B",unlockableId:"STARTING_LOCATION_ANCESTRAL_FERN_BEHINDMANSION_HUNTINGSUIT_B"},
+	"712":{apItemName:"Starting Location - Dartmoor - STARTING_LOCATION_ANCESTRAL_SMOOTHSNAKE_FRONTMANSION_SUIT",unlockableId:"STARTING_LOCATION_ANCESTRAL_SMOOTHSNAKE_FRONTMANSION_SUIT"},
+	"713":{apItemName:"Starting Location - Dartmoor - STARTING_LOCATION_ANCESTRAL_SMOOTHSNAKE_FRONTMANSION_SUIT_B",unlockableId:"STARTING_LOCATION_ANCESTRAL_SMOOTHSNAKE_FRONTMANSION_SUIT_B"},
+	"714":{apItemName:"Starting Location - STARTING_LOCATION_HOLLYHOCK_DEFAULT",unlockableId:"STARTING_LOCATION_HOLLYHOCK_DEFAULT"},
+	"715":{apItemName:"Hidden Stash - Dartmoor - Deliveries",unlockableId:"AGENCYPICKUP_ANCESTRAL_SMALL_DELIVERIES"},
+	"716":{apItemName:"Hidden Stash - Dartmoor - Library",unlockableId:"AGENCYPICKUP_ANCESTRAL_SMALL_LIBRARY"},
+	"717":{apItemName:"Agency Pickup - Dartmoor - Graveyard",unlockableId:"AGENCYPICKUP_ANCESTRAL_LARGE_GRAVEYARD"},
+	"718":{apItemName:"Agency Pickup - Dartmoor - Changing room",unlockableId:"AGENCYPICKUP_ANCESTRAL_LARGE_CHANGINGROOM"},
+	"719":{apItemName:"Hidden Stash - Dartmoor - Greenhouse",unlockableId:"AGENCYPICKUP_ANCESTRAL_SMALL_GREENHOUSE"},
+	"720":{apItemName:"Agency Pickup - Dartmoor - Hallway",unlockableId:"AGENCYPICKUP_ANCESTRAL_LARGE_HALLWAY"},
+	"721":{apItemName:"Agency Pickup - Dartmoor - Bathroom",unlockableId:"AGENCYPICKUP_ANCESTRAL_LARGE_RESTROOM"},
+	"722":{apItemName:"Hidden Stash - Dartmoor - Laundry Room",unlockableId:"AGENCYPICKUP_ANCESTRAL_SMALL_LAUNDRYROOM"},
+	"723":{apItemName:"Suit - TOKEN_OUTFIT_EDGY_HERO_EDGYSUIT",unlockableId:"TOKEN_OUTFIT_EDGY_HERO_EDGYSUIT"},
+	"724":{apItemName:"Starting Location - Berlin - Bus Stop",unlockableId:"STARTING_LOCATION_EDGY_FOX_DEFAULT"},
+	"725":{apItemName:"Starting Location - Berlin - Directors Commentary - Mission Introduction",unlockableId:"STARTING_LOCATION_EDGY_FOX_DEFAULT_COMMENTARY"},
+	"726":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_DEFAULT_CONTRACTCREATION",unlockableId:"STARTING_LOCATION_EDGY_FOX_DEFAULT_CONTRACTCREATION"},
+	"727":{apItemName:"Starting Location - Berlin - Radio Tower",unlockableId:"STARTING_LOCATION_EDGY_FOX_FOREST_TOWER"},
+	"728":{apItemName:"Starting Location - Berlin - Biker Hangout",unlockableId:"STARTING_LOCATION_EDGY_FOX_BIKER_LOUNGE"},
+	"729":{apItemName:"Starting Location - Berlin - Projection Bar",unlockableId:"STARTING_LOCATION_EDGY_FOX_B1_BAR"},
+	"730":{apItemName:"Starting Location - Berlin - DJ Booth",unlockableId:"STARTING_LOCATION_EDGY_FOX_DJ_BOOTH"},
+	"731":{apItemName:"Starting Location - Berlin - Chill Out",unlockableId:"STARTING_LOCATION_EDGY_FOX_CHILLOUT_AREA"},
+	"732":{apItemName:"Starting Location - Berlin - Club Entrance",unlockableId:"STARTING_LOCATION_EDGY_FOX_CLUB_ENTRANCE"},
+	"733":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_RADLER_CLUB_ENTRANCE",unlockableId:"STARTING_LOCATION_EDGY_RADLER_CLUB_ENTRANCE"},
+	"734":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_TOMORROWLAND_CLUB_ENTRANCE",unlockableId:"STARTING_LOCATION_EDGY_TOMORROWLAND_CLUB_ENTRANCE"},
+	"735":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_B1_BAR",unlockableId:"STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_B1_BAR"},
+	"736":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_CLUB_ENTRANCE",unlockableId:"STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_CLUB_ENTRANCE"},
+	"737":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_CHILLOUT_AREA",unlockableId:"STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_CHILLOUT_AREA"},
+	"738":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_DJ_BOOTH",unlockableId:"STARTING_LOCATION_EDGY_FOX_NIGHTPHLOX_DJ_BOOTH"},
+	"739":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_GRASSSNAKE_FORRESTEDGE",unlockableId:"STARTING_LOCATION_EDGY_FOX_GRASSSNAKE_FORRESTEDGE"},
+	"740":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_GRASSSNAKE_EVENTAREA",unlockableId:"STARTING_LOCATION_EDGY_FOX_GRASSSNAKE_EVENTAREA"},
+	"741":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_CORNFLOWER_LEVEL1",unlockableId:"STARTING_LOCATION_EDGY_FOX_CORNFLOWER_LEVEL1"},
+	"742":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_CORNFLOWER_LEVEL2",unlockableId:"STARTING_LOCATION_EDGY_FOX_CORNFLOWER_LEVEL2"},
+	"743":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_CORNFLOWER_LEVEL3",unlockableId:"STARTING_LOCATION_EDGY_FOX_CORNFLOWER_LEVEL3"},
+	"744":{apItemName:"Starting Location - Berlin - STARTING_LOCATION_EDGY_FOX_AMBROSIA",unlockableId:"STARTING_LOCATION_EDGY_FOX_AMBROSIA"},
+	"745":{apItemName:"Agency Pickup - Berlin - Entrance Staff Room",unlockableId:"AGENCYPICKUP_EDGY_LARGE_ENTRANCE"},
+	"746":{apItemName:"Agency Pickup - Berlin - Chill-Out Stff Trailer",unlockableId:"AGENCYPICKUP_EDGY_LARGE_CHILLOUT_SHED"},
+	"747":{apItemName:"Agency Pickup - Berlin - Overpass",unlockableId:"AGENCYPICKUP_EDGY_LARGE_ABANDONED_TOWER_ROOM"},
+	"748":{apItemName:"Agency Pickup - Berlin - Basement Boiler Room",unlockableId:"AGENCYPICKUP_EDGY_LARGE_B2_ABANDONED_ROOM"},
+	"749":{apItemName:"Agency Pickup - Berlin - Skylight Access",unlockableId:"AGENCYPICKUP_EDGY_LARGE_F0_TRASH_ROOM"},
+	"750":{apItemName:"Hidden Stash - Berlin - Projection Bar",unlockableId:"AGENCYPICKUP_EDGY_SMALL_B1_BAR"},
+	"751":{apItemName:"Hidden Stash - Berlin - Basement Toilet",unlockableId:"AGENCYPICKUP_EDGY_SMALL_B2_TOILET"},
+	"752":{apItemName:"Hidden Stash - Berlin - Biker Garage",unlockableId:"AGENCYPICKUP_EDGY_SMALL_BIKER_GARAGE"},
+	"753":{apItemName:"Suit - TOKEN_OUTFIT_WET_HERO_WETSUIT",unlockableId:"TOKEN_OUTFIT_WET_HERO_WETSUIT"},
+	"754":{apItemName:"Agency Pickup - Chongqing - Facility Maintenance Tunnel",unlockableId:"AGENCYPICKUP_WET_LARGE_BLOCKROOF"},
+	"755":{apItemName:"Agency Pickup - Chongqing - Arcade",unlockableId:"AGENCYPICKUP_WET_LARGE_COURTYARD"},
+	"756":{apItemName:"Agency Pickup - Chongqing - Corridor",unlockableId:"AGENCYPICKUP_WET_LARGE_BLOCKF3"},
+	"757":{apItemName:"Agency Pickup - Chongqing - Side Alley",unlockableId:"AGENCYPICKUP_WET_LARGE_ALLEY"},
+	"758":{apItemName:"Agency Pickup - Chongqing - Apartment",unlockableId:"AGENCYPICKUP_WET_LARGE_APARTMENT"},
+	"759":{apItemName:"Hidden Stash - Chongqing - The Laundry",unlockableId:"AGENCYPICKUP_WET_SMALL_LAUNDRY"},
+	"760":{apItemName:"Hidden Stash - Chongqing - Facility Rooftop",unlockableId:"AGENCYPICKUP_WET_SMALL_FACILITYROOF"},
+	"761":{apItemName:"Hidden Stash - Chongqing - Facility Ventilation Room",unlockableId:"AGENCYPICKUP_WET_SMALL_FACILITYVENT"},
+	"762":{apItemName:"Hidden Stash - Chongqing - Facility Server Supply Room",unlockableId:"AGENCYPICKUP_WET_SMALL_ARCADE"},
+	"763":{apItemName:"Hidden Stash - Chongqing - Restaurant Back Stairwell",unlockableId:"AGENCYPICKUP_WET_SMALL_RESTAURANT"},
+	"764":{apItemName:"Starting Location - Chongqing - Train Station",unlockableId:"STARTING_LOCATION_WET_RAT_DEFAULT_SUIT"},
+	"765":{apItemName:"Starting Location - Chongqing - Directors Commentary - Mission Introduction",unlockableId:"STARTING_LOCATION_WET_RAT_DEFAULT_COMMENTARY"},
+	"766":{apItemName:"Starting Location - Chongqing - Restaurant Kitchen",unlockableId:"STARTING_LOCATION_WET_RAT_RESTURANT"},
+	"767":{apItemName:"Starting Location - Chongqing - Facility Rooftop",unlockableId:"STARTING_LOCATION_WET_RAT_ROOF"},
+	"768":{apItemName:"Starting Location - Chongqing - River-side Walkway",unlockableId:"STARTING_LOCATION_WET_RAT_STREET"},
+	"769":{apItemName:"Starting Location - Chongqing - Balcony",unlockableId:"STARTING_LOCATION_WET_RAT_SIGN"},
+	"770":{apItemName:"Starting Location - Chongqing - The Block",unlockableId:"STARTING_LOCATION_WET_RAT_BLOCK_SECURITY"},
+	"771":{apItemName:"Starting Location - Chongqing - Facility Locker Room",unlockableId:"STARTING_LOCATION_WET_RAT_FACILITY_WORKER"},
+	"772":{apItemName:"Starting Location - Chongqing - STARTING_LOCATION_WET_LAMBIC_DEFAULT",unlockableId:"STARTING_LOCATION_WET_LAMBIC_DEFAULT"},
+	"773":{apItemName:"Suit - TOKEN_OUTFIT_ELEGANT_HERO_LLAMASUIT",unlockableId:"TOKEN_OUTFIT_ELEGANT_HERO_LLAMASUIT"},
+	"774":{apItemName:"Starting Location - Mendoza - Winery Viewpoint",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_DEFAULT_SUIT"},
+	"775":{apItemName:"Starting Location - Mendoza - STARTING_LOCATION_ELEGANT_NODIANA_DEFAULT_SUIT",unlockableId:"STARTING_LOCATION_ELEGANT_NODIANA_DEFAULT_SUIT"},
+	"776":{apItemName:"Starting Location - Mendoza - Directors Commentary - Mission Introduction",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_DEFAULT_COMMENTARY"},
+	"777":{apItemName:"Starting Location - Mendoza - Parking Lot",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_PARKINGLOT_SUIT"},
+	"778":{apItemName:"Starting Location - Mendoza - STARTING_LOCATION_ELEGANT_LLAMA_JACARANDA_DOCKS",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_JACARANDA_DOCKS"},
+	"779":{apItemName:"Starting Location - Mendoza - STARTING_LOCATION_ELEGANT_LLAMA_FRANGIPANI_PARKING",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_FRANGIPANI_PARKING"},
+	"780":{apItemName:"Hidden Stash - Mendoza - Boathouse",unlockableId:"AGENCYPICKUP_ELEGANT_SMALL_BOATHOUSE"},
+	"781":{apItemName:"Hidden Stash - Mendoza - Worker's Bathroom",unlockableId:"AGENCYPICKUP_ELEGANT_SMALL_WORKERSTOILET"},
+	"782":{apItemName:"Starting Location - Mendoza - Tasting Room",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_TASTINGROOM_WAITER"},
+	"783":{apItemName:"Agency Pickup - Mendoza - Barrel Room",unlockableId:"AGENCYPICKUP_ELEGANT_LARGE_BARRELROOM"},
+	"784":{apItemName:"Hidden Stash - Mendoza - Shrine",unlockableId:"AGENCYPICKUP_ELEGANT_SMALL_SHRINEPOT"},
+	"785":{apItemName:"Hidden Stash - Mendoza - Cinema",unlockableId:"AGENCYPICKUP_ELEGANT_SMALL_CINEMA"},
+	"786":{apItemName:"Starting Location - Mendoza - Shrine",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_SHRINE"},
+	"787":{apItemName:"Agency Pickup - Mendoza - Steel Tanks",unlockableId:"AGENCYPICKUP_ELEGANT_LARGE_STEELTANKS"},
+	"788":{apItemName:"Starting Location - Mendoza - Sniper Spot",unlockableId:"STARTING_LOCATION_ELEGANT_LLAMA_STEELTANKS"},
+	"789":{apItemName:"Agency Pickup - Mendoza - Villa Attic",unlockableId:"AGENCYPICKUP_ELEGANT_LARGE_VILLAATTIC"},
+	"790":{apItemName:"Starting Location - Mendoza - Vineyard",unlockableId:"STARTING_LOCATION_ELEGANT_GRAPEFIELD_WORKER"},
+	"791":{apItemName:"Starting Location - Mendoza - Dining Area",unlockableId:"STARTING_LOCATION_ELEGANT_ASADO_CHEF"},
+	"792":{apItemName:"Agency Pickup - Mendoza - Grapefield Shed",unlockableId:"AGENCYPICKUP_ELEGANT_LARGE_GRAPESHED"},
+	"793":{apItemName:"Hidden Stash - Mendoza - Dance Floor",unlockableId:"AGENCYPICKUP_ELEGANT_SMALL_DANCEFLOOR"},
+	"794":{apItemName:"Hidden Stash - Mendoza - Villa Basement",unlockableId:"AGENCYPICKUP_ELEGANT_SMALL_VILLABASEMENT"},
+	"795":{apItemName:"Suit - TOKEN_OUTFIT_TRAPPED_WOLVERINE_SUIT",unlockableId:"TOKEN_OUTFIT_TRAPPED_WOLVERINE_SUIT"},
+	"796":{apItemName:"Starting Location - Carpathian Mountains - Reflection",unlockableId:"STARTING_LOCATION_TRAPPED_WOLVERINE_DREAM_DEFAULT"},
+	"797":{apItemName:"Starting Location - Carpathian Mountains - Laboratory",unlockableId:"STARTING_LOCATION_TRAPPED_WOLVERINE_TRAIN_LAB"},
+	"798":{apItemName:"Starting Location - Carpathian Mountains - Outdoors",unlockableId:"STARTING_LOCATION_TRAPPED_WOLVERINE_TRAIN_FLATBED"},
+	"799":{apItemName:"Suit - Guerilla Wetsuit",unlockableId:"TOKEN_OUTFIT_HERO_DUGONG_SUIT"},
+	"800":{apItemName:"Starting Location - Ambrose Island - Western Beach",unlockableId:"STARTING_LOCATION_ROCKY_DEFAULT"},
+	"801":{apItemName:"Starting Location - Ambrose Island - Shrine",unlockableId:"STARTING_LOCATION_ROCKY_SHRINE"},
+	"802":{apItemName:"Starting Location - Ambrose Island - Central Social Hub",unlockableId:"STARTING_LOCATION_ROCKY_SOCIALHUB"},
+	"803":{apItemName:"Starting Location - Ambrose Island - Stilt Village",unlockableId:"STARTING_LOCATION_ROCKY_WATERVILLAGE"},
+	"804":{apItemName:"Starting Location - Ambrose Island - Militia Camp",unlockableId:"STARTING_LOCATION_ROCKY_MILITIACAMP"},
+	"805":{apItemName:"Starting Location - Ambrose Island - Pirate Camp",unlockableId:"STARTING_LOCATION_ROCKY_PIRATECAMP"},
+	"806":{apItemName:"Hidden Stash - Ambrose Island - Shrine",unlockableId:"AGENCYPICKUP_ROCKY_SMALL_SHRINE"},
+	"807":{apItemName:"Hidden Stash - Ambrose Island - Big Tree",unlockableId:"AGENCYPICKUP_ROCKY_SMALL_BIGCENTRALTREE"},
+	"808":{apItemName:"Hidden Stash - Ambrose Island - Farah's Place",unlockableId:"AGENCYPICKUP_ROCKY_SMALL_TRASHCAN_SOCIALHUB"},
+	"809":{apItemName:"Agency Pickup - Ambrose Island - Colonial Ruins",unlockableId:"AGENCYPICKUP_ROCKY_LARGE_RUINS"},
+	"810":{apItemName:"Agency Pickup - Ambrose Island - Green Container",unlockableId:"AGENCYPICKUP_ROCKY_LARGE_RADARTOWER"},
+	"811":{apItemName:"Agency Pickup - Ambrose Island - Boat Cradle",unlockableId:"AGENCYPICKUP_ROCKY_LARGE_BOATNEARWORKSHOP"},
+	"812":{apItemName:"Agency Pickup - Ambrose Island - Food Storage",unlockableId:"AGENCYPICKUP_ROCKY_LARGE_FOODSTORAGE_SOCIALHUB"},
+	"813":{apItemName:"Pistol - The Ornamental Pistol",unlockableId:"FIREARMS_HERO_PISTOL_BARTOLI_75_LUXURIOUS"},
+	"814":{apItemName:"Shotgun - The Ornamental Shotgun",unlockableId:"FIREARMS_HERO_SHOTGUN_SEMIAUTO_ENRAM_HV_LUXURIOUS"},
+	"815":{apItemName:"Assault Rifle - The Ornamental Assault Rifle",unlockableId:"FIREARMS_HERO_RIFLE_FULLAUTO_TAC_4_AUTO_LUXURIOUS"},
+	"816":{apItemName:"SMG - The Ornamental SMG",unlockableId:"FIREARMS_HERO_SMG_TAC_SMG_LUXURIOUS"},
+	"817":{apItemName:"Sniper - The Ornamental Sniper Rifle",unlockableId:"FIREARMS_HERO_SNIPER_MEDIUM_SIEGER_300_LUXURIOUS"},
+	"818":{apItemName:"Melee - The Ornamental Katana",unlockableId:"PROP_MELEE_KATANA_LUXURIOUS"},
+	"819":{apItemName:"Suit - The Golden Contender Suit",unlockableId:"EG_MASTERY_SKIN_LUXURIOUS_SUIT"},
+	"820":{apItemName:"Pistol - The Scrap Gun",unlockableId:"FIREARMS_HERO_PISTOL_MAKESHIFT"},
+	"821":{apItemName:"Shotgun - The Makeshift Scrap Shotgun",unlockableId:"FIREARMS_HERO_SHOTGUN_MAKESHIFT"},
+	"822":{apItemName:"Assault Rifle - The Makeshift Scrap Assault Rifle",unlockableId:"FIREARMS_HERO_RIFLE_MAKESHIFT"},
+	"823":{apItemName:"SMG - The Scrap SMG",unlockableId:"FIREARMS_HERO_SMG_TAC_SMG_MAKESHIFT"},
+	"824":{apItemName:"Sniper - The Scrappy Sniper Rifle",unlockableId:"FIREARMS_HERO_SNIPER_MAKESHIFT"},
+	"825":{apItemName:"Melee - The Makeshift Katana",unlockableId:"PROP_MELEE_KATANA_MAKESHIFT"},
+	"826":{apItemName:"Suit - The Scrap Poncho Suit",unlockableId:"TOKEN_OUTFIT_HERO_MAKESHIFT"},
+	"827":{apItemName:"Pistol - The Concrete Bunny Pistol",unlockableId:"FIREARMS_HERO_PISTOL_CONCRETEART"},
+	"828":{apItemName:"Shotgun - The Concrete Shotgun",unlockableId:"FIREARMS_HERO_SHOTGUN_CONCRETEART"},
+	"829":{apItemName:"Assault Rifle - The Concrete Assault Rifle",unlockableId:"FIREARMS_HERO_RIFLE_CONCRETEART"},
+	"830":{apItemName:"SMG - The Shark SMG",unlockableId:"FIREARMS_HERO_SMG_TAC_SMG_CONCRETEART"},
+	"831":{apItemName:"Sniper - The Concrete Sniper Rifle",unlockableId:"FIREARMS_HERO_SNIPER_CONCRETEART"},
+	"832":{apItemName:"Melee - The Concrete Bat",unlockableId:"PROP_MELEE_BASEBALLBAT_CONCRETEART"},
+	"833":{apItemName:"Suit - The Graffiti Hoody Suit",unlockableId:"TOKEN_OUTFIT_HERO_CONCRETEART"},
+	"834":{apItemName:"Suit - The Master Freelancer Suit",unlockableId:"EG_MASTERY_SKIN_OUTFIT_HERO_EVERGREENMASTERY"},
+	"835":{apItemName:"Suit - The Gauze Suit",unlockableId:"EG_MASTERY_SKIN_OUTFIT_HERO_WOUNDED"},
+	"836":{apItemName:"Suit - The Black Bruiser Suit",unlockableId:"EG_CHALLENGE_SKIN_OUTFIT_HERO_BLOODY"},
+	"837":{apItemName:"Suit - The Sniper Challange Suit",unlockableId:"SNIPER_CHALLENGE_STARTING_OUTFIT"},
+	"838":{apItemName:"Suit - Trendy Tourist Suit",unlockableId:"TRAVELLER_CHALLENGE_STARTING_OUTFIT"},
+	"839":{apItemName:"Pistol - The Ancestral Pistol",unlockableId:"FIREARMS_HERO_PISTOL_KRUGERMEIER_ANCESTRAL"},
+	"840":{apItemName:"Shotgun - The Ancestral Shotgun",unlockableId:"HUNTING_SHOTGUN_REWARD_DELUXE_ANCESTRAL"},
+	"841":{apItemName:"Assault Rifle - The Ancestral Assault Rifle",unlockableId:"FIREARMS_HERO_RIFLE_SHASKA_ANCESTRAL"},
+	"842":{apItemName:"Sniper - The Ancestral Sniper Rifle",unlockableId:"FIREARMS_HERO_SNIPER_ANCESTRAL"},
+	"843":{apItemName:"Melee - The Ancestral Knife",unlockableId:"PROP_MELEE_COMBAT_KNIFE_ANCESTRAL"},
+	"844":{apItemName:"Explosive - PROP_DEVICE_REMOTE_EXPLOSIVE_ANCESTRAL",unlockableId:"PROP_DEVICE_REMOTE_EXPLOSIVE_ANCESTRAL"},
+	"845":{apItemName:"Suit - The Ancestral Hunter Suit",unlockableId:"EG_MASTERY_SKIN_ANCESTRAL_SUIT"},
+	"846":{apItemName:"Suit - The Ephemeral Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_SB_SUIT"},
+	"847":{apItemName:"Suit - The Ephemeral Suit with Eye Patch",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_SB_PATCH_SUIT"},
+	"848":{apItemName:"Poision - Blue Easter Egg",unlockableId:"PROP_MELEE_BLUE_EASTEREGG_PACIFYGAS"},
+	"849":{apItemName:"Melee - Durian",unlockableId:"PROP_MELEE_DURIAN_EMETICGAS"},
+	"850":{apItemName:"Melee - Unicorn Horn",unlockableId:"PROP_MELEE_UNICORNHORN"},
+	"851":{apItemName:"Melee - Pinot Noir",unlockableId:"PROP_MELEE_PINOTNOIR"},
+	"852":{apItemName:"Explosive - ICA Impact Explosive",unlockableId:"PROP_EXPLOSIVE_ICA_IMPACT"},
+	"853":{apItemName:"Melee - Burial Dagger",unlockableId:"PROP_MELEE_BURIAL_DAGGER"},
+	"854":{apItemName:"Shotgun - Golden Sawed-Off Bartoli 12G",unlockableId:"FIREARMS_HERO_SHOTGUN_BARTOLI_12G_SAWED_OFF_GOLDEN"},
+	"855":{apItemName:"Explosive - Kronstadt Explosive Pen",unlockableId:"PROP_EXPLOSIVE_PEN_SAMBUCA"},
+	"856":{apItemName:"Explosive - Kronstadt Mini Flash Robo XOI-2900",unlockableId:"PROP_GADGET_ROBOT_FLASH_SAMBUCA"},
+	"857":{apItemName:"Melee - Kronstadt IOI-1998X Surround Earphones",unlockableId:"PROP_MELEE_BLACK_PHONE_CORD_SAMBUCA"},
+	"858":{apItemName:"Explosive - The Purple Streak Explosive Duck",unlockableId:"PROP_DEVICE_ICA_RUBBERDUCK_REMOTE_EXPLOSIVE_T"},
+	"859":{apItemName:"Suit - The Disruptor MMA Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_PEN_FIGHT_SUIT"},
+	"860":{apItemName:"Suit - The Disruptor Fur Coat",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_PEN_COAT_SUIT"},
+	"861":{apItemName:"Melee - The Disruptor Resistance Band",unlockableId:"PROP_MELEE_STRENGTHBAND_PENICILLIN"},
+	"862":{apItemName:"Melee - The Disruptor Kettlebell",unlockableId:"PROP_MELEE_KETTLEBELL_PENICILLIN"},
+	"863":{apItemName:"Melee - The Disruptor Cane",unlockableId:"PROP_MELEE_CANE_PENICILLIN"},
+	"864":{apItemName:"Tool - ICA Proximity Micro Taser",unlockableId:"PROP_DEVICE_ICA_MODULAR_PROXIMITY_MICRO_TASER"},
+	"865":{apItemName:"Tool - Oil Canister",unlockableId:"PROP_DEVICE_EVERGREEN_OILSPILL_CANISTER"},
+	"866":{apItemName:"Suitcase - The Purple Streak ICA Briefcase",unlockableId:"PROP_CONTAINER_SUITCASE_ICA_T"},
+	"867":{apItemName:"Tool - RFID Triggered Taser",unlockableId:"PROP_DEVICE_ICA_RFID_COIN_TASER"},
+	"868":{apItemName:"Tool - Proximity EMP Charge",unlockableId:"PROP_DEVICE_ICA_MODULAR_PROXIMITY_EMP"},
+	"869":{apItemName:"Explosive - Proximity Lucky Cat Figurine",unlockableId:"PROP_DEVICE_ICA_LUCKYCAT_PROXIMITY_EXPLOSIVE"},
+	"870":{apItemName:"Pistol - The Purple Streak ICA19 Classic Baller",unlockableId:"FIREARMS_PISTOL_SILVERBALLER_PURPLE"},
+	"871":{apItemName:"SMG - The Splitter SMG",unlockableId:"FIREARMS_HERO_SMG_HX_10_LAMBIC"},
+	"872":{apItemName:"Melee - The Splitter Kukri Knife ",unlockableId:"PROP_MELEE_KUKRI_KNIFE_LAMBIC"},
+	"873":{apItemName:"Melee - The \“Good Quark Vol. 3\” VHS Tape",unlockableId:"PROP_MELEE_VHS_LAMBIC"},
+	"874":{apItemName:"Suit - The Splitter Boxer Suit",unlockableId:"TOKEN_OUTFIT_LAMBIC_KICKBOXER_REWARD"},
+	"875":{apItemName:"Suit - The Purple Streak Boxer Suit",unlockableId:"TOKEN_OUTFIT_LAMBIC_KICKBOXER_REWARD_PURPLE"},
+	"876":{apItemName:"Suit - The Splitter Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_LAMBIC_SUIT"},
+	"877":{apItemName:"Suit - The Krampus Little Helper Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_CHRISTMAS_SUIT"},
+	"878":{apItemName:"Distraction - The Purple Streak Coin",unlockableId:"PROP_TOOL_COIN_T"},
+	"879":{apItemName:"Suit - The Egg Hunt Suit",unlockableId:"TOKEN_OUTFIT_HERO_EASTER_DUCK_SUIT"},
+	"880":{apItemName:"Pistol - The Cherry Blossom Baller",unlockableId:"FIREARMS_HERO_PISTOL_CHERRYBALLER"},
+	"881":{apItemName:"Melee - The Sapienza FA-Sanguine Boot",unlockableId:"PROP_MELEE_FOOTBALL_BOOT"},
+	"882":{apItemName:"Tool - The Golden Wrench",unlockableId:"PROP_TOOL_WRENCH_HANDYMAN_S"},
+	"883":{apItemName:"Explosive - The Dino Duck",unlockableId:"PROP_DEVICE_ICA_RUBBERDUCK_REMOTE_EXPLOSIVE_GREEN_S"},
+	"884":{apItemName:"Poision - Red Mushroom",unlockableId:"PROP_POISON_MUSHROOM_EMETIC_S"},
+	"885":{apItemName:"Suit - The Fire 47 Suit",unlockableId:"TOKEN_OUTFIT_HERO_SUIT_S_WHITE"},
+	"886":{apItemName:"Suit - The Cerise Suit",unlockableId:"TOKEN_OUTFIT_HERO_SUIT_S_RED"},
+	"887":{apItemName:"Suit - The Mansion Suit",unlockableId:"TOKEN_OUTFIT_HERO_SUIT_S_GREEN_HAT"},
+	"888":{apItemName:"Explosive - The Neon Duck",unlockableId:"TOKEN_PROP_DEVICE_RUBBERDUCK_REMOTE_EXPLOSIVE_V"},
+	"889":{apItemName:"Explosive - The IOI Showcase Duck",unlockableId:"TOKEN_PROP_DEVICE_RUBBERDUCK_REMOTE_EXPLOSIVE_SHOWCASE"},
+	"890":{apItemName:"Suit - The Purple Streak Swimwear Suit",unlockableId:"TOKEN_OUTFIT_SINGRAY_SWIMWEAR_REWARD_T"},
+	"891":{apItemName:"Suit - The Pastel Suit",unlockableId:"TOKEN_OUTFIT_HERO_SUMMER_YELLOW_REWARD"},
+	"892":{apItemName:"Melee - The Purple Streak Fiber Wire",unlockableId:"TOKEN_PROP_MELEE_FIBERWIRE_T"},
+	"893":{apItemName:"Suit - The Banker King of Cards Suit",unlockableId:"TOKEN_OUTFIT_FRENCHMARTINI_POKER_REWARD"},
+	"894":{apItemName:"Suit - The Banker Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_FRENCHMARTINI_SUIT"},
+	"895":{apItemName:"Distraction - The \"Casino Monarchique\" Chip (100.000)",unlockableId:"TOKEN_PROP_TOOL_COIN_POKERCHIP_T"},
+	"896":{apItemName:"Melee - The Banker Rope",unlockableId:"TOKEN_PROP_MELEE_FIBERWIRE_ROPE"},
+	"897":{apItemName:"Distraction - The \"Casino Monarchique\" Chip (1.000.000)",unlockableId:"TOKEN_PROP_TOOL_COIN_POKERCHIP_FRENCHMARTINI"},
+	"898":{apItemName:"Pistol - The Banker Silenced Pistol",unlockableId:"FIREARMS_HERO_PISTOL_HWK_99_FRENCHMARTINI"},
+	"899":{apItemName:"Explosive - The Party Cracker",unlockableId:"PROP_EXPLOSIVE_FIREWORKS_FLASH"},
+	"900":{apItemName:"Melee - Cocktail Shaker",unlockableId:"PROP_MELEE_COCKTAILSHAKER"},
+	"901":{apItemName:"Starting Location - Bangkok - STARTING_LOCATION_BANGKOK_BAIJU",unlockableId:"STARTING_LOCATION_BANGKOK_BAIJU"},
+	"902":{apItemName:"Suit - The Black Turtle Streak Suit",unlockableId:"TOKEN_OUTFIT_HERO_BLACKTURTLESPECIAL_SUIT"},
+	"903":{apItemName:"Tool - The Purple Streak Crowbar",unlockableId:"TOKEN_PROP_TOOL_CROWBAR_PURPLE_T"},
+	"904":{apItemName:"Melee - Pretzel",unlockableId:"TOKEN_PROP_MELEE_PRETZEL"},
+	"905":{apItemName:"Distraction - Star Apple",unlockableId:"TOKEN_PROP_TOOL_APPLE_T"},
+	"906":{apItemName:"Explosive - The Dragon Duck",unlockableId:"TOKEN_PROP_DEVICE_DRAGON_RUBBERDUCK_REMOTE_EXPLOSIVE"},
+	"907":{apItemName:"Melee - Jade Dagger",unlockableId:"TOKEN_PROP_MELEE_JADE_DAGGER"},
+	"908":{apItemName:"Melee - Golden Dragon Scissors",unlockableId:"TOKEN_PROP_MELEE_SCISSORS_BAIJU"},
+	"909":{apItemName:"Suit - The Yellow Tracksuit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_YELLOW_TRACKSUIT"},
+	"910":{apItemName:"Suit - The Sangfroid Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_BURGUNDY_SUIT"},
+	"911":{apItemName:"Suit - The Master Martial Artist Suit",unlockableId:"TOKEN_OUTFIT_REWARD_HERO_BAIJU_SUIT"},
+	"912":{apItemName:"Melee - Kali Sticks",unlockableId:"TOKEN_PROP_MELEE_KALI_STICKS"}
+}
+const possibleTargetsMap: Record<string, string[]> = { // Missing: Carpathian Mountains
+	"b2aac100-dfc7-4f85-b9cd-528114436f6c": [ // Ambrose
+		"4f80ca40-a8f3-4a5e-9add-4c74d3bb5bcc",
+		"666521d2-1efe-4d0a-b7f7-2afeb08262b6",
+		"5bab73bb-1f5d-4bde-b6d5-48cc7c3a6c62",
+		"67ebeeb3-b018-457b-b548-285a059b1f70",
+		"b6e7077e-ab65-41eb-8fb3-7b604c289854",
+		"882faa8f-3e34-4dac-af3a-f28f14760e41",
+		"86347aad-b3b3-40ca-8810-8008be6f6f84",
+		"e86550d0-4e75-44e9-ae33-87e53081e041",
+		"23e28fb3-4d16-404e-8a20-c4c17dfd292a",
+		"8e9ed19f-713d-41cf-bb8a-36eb17b0e85d",
+		"1312f620-bf61-4b7f-8f5c-ea4e07763a98",
+		"9454339d-8f29-4ae6-97f4-96523a48bf08",
+		"914ef583-c137-41fa-aa90-a2e5e674d548",
+		"4fc588f3-9d6e-4558-953d-71054e846b10",
+		"31881e5a-c54e-4f0b-a948-04b0775fa24b",
+		"67a7706d-f12d-4f23-a6f8-74efb1035fa1",
+		"fd1b393b-6fd7-4058-be77-882f9cb80007",
+		"4fa626c9-2015-449b-b379-a9c6277d1e75",
+		"17a690ef-917f-4a3e-80bf-9164de06929d",
+		"e8d72abd-1d56-4612-b834-7f711ff903a5",
+		"332ab2dd-e23d-4690-a2cb-6224f583ba25",
+		"b461bf80-ca3c-4837-bfe8-bafdfe5b78ce",
+		"eceba8ec-e5b6-4791-af5c-dcfb1e884450",
+		"4390a13a-d104-40be-81a3-a2c2273f2216",
+		"344ac7d6-1007-4cc2-886e-b282312b7f00",
+		"69728c58-b745-4fa6-bea9-a82160e50bd4",
+		"5dfb5a63-345a-4624-b202-0fb5ebc2d28c",
+		"1a1cf4ed-c966-4a28-ba36-4dbb52d6a14e",
+		"26a264b6-a25a-4b17-9e4d-17dc7e2e22d8",
+		"d5a8e140-b14f-4892-8b9b-5b67baf182c9",
+		"08116939-5362-4f44-9187-3d672747a539",
+		"394aa297-8bde-4044-a881-332ec43e8cd1",
+		"50c94298-63bb-4a7a-9996-028b4953e274",
+		"2851a4cf-83cd-438c-89ae-3b83c6e39e76",
+		"f2f8b9ce-9850-43bc-aaff-c5a7155ac593",
+		"5fd9ac67-4532-4163-aa61-b371c899ab8d",
+		"4fa705f8-02a1-4939-8587-d9eda2c27b75",
+		"789e0240-e16f-4b14-b6b2-c7c192f3161d",
+		"8b637488-6f28-4fdd-82fe-637724f66d56",
+		"71deb3af-fc9f-42d2-9299-56df7cc0d273",
+		"e32729b8-1db7-4b62-b2e6-cdf149782ac8",
+		"fada61f3-5a06-4b75-84b6-7aa29e2ddb66",
+		"1adc77f1-f892-48a1-be09-a201ef27947a",
+		"ce7ba343-bea3-4f84-8e9f-164f305bdf4b",
+		"87be73e8-64a2-4381-8438-013bb5d4f241",
+		"ebbed31d-6870-4b29-8e22-afd24e23398d",
+		"95892dd4-9c79-4b63-9fe7-3c3a82afa42a",
+		"cd0ae0bf-b471-4e72-90b5-4d6303b416d7",
+		"c99b6e5f-9085-4e6b-a272-f70bf4422799",
+		"007a896f-8bba-4815-ad73-d3d50d41da8e",
+		"7651787d-c0a1-4582-96b7-cf7c1f26bea5",
+		"721f3c39-299d-4869-9373-14a2e98ca50b",
+		"d370c685-687c-4bbd-b1a1-33e8b6d7e5aa",
+		"5e30768e-a445-4481-8fc8-3f1fa5246053",
+		"0920912a-e6ca-4f2a-8aaf-56bef6ece7ce",
+		"1ea89d9d-66ba-4b0a-a4cd-471decf479f0",
+		"283c55ed-1ccb-4518-abf5-646fb8d9a42f",
+		"b024b72f-c236-4bc4-a12c-b1dc70902b41",
+		"fb1b730c-e201-4550-91ab-c551c2cb46fe",
+		"d3d91885-ca30-4e5a-9f1f-8ca8673ca5d0",
+		"2e1836c9-b410-4285-893d-6bda99923aca",
+		"1a789445-bd25-451b-abc1-f40b8358b6e2",
+		"4a24ab53-b8f1-4a64-85fe-6c8106714f7b",
+		"176723fd-85d8-466e-b35f-2f045d69eef9",
+		"e4163832-f80b-44a0-afd7-92f9f77ebdc2",
+		"5949bb76-bb25-451b-8e9a-97d6b26029ef",
+		"987d8547-6a26-477a-bd62-45ab4f165dd7",
+		"38f00ac1-328d-48fb-a777-6af922c28f72",
+		"cca9779a-9112-4d29-87f1-8fe247cecaba",
+		"73b5a0e8-561c-4e74-bf3f-5962a8f0190f",
+		"4588b462-36a1-472f-8a85-e1f55bdb8ff4",
+		"6f357b7c-63e9-44be-9c4f-49aff0510dd8",
+		"87a43919-2e2b-4958-9d02-3e93a5368e2d",
+		"4498ddf6-ec4f-4118-9df2-38424fcd898a",
+		"04297800-add2-4c62-9914-e08c448f353b",
+		"35d0d995-d0e5-40fb-9611-3a261516d633",
+		"4d54e83e-635a-450a-beb0-dcd3c76a9c07",
+		"f3c28068-f3e6-4746-80c8-ac61a8e2a68b",
+		"eb67d10e-54c7-4269-b993-f47c778518e7",
+		"626e8412-45cb-4711-bce0-8d2b215cd1d8",
+		"50c6f160-e081-45da-b44b-cac88ecf9bc7",
+		"6ffbcb8f-62bc-4694-a989-e84cb2362e12",
+		"21a3f4cd-bc20-4fd2-82e2-c3bbcfc8762a",
+		"b9f3a453-7467-460a-9a29-95bc7c60ec3e",
+		"7b817e7c-0237-4d0b-9b88-8ba1a4721336",
+		"9f35d0f2-64a2-4152-98de-393a53e15087",
+		"43884290-2444-4dd8-a6bf-505c36c827c0",
+		"4c0687b3-d6f0-4d02-a0e2-0b0856dc5a24",
+		"9214237f-fa98-4025-af75-4fee69d9feb5",
+		"a4c3ed5d-2b2f-48e0-b5a0-bee9a5711f0b",
+		"186b60f8-f2f5-4a20-a4c8-592ece1ebaad",
+		"7374d433-fbd6-4ffe-a60d-9b55e78f80ce",
+		"742e6ac7-71cd-4f7e-a1cd-d5905ecab13a",
+		"058655d1-2f9a-4d49-9d1c-a1ef10b40fc4",
+		"9f2c2daa-44ea-4e55-825a-b4e0d63195a6",
+		"9a6c8c05-ce10-43a6-9f4b-49fd75a058ed",
+		"4d1e1922-2b82-45a1-8e4b-b5f6b87d7ae8",
+		"448b9bc2-004a-4e86-98ea-bd68b31e97ff",
+		"7b649e1c-5960-497a-9740-23c85d5cb0fd",
+		"11bb83a4-e15d-47bc-8c00-48890e2aff44",
+		"afed915e-2ae1-416c-ba4e-8df45b48f461",
+		"c2b7e4b5-2691-40a9-8673-ab35ebc222f2",
+		"c56289fd-8181-4cff-bf13-9c2babcaf52d",
+		"06d88203-7124-465b-8ae9-97c40690535d",
+		"c412d36f-c749-4e18-a22a-d0978389b108",
+		"e04cb21c-518f-4c43-a516-f79b252dd6c0",
+		"63c92e76-14c9-471c-a8fe-b25567661a3c",
+		"74ec2aba-204f-4638-b338-fe9546c648ff",
+		"86e00af1-abec-49c2-89c5-da53ad6d24c7",
+		"94ed3b0e-fa12-4604-8e49-ba00a31c1948",
+		"b069e787-e733-4df6-99b0-b6b71d0dbfd4",
+		"568077c4-df56-448e-a513-1a5f39a7f792",
+		"e6d84903-5003-483b-8ecd-2bc0f7c05def",
+		"9910e480-fbc3-45b0-b6f8-8c5c16b56d19",
+		"74a418f5-3380-47f3-ae83-e544bbcc4b04",
+		"4b4a23d9-8dac-411a-8555-e8e3859f5133",
+		"049fc479-cf59-4691-b246-3bb2be8e0903",
+		"b9d970df-e189-41f7-87af-1e670ea5c364",
+		"0304531f-bc07-49df-8551-41899d06193a",
+		"b77849fb-5e15-4e18-ab07-3c3354af7939",
+		"df8e9875-c344-4646-a020-8dadc9aed4c4",
+		"6b97c670-e363-4c9f-8824-52fd1fa9c247",
+		"2b358619-cc9d-4a64-8e5e-9f66e8354dd7",
+		"61a4ab4c-50ae-49d9-a6a7-db7e233cc81d",
+		"ecc9602d-a3cb-40b0-85a4-0f6bbb15fec5",
+		"0ef962b2-1d9a-49dc-ba32-fe8c9dbc1817",
+		"b6b39723-9e94-499d-888b-cb4c838af015",
+		"dd0411bd-e48f-4e28-af13-4dbbd1d8482b",
+		"d0d504df-32c3-4bef-a316-2090e014363d",
+		"5b60a807-4f34-4f40-a392-fb5ebe6a6e9f",
+		"6986a840-a8bf-450f-865a-faffc21b4c3c",
+		"f8874ac8-df1a-4b17-b334-ec17013e5b9e",
+		"c048abc1-43a9-4f3e-b3f3-274060d3263d",
+		"b8ab5b30-2ca1-4624-bf23-59beee779a16",
+		"e9a5eb3a-5400-4825-96e8-7d69baeaf39b",
+		"c37f0581-9faa-46ce-8704-dc0d0a01eeeb",
+		"1eabd44e-8fc7-40e2-b47f-ff107a1e3d7a",
+		"ec6a9425-4ef0-4b59-bd18-a3008b295d77",
+		"43cc5568-050b-4fb7-b1c9-e9020adaa18c",
+		"e5f83f49-a226-46dc-ae16-455188722304",
+		"30e1f60a-098a-4121-ac08-317ba4830442",
+		"ca071393-d81f-4d9b-9612-31bdb0d1469d",
+		"bb019c8a-b28e-47e7-bb31-c3096ca9a9de",
+		"b6798b30-33f0-43d6-a07a-e22bf3ab5820",
+		"232cf45d-d95f-4dd5-b20f-4f846739f435",
+		"86e04a01-2edf-4c2f-8d3e-1d2598070bb2",
+		"19fe1730-817d-48b4-84d3-b8b55b62bb00",
+		"1e9e2967-fd0d-4b10-9763-12560cf77889",
+		"a5b053ed-aeb4-4cea-a14d-c4872c0010bb",
+		"2ffabaa6-e5ad-45ee-8b7c-e14efc3cbbff",
+		"aa08ec28-bfd8-49ac-872f-c0cbe37e1c9d",
+		"00d7139f-ee80-49cc-9632-bbcc3b53ccf0",
+		"ba1eb4ed-3665-4b5f-9ada-235ed6919006",
+		"d98e3163-512d-44d9-952f-cf307c7231a4",
+		"527e339a-6320-4f7f-899c-22ed8da07de9",
+		"e3bb93aa-0ae3-4e92-bfc4-dd5cb7156eca",
+		"d85e5b45-bc20-4bc7-8520-d3e4ddc652c5",
+		"0fe1218d-5acf-47ae-9329-4ec65622be36",
+		"2d0953e2-6c40-4846-8fce-cc2675e83151",
+		"149e80ce-30f5-4c7d-a68d-9ac565c3ebc6",
+		"32ae59e8-27e2-4072-b9d4-eb2896e7643e",
+		"5f364dd4-73f4-4c7c-aea6-15b09799bd4e",
+		"2d00fba3-5dc6-41bc-9411-a36cfde8d908",
+		"17a0aaf4-e77f-4787-a8f6-3dc414a77e84",
+		"cd2f191c-1edf-42d5-a462-073f4737c494",
+		"6f60e737-b3a3-4c91-b47f-9181c5df4e23",
+		"baa93588-0f0f-46f5-bc8f-7f0f8a775b1b",
+		"10646643-e9ac-46b3-af0c-b54df7e9a2b4",
+		"c2017c33-fc1d-422f-b8d4-819a7e6da047",
+		"679eaa07-52f4-4419-ae39-a1582ac0f0ba",
+		"c2655cd4-40fa-43bb-98c4-ea0a2946779c",
+		"984e2684-a332-4449-ac80-732fe133db96",
+		"61eb48ec-8174-4095-bf3d-f03a0bc08e5a",
+		"967fecb8-b7f3-419d-8313-8828c70304d1",
+		"d19adf2f-bbb2-4f25-8ff9-4f398aad5008",
+		"b0848f7d-adfe-4410-a34c-00d5e9197c31"
+	],
+	"db341d9f-58a4-411d-be57-0bc4ed85646b": [ // Bangkok
+		"ee3f55b8-12f8-4245-8ef2-3022b4f6f120",
+		"f65fff84-6cad-4a11-9a0a-b89430c03397",
+		"d25be190-ba61-4ec8-bd43-0a403ae26ac6",
+		"5235f9c4-7895-4c30-a2a4-fbb9c822f60c",
+		"55f90d74-140d-40db-922d-960cd9c8c310",
+		"8d765467-f0a1-4b8c-adf3-d6b2c9f109b5",
+		"6322f527-e0a7-4a6b-87f7-9a31c7a92374",
+		"1f02506a-c557-426e-963f-1a3c071ba2ff",
+		"a8ab7276-df76-47b5-82f7-5f23329a355e",
+		"e3933f35-29f6-440a-88f4-59c5e8886b4b",
+		"cea091ae-e6eb-40b7-9f81-a6d97e6e55f1",
+		"9c2fabf2-de4d-4c18-8264-2b18ff77f7cd",
+		"82a7b659-891c-41f2-88f4-8c029a823f67",
+		"b08d5b40-6c07-4079-ad32-0ef3dba7a218",
+		"53b30805-1735-4291-bfd9-8ee6eeb39085",
+		"256e1340-eb79-444f-9b59-563544136bfc",
+		"a286c548-c13a-4da0-94e6-da5c71f043d0",
+		"bd751739-93ac-44fa-9499-5b5a1a14a8dc",
+		"98acf3e6-62ff-47bc-a756-dc4a07904906",
+		"7dfc2a22-e8c2-4e97-a9d7-a3e68f9483bd",
+		"916fe9db-eaa5-4024-a95c-e8156a292fed",
+		"2813381d-9cf6-42f8-8cc9-9d84b8c58d9c",
+		"913e88c7-36ce-45fc-81aa-09b7c2853022",
+		"a366daa7-8749-4b67-aeac-fa4cf0bf74c8",
+		"8526ea06-9501-4172-9570-9fedc4f8d893",
+		"2d68e5af-aa12-4c17-a133-210dc499dcb2",
+		"c157d234-72c1-48d2-9ddc-60b24f0a45a3",
+		"0fd386ff-3349-4ada-beb1-ce5c0fdadc86",
+		"f44174a8-5880-4169-a190-32921e582b18",
+		"834f899c-ab41-4e59-b37f-73f3bdf38e9f",
+		"6dcc738b-8249-4ffc-8f0e-575a6668215b",
+		"990b3447-068f-492c-9261-730a04b3b170",
+		"f9331697-0f8d-49ca-b09a-e536e4f971af",
+		"bf5ff064-c94d-4b00-b6e1-70adf794cbcd",
+		"51067191-f863-4180-9dbe-a2e8b4bce26a",
+		"8a6891a0-af7a-4bf5-9ca7-47b1a43483aa",
+		"8c3416df-d1b9-419d-9476-0617355ba4cc",
+		"535cf530-33f2-43c7-8d95-fcc51775cab1",
+		"8503ddee-4f89-431d-a60c-83cef7418c74",
+		"c1f0ea0b-d236-4e3f-92d9-f8f70f13904a",
+		"7ad818f3-6956-4f34-b418-bb296ec3ef06",
+		"3250f14e-f1e2-4f0a-865a-c8de2e399a81",
+		"99de4634-7942-4f78-8fcc-554305e6b1f9",
+		"dc67e499-a3eb-4fcd-80bf-1f6af1316f6b",
+		"c4ed7640-77ea-4df0-a4d3-fdfad2ebc9e4",
+		"c2cc44b6-e857-44bd-ad85-bd5702ae9e8c",
+		"1b267bc0-6e02-4908-941e-5d79b09588a0",
+		"809dc0fa-9eb6-4cd9-a9d0-3f3325204ecb",
+		"3fe03895-d786-4953-8cab-ddf0f7655622",
+		"fbb97e95-b220-431c-b509-722bba8ee3fc",
+		"654805a3-9e28-4fd5-998b-ec46ac4e9368",
+		"86735af3-2178-4de9-b78b-8ea6dd79b786",
+		"89ecbd36-92a5-49f4-bf3e-ad4dcd11866f",
+		"747c7677-cc16-4c18-97d9-3dd94322ad07",
+		"0bdc5b53-0d29-4c6e-a4c0-6af1798a5b09",
+		"b97a5b8b-719e-4705-b6e1-26a79fbc1d5c",
+		"68117bbe-9908-4676-856c-ba4529c95f30",
+		"7e602ed7-c433-4a4f-bf8c-6db63ac31176",
+		"b910ac67-f24a-43da-830a-087c5ccc274c",
+		"c0bd66f1-014f-4427-a886-1e894e314177",
+		"689f0c72-34eb-4f30-ae33-33a5791bd3f6",
+		"463750a2-6355-44e3-98c7-191619dff816",
+		"ac9fa06a-a37f-4033-ac40-8fcf4e384f4a",
+		"8f5d0794-b2d5-4b1e-8878-acefc1b88a1b",
+		"b75e2627-b207-4d45-ada5-69faccf03ba6",
+		"73a03d13-a245-4729-a904-36f17979c694",
+		"d20d6e22-2ede-4e6d-b79c-25f225328f14",
+		"ea65261d-d657-4e7f-8e3b-7027e637e673",
+		"6098411b-1b38-45d8-b762-498a98f4bab2",
+		"1f2fff64-d0a6-4fb6-a89d-c320215b9730",
+		"b6311577-4a01-4763-895e-f977bbcf5c5d",
+		"b120f9c4-0543-4458-b8e7-0b944098e066",
+		"a7955c8b-ae26-4418-b788-c25b89e23f5b",
+		"fe30fa3b-adf8-4086-b2bb-71d6fce58a26",
+		"c7862aa6-1fa3-47f9-b2b5-44c9b05a3bca",
+		"e8947a1c-f276-4471-b708-4afba69f4cad",
+		"b16e23b9-af47-470e-8be7-47e837d525da",
+		"1feff565-6f5b-4b63-bed5-cbd8ef773b2d",
+		"97fa7a20-7c71-46a4-859e-761aa7397803",
+		"78a40bcc-8dfb-47da-b6b2-0a1b8f56b998",
+		"aeabb206-4d1d-4fb6-9be6-934c6b996726",
+		"65ef10f1-4dfc-42a4-ae19-41f2509ca8df",
+		"8cca8a13-6b54-4c28-961b-406e2f506edc",
+		"5f42a07d-7f37-4303-9e8e-8299400e19b7",
+		"a912c13a-4170-46d1-bf69-1e63460530bb",
+		"a432cb53-d7ef-4724-a2ba-27a25b6f39ee",
+		"dda2a89a-9bf5-4e16-a2f3-9ecf4c7edcac",
+		"d6766467-109f-4f76-acca-6939e45ce819",
+		"7c009fc5-9377-4106-9c4b-d9653e3bb303",
+		"509bf54c-6099-400e-9cc0-8c996a69f023",
+		"a86b312d-1d84-413d-ac6d-b3ea5256c66d",
+		"295a1300-4261-4d77-8a57-6bc3cac58bbf",
+		"95c7c350-2ac7-4d7b-9cd9-071ee1ca4230",
+		"42910eed-d108-4e4c-a35a-08b13876f291",
+		"4a99e7a2-ccdb-487f-b4cb-527041dd238e",
+		"0b9ec052-50e2-4c96-a490-9d92c07c65cc",
+		"3a438442-ec00-4672-b84f-68f455632c12",
+		"68761172-9512-4e2d-be0a-63df23317d6d",
+		"872ef621-7fe3-4ab3-80d5-f689a5bbd950",
+		"1c8e974b-4a97-4c72-8326-2a59b86d890a",
+		"9abc11ff-672e-46c1-ac65-b55a23246445",
+		"d18e4cee-f578-4c45-9d89-8dd1e08c9698",
+		"44040fb0-245f-4053-baea-2f046d9b694a",
+		"05ee0045-b1ba-41ff-bcd2-4e11a4128c27",
+		"1313aeb1-1489-4be0-a8dc-88c3b9c812e3",
+		"69fa0403-61f4-4c12-8e11-61bbd69bea81",
+		"206835ca-4bfd-44a6-9d4e-876d4f968fb7",
+		"ad5c866f-2fd4-420f-abac-8e9968328a4c",
+		"9659167b-3942-491a-b871-e55bbcf78113",
+		"26df5168-0dcd-439f-9bca-fabd8c9f11fe",
+		"7033eb2b-c516-4be9-a5e4-84fec66b86a1",
+		"6900fa51-26fe-4ecb-b3a1-cbacdda9c3c9",
+		"cb193180-f597-4254-bf0f-7abab723a0d5",
+		"335d6551-a33b-4195-9a6b-4b560bdc8825",
+		"c87de1d6-ef5c-44de-8c97-421b609b1633",
+		"ce66053b-afe3-4bc0-8340-2fff1e5576b5",
+		"c04d6c6f-d24e-4e6c-b1e9-82d3ec293140",
+		"63800cad-a115-4959-8f46-7db1460aebf0",
+		"03a0fe82-bf5a-41b3-8af2-25efed5b2a53",
+		"7448de96-cfaf-4c5f-8f51-c2cf64da9f72",
+		"3d1b0053-ad49-4d87-acda-e03e9f02458c",
+		"5556bb8f-0e98-41aa-9f63-f0aff3c7639e",
+		"0537209e-960f-4686-a9b4-65fe67bee060",
+		"37ce4ce8-77fd-461a-a727-895ebb47beac",
+		"053f542d-fd44-4096-ba3c-2dcd8bfc5fef",
+		"faf8bdd8-43e8-4fb9-babe-00112c67e954",
+		"6a64acbc-32cb-4012-979a-ac23ded857ec",
+		"aea627fe-c096-4bcf-9552-ed25f31dd973",
+		"29f32abf-80a4-4807-9818-5171d14f19c7",
+		"723426f8-7ac3-4d13-b7f3-72ca6a85ccdf",
+		"c622b86f-2001-4b93-bccf-88d72209528d",
+		"1523fd0f-0fd6-4e81-9db6-361da3afdb23",
+		"a0467244-2356-4494-af9f-de091c9c8c95",
+		"dd654bb1-116b-49e1-aa1e-b65c51ca51c3",
+		"020cf5be-902f-48c0-a63b-19d0408b7845",
+		"e0e282dc-7bde-45a2-aac2-2ebf05866e45",
+		"d467517d-9319-49d3-9f21-504294a7235b",
+		"a0af983a-600a-46c8-b9e9-f1299c7aa7d3",
+		"338beda5-68e8-4a3d-8580-28aa1b62d833",
+		"38acb003-5b6d-4437-b62e-a61229d8ec7b",
+		"09447419-bdbd-443d-ba00-9298d2655d0b",
+		"3cb84249-6a4c-4cdd-b8fa-851bc44e1388",
+		"317b30a3-6810-4b39-8c8d-1543523d3532",
+		"897df617-2a68-481f-b729-4fd927cf4139",
+		"ba02f271-f256-41d7-97cc-c0a36e5db1e7",
+		"2f3e91ea-9529-4ee7-89f9-5334c0588828",
+		"41a9e622-1b38-4695-8d25-afce04b5c58a",
+		"246c1a0b-5ce5-4125-808c-8d38e364b407",
+		"c6b75baf-c406-468a-89d7-6137ecaef067",
+		"2dc543c9-a41a-4b4e-8c41-9c98e6f8d5ec",
+		"9833e86e-7aba-4a32-9096-f02e73b9e554",
+		"cd94d56f-542e-41f2-9983-4bdbc47790c8",
+		"a2cc1fad-6ce3-4386-a488-4ccc2080db75",
+		"91280198-82d6-4ca2-bc0a-71d3b2fad036",
+		"ca8ea94a-1076-4f36-af0a-af1df60163cc",
+		"073813e9-eb91-4581-ad7d-756d55ebb0b7",
+		"8fd3d13a-6e7a-4f13-a096-1349d7a5892b",
+		"537f437a-e8ac-4892-8ede-fc4d168d210f",
+		"c1f7e12d-d38f-4edf-85b0-edfe09ff8fb6",
+		"658a84f9-e26f-41cf-a065-021406fdddf1",
+		"4393c608-2742-43e2-8a6f-2f1640ab2e0b",
+		"be5f28ce-a2f0-43e8-afcb-af6cf41fae9f",
+		"08e77707-9b68-4aa5-a4fb-1ce72a21291f",
+		"83528e60-a4f3-4e79-b541-e6d43a180802",
+		"0b06a237-7e19-46ec-bfa8-2cb6826dface",
+		"1bde6932-efb2-449d-a8d4-f8d1bd8eafe1",
+		"2f58b3ee-b2c3-4ef4-95fd-e8063b4f7588",
+		"02dbf93d-f568-4eef-9391-12944fdb01dc",
+		"134ad956-8749-42d0-a0d1-a1eebb93e25c",
+		"c25274e5-347e-4ec3-8421-60d80935dca5",
+		"2987288f-c1a4-4894-80ab-30761adbf58f",
+		"73ceefb7-68fd-41b7-b9b8-85cef9f7ce0f",
+		"b7e2db1b-2fd4-486e-a1c5-13bc8774afc7",
+		"7a1683b1-5492-487b-ab5e-fbc5d163aa34",
+		"337a5275-7d5f-4093-b57e-c453924a0fea",
+		"fe311e3e-3a72-40b5-b32b-14c00abc9a25",
+		"769bb7da-c8b7-40e3-b4c3-e977989257c0",
+		"35631713-9223-4845-9c6c-e5e692d5f62d",
+		"40a1f3d3-c8a0-4a3a-9622-bb2344d9b0ab",
+		"0ce2d4f2-a418-48e4-856a-e371e8eea585",
+		"9e3c5652-dcef-4a6d-b59a-f23ac6ab40cf",
+		"f6be0334-5e7d-4543-a4e4-784045d82d70",
+		"3c991ba5-b6bb-452a-bb18-d3e2ea22edba",
+		"8f947c6e-868b-4037-bb96-98f92322d877",
+		"a0a11a0d-c404-4039-8c02-cb79f4c6d8c0",
+		"39b85107-1629-4c61-b170-29b98be01948",
+		"7847b56a-640d-42ff-ba96-9043b76cff74",
+		"b3565f1f-fcad-4d90-bf5b-58a8ba81e07e",
+		"16e3b83f-846a-472c-b191-2bd389f34f0b",
+		"bac820af-3231-41d2-b8c7-922d8ef37c4d",
+		"be3042cc-6ef2-486d-a20b-411f94238dd8",
+		"001e429d-423d-4a98-b7f6-67773bbfded4",
+		"adeea1ee-0f55-4552-8bc2-adbf18a41948",
+		"df152624-1678-4688-ae63-4ddbfe21823d",
+		"893be54e-d882-4eda-b2d0-b20417ae6978",
+		"67c23b51-9966-44bd-a52d-d8c0a8732493",
+		"822a534b-f0c8-4572-8521-980b96598653",
+		"7be33ef4-4886-4e34-9086-80a22c9294bb",
+		"55b137d5-1ee8-4c4c-8836-b316b841d7e1",
+		"ac08b199-ccd7-4cd3-bf47-4be0894e7c20",
+		"29bdf26c-7ca7-4eb3-bd12-366e416b8db0",
+		"f0c5da34-c368-4c3b-a72b-c1e4562534d9",
+		"06c42a37-0deb-4dbc-8113-db4ceda9c336",
+		"04a28e6b-4164-4ec1-87ef-a3f2bc9273dd",
+		"b3cf73df-99c6-46c2-9810-817f4958c83e",
+		"5969e1f1-7e8e-44c3-b27d-9b7349c15908",
+		"2367850b-94e1-4c02-8810-1771e0a177b8",
+		"c099d7be-0a2f-45dc-b790-d2873829a9c1",
+		"80bdc161-8714-40d4-8b61-5d25d1e17eb2",
+		"0c4dcd33-13ba-4eac-bb2f-2aa316e3907a",
+		"24a59b53-e23e-448b-b91a-9d3d7e562e5d",
+		"5dc41453-8c3a-4627-b512-798950b7457e",
+		"024bc62e-bee7-4c22-b59f-1031c1e76572",
+		"12f5175e-ce79-41c2-8db3-87b5aa691580",
+		"ea972db2-a0dc-476e-9352-107169698483",
+		"45341c93-bdb1-49e3-bad8-a5b2c49003db",
+		"99439093-7c31-4579-80dd-239ed5e4a6b6",
+		"6b2d6200-4615-429f-8988-67488709332b",
+		"ebb7c92e-6f4e-46a9-bf9c-4fe538d13fe6",
+		"1987d480-a8cb-4fcd-af90-8dd02eb84927",
+		"f10f7aff-fdf9-4925-9219-a3d8838d687c",
+		"99c41e24-2522-492d-802d-6580cd7581dc",
+		"210002f8-c79f-42dd-a4ca-af4761053742",
+		"efb0894c-426e-4f66-9822-880d1e735047",
+		"bb780c52-9079-467a-8932-2ec86c1665d4",
+		"ccf5ae15-0c4e-4ff7-a6b1-352617989a28",
+		"4149b1a0-649a-438f-9244-0a4627686874",
+		"9b4408dc-12d9-4394-826a-852f183490b3",
+		"d5db04f3-e59a-443f-b2b4-d163c40aa16f",
+		"07a736e1-cd5b-47c0-80c0-07c66c60ad8e",
+		"7ece6ccd-2973-4946-a04a-5a9ccec28b31",
+		"1b8177f1-251b-4424-ac8e-23fa89102a01",
+		"00347fa1-060e-4b92-a153-8e19a64c497d",
+		"562ed4fb-7569-440f-9e19-ff51266e5631",
+		"6bed9b64-cb24-412f-bcee-f4d36bf8ca15",
+		"3cbf4717-f90f-4f45-b2f6-e7b6175934a2",
+		"077f74d6-7bf9-40ed-a29f-c8c638654e46",
+		"c170a7e7-6074-45da-92f1-1baf67e69714",
+		"2f62e2dc-0a34-4f07-be3b-3ca5eda87bcb",
+		"aceb5682-daba-4490-9de0-06881a2d6818",
+		"57fc0698-59ab-4afd-910b-a2f1a8499f88",
+		"e814c405-0291-4269-8f96-fa64b80d7804",
+		"d192cfa3-3a57-4e82-bf3e-017ada9ac4f8",
+		"eb55abf5-7989-4fda-873a-8a9f835a0be6",
+		"38a39aa0-3e41-40cc-9329-0822383b5edd",
+		"c21beef0-e633-4e6c-acae-53c5596a09c2",
+		"35541fb6-0944-4ec1-a63b-184e639e1f5f",
+		"5a4e6a89-2d6b-4520-9487-2edcd8600448",
+		"2ea8ef96-7380-447d-a6bf-19a3fa01bc19",
+		"000205ac-2d27-4ab1-8f9d-a7d6610d475c",
+		"65ae06ea-e92e-442b-a7d1-721f4c921c6f",
+		"1ac6f92f-a05d-4ba0-8fab-17815ad8b6a4",
+		"98844fee-82be-4249-a294-446917c8d38c",
+		"cf8b076d-e491-4a3c-8dab-26ac4126e1ec",
+		"fa24b1ba-a2ed-4e6b-a711-3eca937196b7",
+		"397c9fa3-abe3-42cf-8c4e-7d49b8d3dfeb",
+		"fd5e4b5f-ade1-4323-8622-823b48685b9f",
+		"c8235410-0355-4e1a-a626-088478507fbc",
+		"9eb31120-b46c-4475-bb6c-59fdd6e80f2c",
+		"a0c558ac-2fc6-45d6-8be3-bf6d8bb445d0",
+		"a435d5bd-1b8c-4f2f-ab6b-a322ddb6c3cb",
+		"6fef5e36-cd53-401c-a34f-81790c259d0b",
+		"e74b3993-f092-4721-9e1a-017f29274035",
+		"ecd9fc59-75d1-4857-bb76-a545142fe05d",
+		"b7094172-ab42-4262-96f0-4c626488d880",
+		"41b23543-f31c-490c-8d18-c9a5663e2565",
+		"10648a78-e055-4083-bdf1-eddbbf9f5f4f",
+		"71b90f4c-c676-4e74-8f72-5c7d301204b3",
+		"cb1cd30b-cdad-4b41-8036-568dad9ce1ba",
+		"ccae1d32-2d6e-41aa-9765-1b4303e05f22",
+		"0445c2b0-e7c3-4885-be12-657c470d3edd",
+		"bc855100-9652-49a7-b813-6e7623e03782",
+		"e2722f46-9ea7-40ae-b12e-932d10a3b50d",
+		"e564b542-7ec7-409a-9358-a34442b00268",
+		"4ac262f0-2ef8-4205-8c16-37f1c8c12b81",
+		"45c03e91-b5c8-4cf1-8ea1-c4a114458043",
+		"cbea3e1b-3ab7-4fea-8287-16e28b9d45d1",
+		"9a7e0704-a25b-4b69-8cda-c85194ef1af7",
+		"ead42816-44a3-40b2-ae9d-675a140a6671",
+		"c4fe6a72-fbb8-447d-8e92-7ebd0f18a528",
+		"7fe38018-11ad-488f-bdd5-ef08ebe4ef83",
+		"6d272c2e-c038-4a1c-8a71-979ca29842ad",
+		"d4b0a85d-2c60-485a-bb94-828682b9f325",
+		"9a20f4fa-9fe1-4a38-8dcc-9268adf11b5b",
+		"bd9ccfcc-a0ba-46c5-893f-dbf8a896d93e",
+		"9d4e194d-67e5-48a6-819e-172556f40157",
+		"063a3aa0-bb35-4ea3-897e-83d730830a0e",
+		"d8eed9b8-9a5e-4930-85a0-e148656cd155",
+		"1f21f38c-acd5-47b0-bb61-ef2c059f6907",
+		"751d01e3-e8ca-4701-b3b0-636b73723b17",
+		"93a87c07-abd8-4ed8-b426-87e6ba7f015a",
+		"9efac294-9c3a-466d-b1c8-5f69f8be343b",
+		"00c72d2d-f978-477a-875b-11822344d12c",
+		"d51b5f3b-3ba9-454c-9f44-cb0e02400da3"
+	],
+	"ebcd14b2-0786-4ceb-a2a4-e771f60d0125": [ // Berlin
+		"8b29da09-461f-44d7-9042-d4fde829b9f2",
+		"922deccd-7fb4-45d9-ae3d-2cf11915c403",
+		"b8e7e65b-587e-471b-894d-282cda6614d4",
+		"633398ac-c4b4-4441-852d-ae6460172025",
+		"28cb7e91-bf9c-46ee-a371-1bd1448f1994",
+		"abd1c0e7-e406-43bd-9185-419029c5bf3d",
+		"eb024a5e-9580-49dc-a519-bb92c886f3b1",
+		"252428ca-3f8e-4477-b2b9-58f18cff3e44",
+		"2ab07903-e958-4af6-b01c-b62058745ce1",
+		"1305c2e4-6394-4cfa-b873-22adbd0c9702",
+		"58d72624-490c-4212-8431-ef0f4d6cb803",
+		"8a84ef1e-a2d9-48b9-9793-cb6a353c528f",
+		"2dc7c1ad-f96f-40d9-9b2a-c4cec13e9964",
+		"11f9eef1-75e5-4eeb-9bef-c0d389b42b47",
+		"abc28b7d-ef04-4869-90ae-5b3968c61794",
+		"2a5e8c58-2112-4014-8171-dd5f2f3ccb8b",
+		"6f4a3437-c12e-41bb-b151-295886a27c67",
+		"f3bfa719-64b0-4e32-a475-f0c55fd0725f",
+		"b25983de-fb97-4253-b845-f5c7ef95d3e2",
+		"6f9d4fd7-22a9-46f8-930a-bc374eae3664",
+		"54f6409b-5156-4210-bfbc-e3dfb31bb4b1",
+		"4fe22ed3-f6a7-45bd-b654-4ef68d44d86b",
+		"9d630620-8593-4fc7-a3b5-b726370ebf3b",
+		"0d6f295d-237c-4d1a-9fe0-47fbfef760ec",
+		"47793909-6ffb-4fe0-b1a4-a5307cf96423",
+		"95ce2d91-b138-47b6-984f-4aa869dfa581",
+		"f5c01370-6a10-4090-bf7e-8e08cbaaf8b8",
+		"e1cf74b5-0e44-4b16-85b0-247f0f6955b5",
+		"fb85ff6f-7e86-4a27-9b78-9de40297eda3",
+		"50df8fc5-3041-4b67-af2f-7cadd03295bc",
+		"5e59d2a4-5265-4b58-be84-43300ae1a599",
+		"6e9ab2f7-1236-4dcf-b47d-5e36eaeeaa2a",
+		"325bae42-25ba-433a-8533-f934ac1590f2",
+		"c5bc06fe-749f-42f0-a1ea-50e9e910277c",
+		"226f4435-b573-4f49-aa80-04db7cde46c9",
+		"3d782f73-d2de-4838-81ce-75e15cba78b5",
+		"f09f6820-86a7-400b-9c6a-c8798ae410e2",
+		"bf12b198-b658-4ad0-ba8f-c86549f7bca1",
+		"e86ed21b-31f1-4ddf-b48a-3e2e27627f84",
+		"3ad2925d-9140-4c96-ba08-b7d716ab7961",
+		"3cb48bc0-7337-4068-a6eb-8910d6fe140c",
+		"75c07788-d8e1-4ffb-a12f-150b56222e90",
+		"d43f4634-e16c-4191-b979-9212c0e91835",
+		"93288c2f-92ca-420f-9179-751b39b9430f",
+		"091677fc-3b70-4bed-ad03-57837f1bb539",
+		"d3be5756-1708-4b1e-aacf-fb5797299bac",
+		"ccf8142b-9d2f-4f79-bf7c-e747d446c9e1",
+		"94ca190d-c8c9-4061-bbe1-88f4afc412cd",
+		"7ca81742-5f27-43e9-82f6-0a20a7b09ef2",
+		"e87b9aa6-e8e7-41cc-988d-0a4bda2dc1bf",
+		"1460c4e6-f865-4d9b-ac77-f7783c80d739",
+		"639da319-c853-4198-862e-71e63547e62e",
+		"1bd958f4-bac8-4f09-a160-685f5397c186",
+		"ae75fad9-e5a9-47e3-98c2-e297bb792276",
+		"7696e13f-ba4f-4fdc-a075-498a51d30209",
+		"67444102-e699-466a-9530-a36c920de753",
+		"19f74d32-b165-4970-ad5a-65525c7c53c7",
+		"c250224d-c3ca-4e06-a7ed-a7f5e28756e7",
+		"0f4a9620-f7e7-40e9-8c98-194c5b4ee4da",
+		"76f4ef16-59d9-4751-a080-def30c21a94c",
+		"8d2f9b62-50d0-4bc8-afa0-5921642ca0d5",
+		"1fa7a61c-f938-4558-8e86-2b6910849cd7",
+		"b2816b14-ea0b-4afb-81a8-31357f4effc5",
+		"d3d68b9c-d38b-4772-bd38-d074149bfcde",
+		"dd892e69-43b1-41f3-aaa9-b184fc2a9f8b",
+		"64938b5b-922e-43f8-8ba3-0f02d042e703",
+		"047bef31-022a-47c6-958b-f2a20e0a3576",
+		"081c2f76-2ec3-431b-b5df-992358a7b4d6",
+		"5ef6ec8c-876c-41f8-a78c-10f32ba90cf5",
+		"e429d9b0-cced-4a71-a35c-b7d654a5d4e1",
+		"94a91c68-6c2f-4ac2-8b7b-ae775439680e",
+		"153ed500-80af-4d8f-a401-95e19a7e495a",
+		"ae4aaa74-fef4-4fd4-89be-3d441d553628",
+		"9e8868d8-8a73-41e9-bbce-cefbf701617f",
+		"fd929ab1-b9ed-4616-9f37-076ac54abac3",
+		"485c4a11-b5ed-4fda-a2f4-329c01a37a78",
+		"3f31e583-9a00-45e4-aea0-74ab9996d418",
+		"e4af46d6-3b11-4d25-ba90-e5b8d32820df",
+		"5ef09111-1302-4019-9763-3077d96763f2",
+		"bf185f2f-17c7-414c-b237-6b2cc8a13b69",
+		"f221a9da-d877-40cf-a8c2-512ca372f21e",
+		"c16a304f-2cea-4219-be77-3690cb511ed7",
+		"d21402e0-6b05-4b2b-9b12-b61694c65300",
+		"e8583b34-13ac-44e0-970f-7ae1a84e3b12",
+		"9fe38fe3-578d-4c45-a76a-b5546a0190af",
+		"454d8dc5-6bbf-4ec0-978f-6eee4ed1acb8",
+		"02e6c302-dcce-4109-b1fa-b4ce1b6f4159",
+		"a6ff42c1-3824-4c2a-add2-c2ee7430b466",
+		"0b46c2de-0e8e-4570-95f8-f2decb597d79",
+		"1d9474a9-f5d2-4d5e-a261-c9fec2f2dc37",
+		"ba7933de-d79b-43e4-878f-181171a076be",
+		"f08fa211-e5e8-4406-9381-2f32dd16bd30",
+		"a326595c-bf01-431a-b8c4-abccadc8a2ad",
+		"fa49a04c-84d9-4d2b-9b4f-6cc10229be02",
+		"9c5be246-c1d8-4c2a-96c2-9c40a7a8207f",
+		"99e20011-f68b-47a0-bf4a-b2ceb63ebde0",
+		"269c5bec-8c86-4e59-921c-78422ef100b2",
+		"78727b6a-9141-4368-aaff-535ad10d55e3",
+		"bd4cfd46-1bd0-47d5-b226-f4d1e9caabc1",
+		"656a3302-a07d-4254-9478-b02991138691",
+		"538ba2a1-0f03-4bfb-bb34-a1e45ec74f3b",
+		"77f293a4-df89-4e34-abfe-8ed335e233da",
+		"c1fc7d29-9d37-4836-bdc0-02d693918dd8",
+		"bf292884-f77b-4ed6-b70f-612d64d04dd9",
+		"6dcc8a84-022b-4fc0-9624-275695d37a31",
+		"87939ec6-930d-4225-9c83-feae36ee887b",
+		"cb61bb4f-ce40-4a6a-92c2-0d8989aef312",
+		"438f667a-6095-4b66-9ac3-589090ec8315",
+		"e8cf45c8-f738-4040-aa0a-464f9b186460",
+		"5c511e1a-4457-449f-b77a-11df15e3720d",
+		"448858fd-735d-42bf-8adc-1910f2c10928",
+		"08428d1d-2d7e-43b6-8e33-f416605560c1",
+		"532414f2-cca5-4ad4-9e33-0fd87575dfc7",
+		"ff4e6474-22c9-42dd-9ac1-52dd050ca0b7",
+		"3d89a72c-c1e8-40d8-8c88-1ffccf308334",
+		"0ff60ff9-dfa6-4fa8-b684-53bd214e7e43",
+		"891d4f64-21b8-4577-800e-d08a69977689",
+		"2cabeeaf-4982-432a-9993-f260484b680a",
+		"5e990651-412b-4b0a-930b-949e5813471d",
+		"8d1cad93-8e6c-4878-9d55-36b05a69d531",
+		"ae43204d-2960-4aed-99dd-8f18fca05cd5",
+		"c25c09c6-1b50-4f42-b003-d5af9a56630c",
+		"517d5b8e-6ff6-434a-bd54-1d034946f1bf",
+		"c4f0c661-1264-480f-9ef3-e5101ea49466",
+		"87592e9b-9aae-467e-a660-ae35924690eb",
+		"5bf848d3-762a-48ae-9dac-976492c24164",
+		"594911c7-2a4d-4d74-af7e-ab42b7bb0da3",
+		"a45aefe0-b717-46b5-bb7b-d9682122a378",
+		"7f019372-6b3b-49c7-93fc-73d871b8b6f0",
+		"89ddfa10-a140-4826-bbbc-886e40b4edeb",
+		"2fbf95b4-9f9b-4eb5-9c8f-bd2fa6379887",
+		"c41a5463-0d26-40f4-9444-a61972fecc51",
+		"fa0ba9c6-b28d-4e1c-9222-d430b62c6b26",
+		"bfce8331-8114-4d6f-8a1f-50869dac0c79",
+		"c3d390b5-5286-4e4b-bd76-50f8189a53c9",
+		"d2a76a28-aa09-4f7a-9dc7-49679a0db226",
+		"9d47d847-c2dc-4f6d-b0e9-6d719560418e",
+		"b3eb1f00-8a84-4334-b021-6bee1417e38d",
+		"9c4cc4ef-3242-467a-9753-d998ad22a344",
+		"24ee9652-cd22-48ee-adff-9df1a4045b66",
+		"f1e0b31c-3168-4fdd-9e62-31793489a9e1",
+		"f991b858-053c-4ffd-ba97-d1595b78634c",
+		"43d13b72-f87a-48df-a287-300a972a3859",
+		"6a6d2edb-7048-482d-9c3e-02fb46dce0a1",
+		"0954953f-cfd4-43b4-aff4-b0a29859d228",
+		"3926e7ce-cb06-412a-a206-a864188d9987",
+		"a0056de8-0185-4184-9172-f3b529a29051",
+		"90af6077-eeb9-4681-b64c-cc1e512f9682",
+		"92441764-75c9-4d0b-8087-bbda49485e8a",
+		"18207e15-3ef6-41a3-a342-3c6e638222b6",
+		"e0aeb574-898d-4f29-b9a4-3d08d89a079c",
+		"de0d2376-2887-4eeb-a5fb-e48d21ee04ae",
+		"3924c317-a6fa-4db6-8984-c5c3ed7469c2",
+		"5b0abf5a-66b9-4c46-99ba-66d4ce9f3f52",
+		"124fb1a2-e502-4570-94f1-0bed306edf77",
+		"13f82066-b617-42db-a6d7-24afe738566b",
+		"47ec6b82-b9aa-4ab7-b11a-2dab5bdc6da0",
+		"f79517c0-197b-4346-bc28-1c04c96673ee",
+		"500b7132-f583-4365-83d1-786c783c61c3",
+		"9b1893a4-5ad2-4cd9-8666-4e7579c52ecc",
+		"84908baa-4539-4fde-b22d-72304d2c6704",
+		"71083253-3afc-40dd-aadf-45854db03536",
+		"5d411a9a-a807-4e1e-aa29-d236a4b0fedb",
+		"93aeb20f-58d8-40c6-84e6-7211290f2088",
+		"bcb10fff-1861-4864-ad0a-4b1dff045c24",
+		"8e641461-3c5f-4847-b27e-ab83a9358f44",
+		"4ab85984-47a4-4822-a572-9bed9ee1b76f",
+		"102addb7-7698-4170-b70a-43225f41e387",
+		"56a8fac5-ed21-4e79-8913-b376fc3848ca",
+		"5a85458b-3338-4db5-9bd5-1114726e8204",
+		"55c922e3-3f7d-4c4d-b2d7-9c89bbe19428",
+		"cc757b5b-dcaf-4c8f-abd8-8e0132ea0254",
+		"319797fe-265d-42f3-ad35-cc2042285242",
+		"8c166dc3-43ac-4960-b905-7e53c232d1ac",
+		"fcbca54f-8db6-45a2-b3b9-9a6c74be1caf",
+		"378e7d9d-f9ad-4cdf-ae88-0145224cdb34",
+		"c35820d5-cb5c-4a2a-9ff0-1839e098e625",
+		"24088596-a0b0-4033-b85d-452eec0c1b19",
+		"59572efe-dda0-49ee-abbf-e561084717d5",
+		"8cb3bc30-e82b-4746-8e72-2c4352f9ff80",
+		"5d661ff1-a631-48b5-8b4f-1ea4562a587a",
+		"aca6a3f0-c98e-4ab8-ad45-9a5257d9d8ea",
+		"45711f34-a51c-40c3-83f0-b94bd2cb9853",
+		"1af43e4a-5b91-45f4-8374-0a4e059adacc",
+		"dd288e67-3d55-4a82-9db2-f004e51d8315",
+		"f68ec8de-cfc5-4e52-a2ba-c86a1b83d67d",
+		"eedb78ba-c4ea-4ec3-a839-475690a4983d",
+		"ca60c1c3-11a5-4591-856d-c274d8079795",
+		"2469b1be-9b06-41d2-94e5-744ef0761da4",
+		"22d45cc4-af92-414c-accd-c665972b4695",
+		"548946d1-4769-431b-8a26-b5e59c7926cd",
+		"9c0e542d-33b4-453e-9510-d2cf1c667740",
+		"77007c29-902a-42cd-a02d-c626323a4135",
+		"231c84e9-b4fb-4ba1-ada0-b2aef28dfac0",
+		"def8c9d4-2ad2-424c-8735-1250c7663806",
+		"16595f37-3691-4d21-bf6a-c01b8a63fb17",
+		"53c4a50e-dcf5-4e06-a5b4-833e7934b2af",
+		"e0419b4d-e896-4eb6-bf03-c406dd711658",
+		"4ec3d8f6-c355-4be7-b703-6e1fdd881944",
+		"075c6eba-cc99-41b6-a81c-84c81ee372d8",
+		"7566801e-95d3-416b-b461-ddf13b2d51f9",
+		"3d225332-645d-4979-b5e5-5ac3996eedf8",
+		"cafcb258-2ce4-4100-880d-65a2c55dec3f",
+		"f31d7f9d-50aa-42a6-a18b-9555efc8a15e",
+		"9301c0f4-d8a8-4ff8-ae77-934dd0020f4a",
+		"fc60848a-ebdd-47d4-a553-7b2da32384f9",
+		"ca367f78-0fd0-48ed-b026-4bd144f03670",
+		"4bb48ec7-8e85-4bde-9648-5d7e37a90490",
+		"210c6a58-5603-48c1-8abb-0c2c4d95a620",
+		"8ffe3261-869c-4557-b24e-c9b62e313fbd",
+		"dc81d0fc-2481-45f9-ac15-cbd8112a4a87",
+		"e4e45667-706d-41dd-b4c1-7cf882635152"
+	],
+	"3d0cbb8c-2a80-442a-896b-fea00e98768c": [ // Chongqing
+		"a7fd7a4f-2bee-4787-bc60-90f9dd64233b",
+		"967abcf9-2672-4e81-8fef-211aaa366747",
+		"e875d3c5-7992-43bd-ad28-b808fd0f010b",
+		"d60a6510-b789-4600-b8e9-91f7931e3048",
+		"8d28842f-964d-445b-8ebf-9e8987bd64c4",
+		"412a39a4-4393-40c0-b024-7a0f7d68b2b8",
+		"eb52f657-899a-4bba-bbb7-406168ecadf6",
+		"bc1ac2c6-f020-468c-84fd-fa1946b86b9d",
+		"47424c02-bb0f-4066-af5a-f1cdcdcd08b2",
+		"31219ca9-fa04-4a1d-92a6-2eb099d1841e",
+		"07923f4a-01d0-46b8-85ec-8cba445dd3a0",
+		"0aa5104c-b4f0-40c0-9d84-daa94435c58a",
+		"9e6e0c2b-22fb-4db9-9cc3-450b1d2d051c",
+		"11cf2fa2-287c-42e9-a7aa-217ebbd81e1c",
+		"18324739-f01e-47f4-8c8b-c7f880805491",
+		"1fec85aa-18a1-49de-9328-b33cba6d61ae",
+		"77ad7dab-94ed-4088-8296-15bb1ae1a402",
+		"18841642-816e-4f23-9018-bc991b2fe998",
+		"0cb9d334-99b3-4cab-9dba-6d7c3691a328",
+		"7b019d42-3157-46f4-9f0a-e9bfa31caca8",
+		"5e91164d-3c37-4529-a70a-1a10b97e7338",
+		"06c04989-3010-444a-a828-a23280550d6a",
+		"ec56c065-0524-4ff9-bb81-5f12e30f8506",
+		"35652b3d-bf78-4d45-9bc3-f66594b92294",
+		"7bce10ec-e582-4a02-8457-07c479781759",
+		"0b748fa3-e893-4488-ae64-f64147b15fde",
+		"9d4c1674-678b-4adc-9496-b82f19582a6d",
+		"bc63f48c-e3fa-4413-988f-265594047c53",
+		"e5bdd9be-9439-4d87-8cf4-feb5bd9382fe",
+		"0d99b69b-bdd6-4016-ae11-faa9c67d1c40",
+		"d8e503c0-90e5-42bf-bd1c-39a2352b6aa2",
+		"006e46cf-afb8-47af-bd88-905d574c6e8b",
+		"1424fa04-df1c-40ba-b9f1-1cbe8de3ef2b",
+		"fb36e9cd-58f6-4323-adda-66f5647814d1",
+		"8b2ad9c2-7e46-4c2d-ba51-d05eacbd5d3c",
+		"450c8b01-6d7a-498f-b761-48d60ff597f2",
+		"a7e1866f-90da-44a8-99bb-7357686cdbcf",
+		"06b6210f-bdae-4516-874f-100a20eb7616",
+		"55670310-d927-425b-854e-25e9b81fbb65",
+		"b4841619-8998-42ba-885e-6eb7cb725192",
+		"384ab604-0098-40b2-b1aa-dde3c2a5689f",
+		"d19eb158-c842-4064-92da-a8038086bd53",
+		"e852169a-3330-4ef2-b6cc-7d240c358515",
+		"ab19b481-1e54-4fcb-9e69-1f21483826df",
+		"5d40b48f-25f3-430b-bb07-31514345c627",
+		"5638d1a0-335b-4c35-8b6a-9f3b48fe7485",
+		"29be7684-9946-42f4-ab4d-9749bd2a66d0",
+		"ef73ebcd-3c34-4942-9dc6-051890df5e02",
+		"4b46ecec-89d2-4293-8737-e4c514024fff",
+		"9f11e64e-7342-43da-8917-40c1536e1492",
+		"6a3ae9cb-1a19-4748-8450-6d241eb46e6b",
+		"b3112ba6-f739-425f-9f57-aac56508336e",
+		"972065e9-8cb3-48d6-85c2-29c932f84c8f",
+		"6d36a787-2d37-4657-ad3f-6e76b2ed5389",
+		"845d07f2-7f6d-4fe0-a0ba-d242756c6715",
+		"16dc68bf-8902-4bcc-bd92-78dc30ae5e4f",
+		"77b2a5e0-2f0f-4d14-8b4c-9edfe150dd72",
+		"922e0387-a40b-4140-87fd-4f5a95b7d313",
+		"217a9e73-a016-4c92-abad-4ecef5c0abd5",
+		"43ac40ed-a42f-498a-8211-5a7694d747fd",
+		"81bb6bd5-f4a2-4bb1-a91c-a6a950be16f5",
+		"0e533277-1b15-473a-aa1a-3a6a29918fa6",
+		"dfcd5c1e-4bdd-4825-9ffc-1e298962646b",
+		"bfeb2a32-9004-4e92-9ca4-0e9209af25a2",
+		"f6a0a081-6016-4da7-abed-0fc6fe50a747",
+		"ddbac9e2-4100-4a61-9539-64e92f5f98e0",
+		"380c0c76-a5c3-4a6c-8eee-341bb6c72ff1",
+		"80725d83-219a-40ac-855d-620912624979",
+		"99c6c012-d286-4824-ad1d-42ac28754a16",
+		"e744c220-8240-4899-9cc3-7f633b6f34ad",
+		"2fe5087a-519d-47cc-be09-5045e4f57746",
+		"b07d3226-7ca2-412e-9000-2893f689dcf0",
+		"aa7a67df-8112-4578-b70a-322270626529",
+		"e29089fe-6b89-46c4-814a-75e2795a3150",
+		"a9d444c5-cd4b-4f74-b3b1-9d299995aad0",
+		"b7962e99-f578-4027-85d9-73968c39076b",
+		"321920ae-38e6-4323-9e75-c86415f223ab",
+		"3861c716-7e41-489c-95bc-562c4429321d",
+		"82188493-e85b-44b9-b997-7b865a8eb30d",
+		"7b252274-850b-40bd-be21-cd6a1189e272",
+		"331b9871-cca0-49ce-b2a2-a58596f9e6e8",
+		"92532bb0-0f92-4bbe-847f-4c248729cb14",
+		"fc776f90-eda8-4aaf-83d9-bb069c3827ab",
+		"794a16ed-c306-4736-b2c6-48896259bed4",
+		"401af328-85e2-415c-acee-43dab42e3722",
+		"303c4dbf-fbdb-405f-8ca2-001412da5e39",
+		"4ea70297-3b43-42f3-babd-b0647bcd7c0f",
+		"a4505913-b00e-438a-94ae-bda5504bdc71",
+		"f194aa5e-02dc-45c8-a502-107da19c080c",
+		"e6b67570-a84e-4686-9978-8a3e9dce7467",
+		"cb7b9923-0098-4336-8bff-6ca0d5d46440",
+		"289b753d-0a8f-4c21-9b65-af1fff18250f",
+		"dbdb567e-84af-4d68-957d-85bb763a7f6c",
+		"73e7c98f-d696-4377-8b55-90caf9d79a26",
+		"965fdd6f-6aab-4743-9416-9831306bea48",
+		"dcfb0146-63ff-4514-8278-de05f86a3d21",
+		"bc53e271-a83b-4769-a05e-78048ad052b6",
+		"fdbe167e-dfe6-49b3-bc1b-27a4a67a9c6d",
+		"d6ff8459-b691-4975-8529-784b76209bb2",
+		"18e6ca13-0cdd-46f8-a129-ef554c586671",
+		"9e5e5fe1-2770-4162-85ec-69302aedb149",
+		"ab26314b-d9e9-489d-a21a-e6a430f253ff",
+		"138078d6-0e9f-4e27-8ffb-373d6bbc6b62",
+		"629d88c1-3e7b-4d9f-b017-f082a6806c8f",
+		"f839f257-1f7b-43cd-923e-9337218f2f56",
+		"0f480353-790f-47e0-971f-a8ec260e3b1e",
+		"e25c7c8b-88c0-4ab5-adeb-3583fadf4e6d",
+		"f76705f3-1647-45de-8a6d-769ed4697d6d",
+		"312f3df7-fe9f-4b34-b7db-7277215e88df",
+		"12bc718a-3127-46de-b792-f39e0a7090b0",
+		"5312a7f6-c144-4642-a266-f707de9d0cd1",
+		"6761ade2-5db5-48e8-8170-91676396b9fb",
+		"8b5d93ba-88d7-4e28-b759-1cb155d91c08",
+		"cca5c2a2-fd43-4735-ba6a-bb63ec756e09",
+		"064f22d7-63f2-4da4-94dd-5ace7a958086",
+		"415319ba-b510-49e4-9bcc-be6d678afe7f",
+		"089f0a25-bd06-4139-8ef7-96e86a262302",
+		"53feef3a-f1fa-405a-8cad-d6c6dbae1ff9",
+		"5c04a005-b2fe-428a-b49a-0afca1729b25",
+		"83736267-6bde-49ae-8d60-cbb9240c9089",
+		"434f11ce-e965-4e7f-b0aa-0a0cb4088b16",
+		"57c240de-d322-4e34-a7a3-0632ede669d2",
+		"b2bb92b2-fc85-4817-9499-e49c79e2702e",
+		"6d6e3356-f225-4290-ba2d-97fd3c2c14de",
+		"f61656ed-c51a-448b-a772-aad7dbe7f36f",
+		"bb4a4834-e7de-411a-a32c-f73689b96427",
+		"e96627ea-2550-4fc7-97ca-04e667c041f7",
+		"4569e046-2d9f-4a52-b3fd-6bc0c847a4e5",
+		"3f5ec5fb-5f70-49d3-9afb-2f59cdbd27c7",
+		"aec4fafc-c21e-4261-877e-2402210ec798",
+		"ea0dee1f-6b57-4c6a-80c9-a4fa109e6c7f",
+		"1466264a-8026-42ef-9670-9734ee4e59d3",
+		"935e35cd-e31f-48d4-b472-e8b66f134020",
+		"785c685b-fcd8-44eb-8c94-2997a5888d26",
+		"dda2781b-ff82-482a-bf5c-bb5cedf9dd28",
+		"621516e0-b703-4cb8-934b-43fac7f9dfdb",
+		"a4a53cb7-344a-4876-802a-83a7cc6b4f05",
+		"4a4bf34f-d1da-43ff-b16c-fab1facf3776",
+		"d8ad6ddd-f089-4111-bbf2-731261d8404b",
+		"c49d9ac6-5f15-4fcd-bc68-0e7f49164360",
+		"b9d05314-9546-446b-8e89-744397806fa8",
+		"9cb72ee8-0c21-4206-95db-7524a2170b41",
+		"6f70657f-525f-4c1b-90e0-434d78892e6e",
+		"a2429d84-2b78-42c4-a88d-82b8984ca92d",
+		"7670675c-33c8-440a-941b-2da30896032b",
+		"2567b8f8-c647-498a-8018-7a429dbe98d6",
+		"b021c745-33ca-4e70-99fb-676f3ee211cd",
+		"38464292-9942-4fca-93ae-6374e2ea4e54",
+		"0e015f8d-8b10-4656-9d9f-c97c7271984c",
+		"a54cc02b-3943-49f2-965f-fa574e47d065",
+		"6927fbc1-8cbb-4c7a-9098-0b041fe120df",
+		"323cd70e-a298-4a50-b7f2-b7b16210b823",
+		"cdbb0246-a210-4db0-a7c8-23a36f3e13c3",
+		"b8d12101-1a91-4f42-aff5-99ffb813f18b",
+		"49f9a078-278d-49e5-84b0-2c2b5c3bb84c",
+		"fce6f8b2-d978-4a86-8f36-62a7375316f0",
+		"e0e8af51-8272-4955-8cc5-c3d262a7442e",
+		"b1d9d1db-44df-44ad-99df-356fff777697",
+		"9cfd6570-9538-4750-8994-f5807b4016e9",
+		"011b0b27-c509-485a-b261-14d464c50247",
+		"b6e115af-fb34-4d89-880b-d6269e12f760",
+		"79d930a7-549e-40b0-93fb-d84732c97a77",
+		"dc5f8d0d-66dd-4bd7-a99d-0872aa06d864",
+		"5bf5ec0a-bf89-4e1c-aad6-9aa591ed8c2e",
+		"3b964eaf-fde2-41d9-9211-af8e16f25a56",
+		"663ac133-6e43-49ee-9a19-a277cab49bc5",
+		"15ef6862-8d36-471f-a5f7-a584c072cd20",
+		"3035587d-e37c-4380-97dc-a7b9b21cd9a9",
+		"7e46119d-e0fa-409e-83cf-5b3f96c3a3c9",
+		"e4238db7-563f-4f71-9717-6e35e81988f3",
+		"1847a187-b6ba-4860-9be7-0ed925936047",
+		"ea41b988-861d-45f4-9371-4acb5747f2b8",
+		"1d5fab7a-64cc-4b47-bc50-3e990f1b1fd4",
+		"568cc557-852c-4c8e-a8c4-536979f91e25",
+		"95d06826-8e8e-43c2-9949-8affb95a89f8",
+		"e26fa92d-3897-486e-8db7-665a48febf71",
+		"2cad6321-fc52-4f71-a484-e47d57774c70",
+		"e13e5eab-ccc4-40b0-b74d-f864af8669e2",
+		"5914df8a-1b58-43fd-8b1c-00084d4973e9"
+	],
+	"42bac555-bbb9-429d-a8ce-f1ffdf94211c": [ // Colorado
+		"5b54d9fb-fa85-4302-a8d5-c5c5e97344c4",
+		"963c2774-cb9a-4b0c-ab69-210b2405383b",
+		"1a8a827f-932e-49c0-a1b3-e3201795ae19",
+		"d94f3e83-36e3-453c-8d4b-28c93229826a",
+		"6bb2d3f9-f1ad-4239-8bc8-5d100f3ec644",
+		"eeb77ba8-61b9-41cd-82c0-b557b874aae9",
+		"1f568199-2367-4d47-ba41-872eda90b399",
+		"7d4fb2e3-b1ab-420a-a504-4bf870227a4c",
+		"f99cc395-ea99-4d27-bf6d-959fe298ef3d",
+		"ffe0ec44-e04e-4c5a-81b5-2105995748e6",
+		"ad2cf3b2-52d3-4146-8699-964ec969817b",
+		"fe9f6a2f-2931-4bde-b91a-66ada564875b",
+		"9789c103-1519-4073-91be-be8f4249aeb2",
+		"cbe7f661-e60b-4bc2-bc62-a0afe1018505",
+		"7d80843a-66d4-4d46-a914-08f96773e2fd",
+		"fdb994cf-9f79-457f-9049-c52b32ca05e9",
+		"fbaa5f0b-3b5f-4596-b39d-5af8f49a1cd1",
+		"0163f64f-f98a-4bdd-ab93-f5046de1f8ed",
+		"80888a39-c437-442f-9883-e881a4579cac",
+		"17483ea1-d684-4280-914e-b5c8e4b264bb",
+		"fe2b6e09-7304-40d3-9d64-de803f05b2d3",
+		"e8669956-394e-4529-a286-cffbbd1a3fde",
+		"974c8117-2e10-43d1-8c5e-c8dad113d490",
+		"8dc268fc-424b-407f-9d9e-76eacac00a94",
+		"600907b3-8143-401d-900c-42fe9c70064b",
+		"4e03a380-b6f1-496a-8772-6b45c3eab571",
+		"44aeacac-ff28-4fdd-9dd2-243768584e1a",
+		"488269f5-28a8-42da-b53b-c7292c318e69",
+		"49638564-21d6-48d3-8e3f-e842e1f6f2e3",
+		"95bfa85f-d47e-48a6-aaa2-f118a9eec0df",
+		"b93a2ccd-8a06-4ecf-a5e6-296a49d274f5",
+		"4d3e5f0c-bd31-42e1-a27e-e2cf9adac443",
+		"5c93e8f4-3cef-4a91-8a54-3a0c6e659106",
+		"ecfce6bc-5360-4f22-b261-edf430823d5c",
+		"eab71738-4df4-4b32-a49a-3704bef210ab",
+		"aced746c-0749-4b21-bea9-426f6cbc664d",
+		"59725c5e-2510-4877-ab9f-257f784bc66c",
+		"c0419cf6-42e5-46b5-a214-9a90b5c7a1e7",
+		"c930e7d3-7607-4f3c-b19d-1f67cc7dddbf",
+		"28203c15-0e3f-4bb9-bb96-84dbf4addd31",
+		"efda7810-efc9-4bbe-b48d-0a46658ddcb9",
+		"a0fc7404-0829-4a0c-985f-c4e3bc78c1e2",
+		"756eaf3a-e4a5-4afb-9c3b-e00737d3c11f",
+		"b21b4860-6da7-423b-97dc-db715046aa54",
+		"015bc9c2-5a10-4d93-9b58-96a45c0fc56b",
+		"cba079a0-de3a-47ca-98f6-f0d502afa4b9",
+		"1d4b148f-6572-424d-8327-e635f703b246",
+		"10ed84d6-ee7e-4686-97c4-78dbb181ea1e",
+		"d71ecc2a-feb1-41e6-a680-394ea9e8e8b8",
+		"f863636b-d0b7-4331-8087-1a1b553a1539",
+		"7976ea30-d116-4872-b3e4-2d2143056ad4",
+		"662fcbaf-fe49-42ac-9703-7a5ea90b3388",
+		"b93da7de-2d20-4b2b-9764-567fa0e78a8d",
+		"3c721a12-de3e-48ee-910a-f1e309d97c96",
+		"cb6153d5-9276-4f6e-b059-f07d265140ee",
+		"d78b0462-d8b8-4651-90a5-9ff14d043b25",
+		"15cf9d50-b358-4f74-b104-cd5997bf6601",
+		"5ac2e193-5309-4ed8-a759-7019abc15b94",
+		"1f051988-0abb-492b-9cf4-23cc146ed590",
+		"c8936009-2cca-432b-9080-89580d73bbd8",
+		"64b68d60-4a64-40ba-ba3e-a0d19ab6490d",
+		"ad2103b8-ecd7-43b6-886c-c4f7b6c03b97",
+		"7d79859c-7b10-4978-8387-199526dc6220",
+		"11515992-0b0e-46b6-b0ff-d31c75ddd377",
+		"13c01c3c-4a30-49dd-b247-980fa16815f4",
+		"6881f69c-9af8-48ab-8e47-9e74db261059",
+		"f080d24d-1646-4457-a8ba-1067c57bee7b",
+		"618c2a4d-9c65-4b50-81cc-3bbc50cc1094",
+		"33690c15-42d0-4e6e-b7bd-d6a5485f30ed",
+		"d1c6b15e-961a-4be6-a961-c5e06bd1bbda",
+		"fc05b7e0-0900-4b9a-bd57-ea9271d080c7",
+		"744bf3f3-2427-4253-8796-097c27dfe0c6",
+		"d048d8ec-a048-4d66-bf01-2bbb5d0c7946",
+		"2ac3e120-79d5-4fa2-8805-cd538aed9412",
+		"3bd8609d-4c47-454d-8c20-d195f41167c7",
+		"040fa3cc-be7c-4428-a3b7-3f5828bd2786",
+		"2b6f7528-33ab-4ab6-af58-f25c85ad1171",
+		"ebd5b83a-ead7-4699-bfcc-baa66da31691",
+		"0cfa3078-a46b-44f4-998e-d96fb1af3779",
+		"0a0dfe60-ba21-42c6-96f8-3936bef14820",
+		"bd17a855-0bf7-48a1-abab-ddb5c08fcdfc",
+		"7940f0b8-ef30-4b16-9c5c-4a92ad2a6c06",
+		"90e997f4-67c6-486d-afb9-63c4424b1fd1",
+		"9c572125-f0ee-4299-a740-eb7727bb7ec2",
+		"126935a7-7aec-4b67-afd6-9427813df3b8",
+		"d9f30367-3532-4143-98e8-1d0cf963e7cb",
+		"d3105bcd-77cb-47bc-a96a-a0923c4413ba",
+		"a900ddd9-7bb9-414d-8715-5ea41684d656",
+		"254b0a18-2601-43b6-98ba-fbe77c69db4c",
+		"7cb87a4f-b5d6-42e2-949b-37cdc138b24f",
+		"bd5ab944-c3fc-48a6-abfb-a6b40d9c6cdb",
+		"81762f29-181d-4cfa-8b65-27a4e3134158",
+		"2b8cdf82-4e94-4f55-a44d-bfc565cfc878",
+		"6b7ebb9a-b888-4dd2-a939-2eec00048ba7",
+		"dc603c89-66bd-4165-b2be-37933bd0dc0d",
+		"aca5d08a-99a9-4587-96b1-3f227624454f",
+		"dc9abf29-8701-4e05-9d18-905a5840faf3",
+		"f1e85e76-f9cd-41bf-8cb4-4fc75f2c3152",
+		"ac71b7fb-7323-4f50-80e0-05ad823a3ec7",
+		"701a8813-1f31-4a05-b2a0-f518b68401f3",
+		"f628f3aa-ba52-47f0-81bc-834443a235c1",
+		"88f53a4a-bf2d-4bc6-9e55-faa1e56ea6ca",
+		"1cfd7aa9-9291-4a83-902b-94b94297c2b1",
+		"c1304248-3508-4da9-8412-8c7da771d2e4",
+		"6582bac1-bc45-452b-929e-ce4c5afd2a4e",
+		"aaa95583-e1d7-47d7-b62b-a8f49339b1e2",
+		"e26960bc-a980-42f7-ba98-3b52b42264ce",
+		"36896e6d-cdb0-4cba-808d-74c3f564cd09",
+		"40fa42d8-2164-411b-9547-e5551ca99233",
+		"0b9002f4-d170-4339-a0bc-15af5d7b187f",
+		"f7cc77f9-1d1c-4fe1-a48d-7015f3352dbb",
+		"fb4e55f9-22ed-4822-b668-d7f4f801f651",
+		"4987ad7a-4abe-49e4-bc9b-80d73974ca14",
+		"ff7d3a6c-f9e3-4941-9499-802f6bcf6971",
+		"b01b4ae4-d9b5-46b7-b548-2cb6618f7dfa",
+		"d3d31fa9-272b-496f-9958-20e0fefd352c",
+		"5c1c29d6-09a9-43f4-9ebb-38ba47f653c3",
+		"402f12dc-57ee-472e-9678-2bdafed041ce",
+		"88712b75-4261-4d87-b07f-63ad88bc370f",
+		"be6e6827-dcf0-4f52-b1d9-3f0fbe155b87",
+		"b01d3958-47d7-45cd-944b-d5107c8724b1",
+		"3650c7c8-f52b-4ef8-921c-8b8a8ff7ec22",
+		"6784bf47-9bdc-44b5-a00f-4071107f931b",
+		"ca230ffb-2bc1-4471-b772-4d11c03fb842",
+		"86096a5a-2e8a-4a54-bb24-87da341c951b",
+		"2b6baeb0-7424-4d9d-9262-ae5579f244a5",
+		"7f8e52c8-9d77-4ed7-a309-067c77b929de",
+		"b2db9a0d-7a1d-42ba-b9fd-afaf3017e712",
+		"d652ef72-c2c1-4278-a306-1879f6f4058d",
+		"6b3bc488-e930-461d-ac88-159cce2b6720",
+		"da5a8e22-fece-434f-9c2c-cee92242bbd0",
+		"73f1046e-7c74-42b6-b4a7-7e4dd34f25af",
+		"57b18e7d-62da-41d1-ac64-ab89744380d5",
+		"3afc73d7-20bc-4315-8e6c-2b50d4d27328",
+		"135cf0e3-e953-4752-b12b-48df4551a37b",
+		"2192cade-55c6-4553-9d29-ad61dc34dba4"
+	],
+	"755984a8-fb0b-4673-8637-95cfe7d34e0f": [ // Dartmoor
+		"080efb03-a66a-401e-b6df-4eac496e9e2d",
+		"fa0b9f07-d667-48d2-99c0-c5ee905fa973",
+		"95d2ba53-b9d9-4f23-aa3c-92d9ad252dd4",
+		"aed52046-d0c6-4f6e-82f0-8c0c1feb4e1a",
+		"e68412f2-2fb4-43ba-9b9b-47c7a2a0cee6",
+		"9e964750-2662-47d1-888d-bf8dad01601c",
+		"0ef1b04b-c794-4e85-b61f-1925642e0738",
+		"f7ea477a-fd21-41cf-bab3-4d318ba3abaf",
+		"92fde65e-f1ad-40df-a21a-347bd4082200",
+		"f093294d-c893-4d62-b28f-496f043a318a",
+		"0e1c2098-ef3e-4a33-b382-664af76eadd7",
+		"37b4ed1f-5dd1-4538-bee2-ba29b7378cce",
+		"d392a587-e626-42e3-8b4d-70af1ad8149b",
+		"a115c403-3c7b-4c2e-b31e-5b24e3067d3a",
+		"3ee70c86-8407-44bd-9927-3002d265a3a2",
+		"cdf73606-17c3-44aa-a9f3-fcb3941b2feb",
+		"3036afda-a6ab-4830-9f9a-192bcd5d958d",
+		"d6caa8f5-0a1a-4f15-b03e-0ec58f372a76",
+		"9f6b010a-b4cc-4bda-8200-f132aaad03a4",
+		"0f88cdaa-d784-4951-8696-ea3065cc6228",
+		"b54e2809-7a46-48d3-aedc-73af497f3864",
+		"5cfc8323-1053-4138-b2a4-2448b5003d1e",
+		"3c125feb-13af-4fd2-9f85-f6c411c0162b",
+		"dfb58daa-1930-4c5f-940a-651b5e2fcf3a",
+		"70d692cf-ef05-44a6-8531-8ba2952d4b58",
+		"c45bcd3f-e635-4371-aa84-30f7b05e8bcb",
+		"02bdd2c2-4311-4d62-a699-fa4ee07fc55f",
+		"f5236efc-3062-4df9-814b-a52cafa36f24",
+		"a385e9df-107c-4b3b-b195-fc0bc8a0d094",
+		"74b741e6-12ed-4535-aa91-75f20724e30b",
+		"5c5ec41e-b4c6-43d4-a2df-364a4f340dcc",
+		"8e78013a-b66d-4e52-8485-34f32432c697",
+		"0fee1154-c66b-41e1-b504-897374cfdaff",
+		"914878c1-69e1-40e1-b8fc-5e6f8306ba29",
+		"e1f31b51-3e35-48b8-9a68-a73db7e26ed3",
+		"2c711497-3923-41b9-ac9a-8eae297bad15",
+		"4f83f30b-8bcd-4dff-8d4f-6ffdf68d74a6",
+		"c1407b86-7dce-4db0-8458-41a80182ec10",
+		"5403294c-5390-46ba-a246-4bb6108253c0",
+		"d2e845c3-6817-485d-801b-449a0eb3d8c9",
+		"c19ab305-b619-4301-9c1c-b2e11628293f",
+		"ba8a5d59-590c-429d-bc81-a806b45b2a14",
+		"0497277b-52a5-4d81-b915-7da4db9fb7fc",
+		"387e009e-fe73-4b96-bcde-997b8a6dcceb",
+		"c2dc7cc6-ba12-4dff-b7b8-cce584562000",
+		"1b51868a-5a22-4244-b804-a7466938bdca",
+		"3d70c3b6-8e40-4cfb-b0b7-f6d955ef68d6",
+		"5b10e1ac-d017-40db-9dcf-742a4be6701b",
+		"da319942-5c34-45d6-91d2-34487e914e29",
+		"426971e4-554a-49c1-8de3-4f703a33c424",
+		"fd4e4005-2bc5-4ca8-8678-b6746ed8a984",
+		"f9ddce50-b7e7-4411-a3eb-c2f908dc0abb",
+		"dde71472-6e9f-4b6a-9b2f-442513d0282e",
+		"ad01b5d6-6f22-4649-b939-76cb439068fd",
+		"45292ba8-ae42-40e3-8043-8c852704372b",
+		"1b846907-8644-4b76-8372-74587383c0d7",
+		"4f2c7305-8099-4f3e-9ee8-9c86f09155d9",
+		"2c8ea454-8c12-46c3-b5d4-5b6b2b01d601",
+		"45ce89bb-0689-4b63-9f5e-5db1723904bf",
+		"6dfe141c-fa3b-422a-a28e-3ce2af1069ed",
+		"b70e14f8-76f4-4752-93ed-0241f8faaf09",
+		"1639e08a-4150-4a92-a4b3-bcec99b336fe",
+		"f48f36f0-a210-45df-aa9a-f1d83cf19b31",
+		"7b5219a9-4090-41f0-a8d9-45c24308d7c3",
+		"04c7afbd-5909-4350-a296-04eab6eabb4a",
+		"f9e60cf8-4a02-4cbd-92b1-d9887352b2aa",
+		"1e6834c9-ed62-4f73-a5a2-864bc52eab2c",
+		"65991a2b-5813-4a40-8aa9-0412a607717e",
+		"bce38660-1554-425b-8a00-749b70b61015",
+		"453f7e3d-5c85-4cdc-8fc0-af921679a5e2",
+		"604dfbdb-1cdd-4d96-ba13-7a7dacbc973c",
+		"8c348ab8-be23-44dc-b48f-cc6ff7379ef3",
+		"7d7d748b-ce9a-4dff-bf9a-73a66c45c398",
+		"a53dc8b7-8699-498a-8ce3-f24f107f036c",
+		"dbc9ce20-63fc-46d9-8d88-765d2e74b46c",
+		"6a4dadfc-107e-4149-93b0-733a9e33fa66",
+		"0aeb6066-0412-46df-92a8-acfd5651d2d6",
+		"51cb49bf-2a59-4444-81b7-96aeda12ba19",
+		"bca845d7-81a3-4499-a821-298b5ad3fe47",
+		"8f910ab4-9e0a-410d-8ac3-f271b0e0a4aa",
+		"471170e7-64b9-461e-bd6e-049b8e338479",
+		"5627a599-0e3a-4ea7-8d96-d42db5adf827",
+		"23d92a46-f1fa-49e6-b111-1ddf9a6b3cc9",
+		"445ef39d-ba5c-4e62-a9ca-02a2f5ade4ce",
+		"2556e36d-6886-47a2-8ce4-cd1b91504b7b",
+		"638d6989-b89f-4fe6-bed8-fd1e595b4bb4",
+		"21ac46f0-1569-4eb4-abcb-bcd7b6863d72",
+		"e3b820e1-001b-401a-b7f7-633e66fcdc7f",
+		"4e59bc4b-dbd4-4693-a854-01c2cab0241a",
+		"8cca8ff5-7ec9-42f0-9b57-e2011e9862fe",
+		"8943b399-8e00-4a7b-ae79-41863722c45a",
+		"549f935c-aa35-44dc-bc3b-e70928190a2c",
+		"4534ed4a-9018-45b4-bb85-0f2cfbc3f371",
+		"3600d7da-969d-4b0b-96a8-88402554a15a",
+		"3510dc32-dd59-43e5-88d2-e17325d65566",
+		"4745e62f-9da7-4707-a49f-5e7a1d3d4314",
+		"972e2f49-6faf-45e7-ba2b-f56af52cd19c",
+		"e39b040f-13d8-4ee3-82cb-77d31497a8fe",
+		"91fce356-4345-4d5b-9f68-d2d136b8429d",
+		"8baac4f8-caaf-4f64-b478-c1b60acce024",
+		"69bb005e-160b-457f-9aa8-053e085e386f",
+		"4df30493-345d-4395-9e89-2c8074cee5ff",
+		"10c31803-d00a-4c55-8795-1c821f00ecc2",
+		"28af8d26-a0c4-4144-a13a-7182af8214a9",
+		"bbb2fc36-d28f-41ee-9a36-ac6ca290680e",
+		"3c15c145-1b0a-4b6e-b9a4-bad0242b59a9",
+		"5135f5e8-2901-442d-9539-fcb0eb359d54",
+		"5b4d171e-18e4-46ee-aa19-65efb43c6de1",
+		"86999ae0-efac-4107-8608-ee4094e2c7d6",
+		"857f65b5-05a2-499d-ba4b-587323269507",
+		"a672b01d-7fa5-4d84-b4c3-05afd4dbe8f3"
+	],
+	"7d85f2b0-80ca-49be-a2b7-d56f67faf252": [ // Dubai
+		"bd0689d6-07b4-4757-b8ee-cac19f1c9e16",
+		"9571d196-8d67-4d94-8dad-6e2d970d7a91",
+		"eb2f3ee0-01d3-4cad-a386-433f88281875",
+		"da7e139e-b821-46af-9fb9-1fb54b5629fc",
+		"2a7f7cc6-9cd1-4144-bbcb-3e18d5d3f9bc",
+		"7d28ed81-2b13-4a8f-8276-0216c5e8058d",
+		"1b0b3e35-b542-4fdb-bad6-1687471eca5c",
+		"d5d8725f-dfd6-47ae-8bc7-d744bae0678a",
+		"03cda887-3966-475c-b010-6d94d1e9774e",
+		"70ab4b17-bf5a-4233-a8e0-d6802022c10b",
+		"ed2ad63b-6a2b-4fde-bbb5-b0bf64b6fc07",
+		"d083f522-ed98-471a-9d73-595a61e375c2",
+		"44bd3e9f-76ce-4bb7-aaa9-8127f2e86667",
+		"398d155e-213e-416a-8deb-4547073fc412",
+		"eb3fafa6-9e4a-4ebe-a87a-3287c3bf98f1",
+		"e9c8638b-be42-4c1c-a523-6761eeeff7a0",
+		"f7aa1122-215b-4a4c-8492-662bf32e0064",
+		"59d6713d-4a86-4af9-8154-4cff7e37ce86",
+		"c015d90d-1135-4fd8-b251-d5e800477a8f",
+		"9c9f4654-1f0c-41e2-aedc-24a6c74486b9",
+		"2fa9698f-eb9b-4991-8aaf-3bddcf23e247",
+		"316c8d20-f75b-45ee-8631-ec1d9042d809",
+		"730f1208-42bf-4450-ab18-52e7631725f4",
+		"b6104000-49a7-40e8-a6a3-30326731ba33",
+		"7a0875a7-756e-47f1-b09d-8c6d1ae11066",
+		"3bff42ff-25b5-4616-a8b5-4446a62a9ea8",
+		"5d079dd5-88bc-482a-be89-715131ffbcfb",
+		"b0e675d5-c6a7-4766-8a0c-f747b293058f",
+		"35afbd33-67f2-464f-8d37-dce05549f646",
+		"8b7ef54b-6ed5-46fe-ae42-ff0c07758f90",
+		"36844fbc-e06a-478e-a5ae-5d245775f9a8",
+		"44d00ab7-7d51-4cd4-b78f-f4e2ec0d312c",
+		"66f29584-24a6-424f-a2e6-620f31776232",
+		"a5f0d2b0-2982-4e80-a07c-fd832574caf8",
+		"c917d35e-b61a-4683-b12b-1ad450fbafe0",
+		"f661f518-0fe8-419c-8353-25a5ce35b62c",
+		"1e0f5eed-8cfd-4b85-9593-38df4c7ce490",
+		"d047c15a-d423-4a49-b736-7457163548cd",
+		"4ae1d783-a5b3-42fe-876f-6b694c420f2b",
+		"aa60e851-753b-4554-80ba-9880f0346dc4",
+		"a04ab524-d849-4b64-bb76-830de6e89665",
+		"aa3e14cd-5fa1-4248-a64f-210c3b86c579",
+		"ee908b64-b0de-4966-97ce-1d76d963e144",
+		"5ff29a68-61b5-4dd2-86d5-ae0e1f0a724d",
+		"5354710c-36c9-4f06-8af8-543758ad6861",
+		"52aea773-939c-40e8-b03e-2d86f8e848c6",
+		"1f0eed0d-78d4-4ead-a6ff-190b30656419",
+		"28e69f5d-dbf5-47a1-8d5d-bf4200136e63",
+		"f7ae337c-15ff-4ab9-aa53-1fe34155faec",
+		"7ab82bab-c5eb-4d89-a3bd-5e9456233fc0",
+		"7389810e-8efd-40e7-a24c-9640fdc4db5b",
+		"99217f25-11ba-4f3d-a12d-88a8cbac8fda",
+		"83273ba2-2d92-461f-a098-f82017995e57",
+		"4a9f2103-5114-4ce3-a02f-6f12c181e864",
+		"ecb53b77-2f8f-4b94-ab72-68c3478f598f",
+		"e30af4d1-c1b2-4a9a-a1f3-8ad78f67771f",
+		"b74aa702-d3e5-47fd-9f8a-da58a9588249",
+		"16c1020a-98dc-46d6-a992-3212b6e8a5de",
+		"266279f6-052b-4654-84b6-244091c08f9d",
+		"7f85a0c8-51d5-4cd7-8f26-26cdc169146e",
+		"7f1b07a9-c640-4c1a-bd1b-a944093c5646",
+		"be246e93-5ecf-4214-a493-aea9c331fc24",
+		"ec17e969-b5e0-45c7-a9c1-5c6be2e1dee3",
+		"70ceeb18-62a7-40b1-aa72-693ced2143d0",
+		"0cc0e22e-679b-464b-a549-f805cf2c5751",
+		"4fd70fbe-615f-4527-9f6d-8897bbab76ef",
+		"339ab553-4865-4d9d-85b1-03fd8f452520",
+		"25241527-024c-4110-9830-baacf41d0426",
+		"3533aed7-0403-4d49-83eb-19610029bf24",
+		"48709ded-defe-4916-954d-ac5cd79ad92f",
+		"4a1a20fc-7e52-42f0-b2bd-bfbd18b38a4b",
+		"e6a3a314-5e07-4930-b4b0-579ee1f6be4a",
+		"4218dd14-8024-4fef-86fb-65e97cd65f59",
+		"938c46db-742b-40e1-b4b5-9b6c08ad951e",
+		"b6b984ea-f77f-4e4e-aebc-e64c596cdc76",
+		"e428328d-027c-4600-8d86-6c55b54ceb3f",
+		"9d55860b-fe98-466f-bff4-cc03fc75ece2",
+		"ddf117ad-bf1c-4aff-87a4-cb95fce52f3b",
+		"c5b7c6f6-2ece-4e38-90c3-ee7a1af258ed",
+		"e591c642-79f2-4aff-8c51-184889b76594",
+		"5760aa76-1163-4212-8b17-2d2795cd8cee",
+		"f78849b5-5ffc-4c61-a834-6cc28dafd827",
+		"2b305eb4-a0f9-4b30-a1f4-0e398cb6b95c",
+		"b5bae954-39de-4d21-82ad-94efb7df39a5",
+		"5d2934c1-46b3-4a62-8422-e3fea96c1580",
+		"27e57101-f24b-4895-ae68-cd760be6ed78",
+		"6484c8aa-bbce-477f-b68d-c906f91f0f85",
+		"3e3e3752-37db-4b0f-8ff3-827d4c565e55",
+		"2e17afc9-d812-4071-873a-97d8c9155a35",
+		"f7637fa3-3389-4409-964c-2d94f5e19728",
+		"5711a570-eefa-44ac-a8a3-d72ef2880f1e",
+		"5fbe7e73-323f-498b-9bfb-4d4470a1cb7d",
+		"1f6ce142-5929-4e8a-822c-579027244773",
+		"5dc33477-0e35-49cf-b877-097e354eb96e",
+		"9baa468b-c0c9-466b-b08e-f364a1828bd3",
+		"6227b532-15cc-458e-8773-8dc09fbf22ef",
+		"57a98097-c8c1-4fd7-b656-97ea353e6139",
+		"d86d7324-ef66-415d-8198-4990a7249f61",
+		"27aebd1b-8420-4ff9-8cf4-02c65e21bd0d",
+		"a27e6558-7805-48af-8ef9-42836798938c",
+		"0477c1e3-329e-4d7b-b312-61100b4c44f9",
+		"13194b64-e176-4f48-b746-11623c8b3295",
+		"b457e183-3496-42ca-bed1-138bdfb098d7",
+		"979b9acf-9507-45d3-870f-a1ecbc97d27c",
+		"5d836ce3-d23a-4c49-9649-d74c7f9e0501",
+		"19b41ff9-6c9e-47ef-b6dd-a3d64d1a3307",
+		"b9112e5a-762b-470f-b0ea-c494da9762c3",
+		"fb2670e1-e16d-4e66-bb04-12e5d6e5bcb0",
+		"6c00d6f0-1167-4092-8772-53eb850f9f49",
+		"f3f48e7d-f5e1-45c7-a1cd-cd0ffa7cd9c8",
+		"40e26dc7-bab2-4842-84d0-0283aaae8cd6",
+		"f3edb2e7-6842-4f36-9a39-194d6d1d79ea",
+		"027535fc-8160-4098-a28c-875e97c3d46e",
+		"0c499082-5e93-46a8-95a6-81c57d0afd13",
+		"1239b252-a06f-49d6-a4b3-2ca2fc68aca0",
+		"45019cf2-515d-43a5-9f67-3289b055c1d9",
+		"e1495b43-bc41-40e6-8318-72c26005541e",
+		"fa0d8f9f-86a4-4977-9106-c8fd7a62bbf6",
+		"fbc7002a-77f5-4aea-b903-35f6074752f4",
+		"872223e7-4592-4c5a-8d32-487ea1dd06f5",
+		"bacd6c59-5e07-48f0-8f8f-89a5dcfb194c",
+		"04429865-872e-4ca8-8796-171a3328f5e5",
+		"e9798afc-1399-4ff3-b4bd-58337402f31e",
+		"d6129960-dbcc-4f67-b5e9-80e853709a22",
+		"f7164cc2-71b8-45d2-9c8e-a0bfefdb1403",
+		"07f65e34-12d7-4c83-bbae-0283b1168b12",
+		"45a2ffd6-9f7d-4615-a8ab-6609eb09100b",
+		"aa1505af-a9c4-4586-9152-d67bca6fe63e",
+		"c30821fb-04e3-4979-a804-c6fe3b1a94cf",
+		"c5964a9b-73a1-4c39-b7d6-6cab1e13d388",
+		"b3918226-12d2-4f31-9886-536c40ca5784",
+		"73bbf5dd-58b8-46c3-aa3b-399f1eb80df2",
+		"9e3620c1-5289-403d-bd81-6a414ba2b030",
+		"1e6d10fb-fdf7-4013-bf57-db2290b911b5",
+		"df54ae08-53c9-4b8b-b7ff-14d037f9c5c3",
+		"cb82426a-de8b-4ca4-beee-e3753f0f0bea",
+		"325f89aa-d4ab-48ff-b54e-8d5e19746cfb",
+		"ee8a030d-02e2-43bb-b86d-b23e74ef0dc7",
+		"6eb89c11-249a-4de9-ac8d-7babbb4dbc89",
+		"ca37de76-1600-4e57-bcba-accf7aebb216",
+		"9c612c1d-1001-4bc3-b0c9-0d05b7ff6a92",
+		"3ddffe43-5e65-4fdb-a27d-7ff9dc4587e6",
+		"04c7d0c6-f1c3-42f1-a1f5-77462a1e5213",
+		"69c68366-f735-40ff-921e-b1286e21b58b",
+		"276bb5b4-9939-4581-8f6c-aee923c217d9",
+		"22d36967-af1e-4329-9921-03b851e4018c",
+		"83f2c6de-67b7-49a6-b267-b00f87ead0dc",
+		"0b79754b-4c6b-4011-a0d0-ea3171af2734",
+		"1b74a34b-eea0-46a5-8d73-26c642c0c4b7",
+		"513a8f82-fb9a-4b97-bd08-ef1814c422e8",
+		"b51c6e3d-cade-48b8-839e-b9dd7e0b4be3",
+		"c3112f2d-ea75-476d-b249-1f0a6d0585fb",
+		"361eada4-b32e-4181-9fe4-ed7bcdad3377",
+		"8fc78c91-7cfe-465e-984c-68483ec33aa5",
+		"e1c8c0a5-a506-45b6-9567-7b6df50b8877",
+		"ae6c62e3-131b-42e3-acdc-85d245a1d814",
+		"111150b4-af86-430e-af75-d164f160187b",
+		"25c0d00d-698d-4c1d-82a6-41610d42e4f7",
+		"fac7d7ae-42b3-40ff-b9ef-c01f6ddf5db8",
+		"64102a8d-0f3c-40cb-8ad1-3b2943be98bd",
+		"2993f306-f331-4c91-89e8-6abf61ed5ddb",
+		"6b29cca5-7fb1-42f6-85ec-047e1ecdcd4e",
+		"9af0780c-29a8-47a3-9d36-669ab2028113",
+		"db2c6865-6d78-47d6-973a-3afc15375f04",
+		"a5d6633b-2c76-4811-80ad-1f345aa55ec8",
+		"d05509d7-6d02-47a0-a422-e5343bc16639",
+		"cb1aa4f5-b6be-4508-a333-f6a678e2d995",
+		"b37840f5-a58d-4e97-8162-71e1b4de32ca",
+		"859addff-9450-468a-8939-1be471077573",
+		"3423fb70-0ea5-4c03-b4ab-546784411642",
+		"2486a862-49f0-43cc-b0d3-58b845c4736e",
+		"90aaf463-cf27-4e46-8088-b91650e9e861",
+		"bd021da1-3156-47f6-b68c-53d9a8d75b59",
+		"e8c47afb-8d83-495d-89ff-144adf9e245a",
+		"34ce29a6-7819-4b62-aed2-3115623d4c4a",
+		"02e16db3-1f42-4749-8b83-9fa0fa5c376f",
+		"062c496a-910f-414b-88ce-52279a8c7768",
+		"0f9099a1-0cae-4910-a976-001cf60833ae",
+		"1679e35a-1f1e-4416-aa69-985bf51ca911",
+		"15102357-a96f-422c-a882-1d93749237f4",
+		"9d60dd96-6eb8-420c-a53f-bf7126b26874",
+		"f25ced88-e077-47f1-a84f-700e21509494",
+		"e275cc45-68d1-4a0f-a9a6-8eb876807efc",
+		"7bab34e1-6184-459c-9542-43eb392a3368",
+		"0a6c5432-1aa3-41e3-b89b-01e54efb83d1",
+		"731da6de-0f6c-48ab-b0db-4d76e1f87d5b",
+		"e9f6dbe2-ae53-4181-a82c-dd52f20ba319",
+		"522ab164-70e8-4559-b023-fcb6cbef658d",
+		"6190ff79-0cfb-4e0f-8a96-1ba45bf16ffb",
+		"e5f20981-a935-4bb5-a598-0951d052a6e9",
+		"f8d07a60-2630-4324-9c16-b4665f58b312",
+		"51764712-bc78-4ca3-9847-60339afe834b",
+		"b5ecba16-3351-43b7-9503-cbfff71e88d6",
+		"f204fec9-3c17-499f-bb0e-1e41cd4a7d9e",
+		"405a95c6-c3fe-4bdb-854c-b87ed116a585",
+		"93810f8c-0d0b-4fad-9c0c-09870a744232",
+		"b7c5b8d7-9bc9-4b2f-8853-e2953dfcc672",
+		"727c2c45-1666-4c35-85f0-48f5ab4f9802",
+		"f5ba687a-b8f4-4a67-9083-b5b4b0f3fbf0",
+		"dcb16db7-c06c-4182-a1f3-4b460c316602",
+		"075d413c-3a6c-448d-8fb5-d18e716e6632",
+		"76093a1e-fc60-4207-ae0c-91a2b6c4f226",
+		"05b6454c-d2f6-44b8-a510-456e9ff6b915",
+		"50e2331a-43ba-4c4c-9f97-2663c8551d16",
+		"89fcda5e-b91c-41e2-977e-ed13e538b3d4",
+		"e2a03ad4-74d5-491e-a288-06e35610a0d5",
+		"4c75a3a0-80f1-42a2-9e97-9d3f4a47c4bc",
+		"1d757c45-065c-4535-8a03-845e1f1699cd",
+		"cd54a9c8-cc38-4548-a9b3-77f73c4f0e11",
+		"40ee3be7-c498-442d-9cb1-dae0703cddbf",
+		"f376a584-42b2-4266-b780-7c90c529467d"
+	],
+	"095261b5-e15b-4ca1-9bb7-001fb85c5aaa": [ // Haven Island
+		"5bc06fb1-bfb3-48ef-94ae-6f18c16c1eee",
+		"0afcc59e-6d6e-433f-8404-7699df872c9d",
+		"7504b78e-e766-42fe-930c-c5640f5f507b",
+		"3a45e243-44aa-4a2a-992d-c8b162a78de6",
+		"099a94a2-e611-4126-bd53-9a2e6a0a3df8",
+		"7cb069b6-9295-439b-b9b3-04c83526d59f",
+		"0aa4dc42-fbc1-4648-8351-add6a8e956a4",
+		"b1185569-82c0-45af-8b24-0fefc59b333d",
+		"0c1db910-9e59-4d4c-bd55-f545057dc486",
+		"83683fd7-687e-4268-8044-3704eb1c65d0",
+		"8c95a691-820e-4f16-b63b-b3b0c4a97615",
+		"36274f12-267a-4311-a27e-1547a2d2fa1f",
+		"cfaff7ff-c790-45f4-9def-703e6228582d",
+		"3250165b-1124-4dfc-bc57-c45d24f692d6",
+		"1029b9e8-dde2-470d-ad76-b9b03ba13d5f",
+		"d70b11ae-0347-468c-ba9d-c4b1f2c190d5",
+		"80a44a5a-a923-4026-83c3-6c582123f2f5",
+		"80fd90db-5c50-4b4f-b143-83553b71f8a0",
+		"87be8b46-a552-4317-bab4-9cad41e8002b",
+		"75919b8a-9849-464f-a87d-da4ec40cec5b",
+		"d59f66a5-dc23-4ed8-bd45-a4a42edd797d",
+		"afbb7446-ffc9-43ec-b7f5-1d1baaf0b54f",
+		"46289843-9c67-445d-afa5-956ad7f2bb0f",
+		"b329f5f5-74e2-4010-8e7d-3e07d110e187",
+		"45abfef9-3458-4da8-8614-965330559aa3",
+		"c57ff780-011f-4fbd-89ee-f853d24111cc",
+		"35494743-6b3e-4ba2-8193-7a543a52bbf8",
+		"42d6d05e-356f-4e36-92ed-f9817b59497d",
+		"d2f3ce8e-2489-481c-adaf-1a6a3a4c979c",
+		"7f687209-c85d-46af-9607-d12902d41bdb",
+		"4dd70d6f-d80f-4cd4-89b2-27e5c9278c04",
+		"cee4e428-1efb-42ef-8eb5-763822781738",
+		"328df783-28d3-40ce-8f5a-3817a356d0ed",
+		"ebad48b0-50bb-443a-ab07-96d8c9d56b51",
+		"26d19fcc-aab1-4710-b0a8-a05d0ad8d931",
+		"917bc3aa-0f46-4df6-83e2-3636aa27ab86",
+		"d05144e4-3190-497c-a1b6-38c765655b86",
+		"b17655eb-09eb-4bad-a902-8b7d69796101",
+		"972c2a6b-b502-4583-b852-594c438d4fe8",
+		"d3884e8b-cbe7-472b-beb9-5bf2350e3756",
+		"f9434bbc-0e14-4b56-b233-5dbb4fd29012",
+		"6631ad39-9baf-45a1-99e6-e073ea5a2657",
+		"15b09664-b433-4959-8988-8a77b7b68db8",
+		"c4be1a79-efad-4f8a-bf18-398a6fb4dcd2",
+		"8f0635c2-1e30-43cb-a01e-2e1f28d309c6",
+		"76c47e2e-bdfa-4279-8203-082d3f6f61d4",
+		"4e8531a3-0de5-4367-b1f8-d1576e4b970d",
+		"666062b0-7f97-4917-9663-c6280dd84f8b",
+		"b06bd131-1599-49f0-a553-c73573316dd4",
+		"c186901c-b4dc-4ec0-b654-3e93410c66ea",
+		"232b3a9a-6630-4738-bdb9-65bd3f844966",
+		"dcf91c29-56e2-4d9d-8f49-22dda6532027",
+		"0a81eddb-dcb5-4fe6-9b7a-2950ff1e2af1",
+		"4cc95d65-18a0-4424-b805-7fdf863dfedb",
+		"70b08ba6-fa39-44bb-83c5-ac1eab8645f6",
+		"bdbaa584-55d6-4449-8000-86fa071c01fa",
+		"8916ac55-80f0-4332-9e62-9052a7badd91",
+		"252c19e5-530b-4da7-bba5-c604ca38fd2e",
+		"42827ec2-9a44-4922-b1a7-bfee9d68b118",
+		"de2be5f7-9364-487f-bd36-990895f1b630",
+		"4fa7758f-14d4-4563-a336-e8c4e6fdbe8a",
+		"e03ab06e-bc2c-4a76-84fb-e1bf8533fbd2",
+		"d946d096-8c69-4acc-8173-03b45cadbf70",
+		"7268621d-9384-4c9a-8fda-846f736fe03a",
+		"2a0503be-f0c4-4e5c-8f76-d67d6e75554a",
+		"e1827b5a-fc44-44e9-9e4c-8a39d2f31e3d",
+		"bdc0a047-b95c-4c9c-b126-a18af5291f37",
+		"5bb45fc6-34bb-4006-8204-6138de462ef5",
+		"bd844d32-bfef-4853-9ca1-2fe20683b89b",
+		"79965ae5-08f2-4383-b061-10f847d9ac2d",
+		"b7c9b3d2-3555-4db9-a209-f736c7aaf47f",
+		"b533e102-fce8-4b3b-8157-6631d4eca35b",
+		"14abc7fb-4f45-45c1-ad04-215e40175a33",
+		"413873f0-a573-4836-bc3f-46659344da71",
+		"e53d397a-333f-403a-98d8-20607322b734",
+		"fa36a5d7-626b-43c2-a21b-c69ffe3e7e96",
+		"5e8c9cee-f9c1-4a12-80e3-a911d8df5baa",
+		"f83fe835-5634-46bf-b43c-e0f31b341cba",
+		"7efcc3f9-6ee4-4b86-9a3b-7489195ce434",
+		"e48d4cf0-bb9b-49b3-8af0-f3e48e1ee725",
+		"b8ce63ea-ab43-4058-aeb0-9e5ca1e27091",
+		"baa95188-9b4f-4984-800a-904b015c0c35",
+		"25c0503a-0c5c-4f5b-b899-aeb44a4e08eb",
+		"03530026-5d85-4b39-b25f-f8e3d306b6e4",
+		"3a65a904-07c1-41c2-96b9-9a912b9eaf8c",
+		"443661a7-9632-4bd8-8842-2a238835abce",
+		"9d4137f4-6cb1-493f-a56d-f5bd5ee6c455",
+		"3f4cce12-458a-4e53-81c0-079883a5f3e0",
+		"5812e28c-74fe-4cc4-a2fb-d9d6f0a87c6c",
+		"77204439-76fd-4ec8-a3cb-6c3870cc0397",
+		"86c18070-46f6-47e8-934a-dd549027443e",
+		"86c61ae3-542f-4e4d-80c4-80f8bfd54818",
+		"4bee2233-014c-47be-beb7-a6ed9fb4db4e",
+		"efc56fc8-56fd-42a0-81b3-1b3859376010",
+		"d5eb792b-5282-410a-9964-6a796f4ed5d9",
+		"0c8ff406-03f1-45f4-a780-c470828b7085",
+		"fd45ca65-e41e-44ee-947d-4c82a4d93a5f",
+		"e3352213-fc25-4e38-9bed-d44d7dd09809",
+		"d3eedfca-20b3-4de6-b714-733c59be1fe1",
+		"34a0c439-5a08-4f3c-9209-5c3b06aaf929",
+		"fadaf0ea-e42e-4d92-9cf7-4441e2a26613",
+		"d771c711-669d-4b59-8bef-6a5f83ada5eb",
+		"b6402e40-06e7-46b6-b082-54c228010b71",
+		"6e1a5791-47f2-4435-ad3a-217eaf539d1f",
+		"8b3149c9-b5a6-4e49-a807-76c279fdd27e",
+		"0504be1d-5a64-480f-9bb5-b6dab6929971",
+		"a4045207-4cf4-4c8c-b847-f02068021011",
+		"8c364eb8-cde7-473e-9fa6-5b3a1c7da10e",
+		"2085da9f-6f7d-4dd1-9e82-607cda648a78",
+		"25876bb1-936f-4ebb-8d2f-701c46a32584",
+		"57080a5d-3ec5-401b-a933-22003729013b",
+		"bb8f4a58-b961-452f-97bd-5fd5acd24285",
+		"83599c9c-1a4e-4383-a355-c056db30ae23",
+		"835e5e59-423d-4996-a788-9d2666697b91",
+		"c22e85b1-c4ef-4bab-a173-3caa5dc0b9db",
+		"e77d259b-08a0-40f2-b1eb-5bd8ed3f0245",
+		"aeb735f4-52d1-4fac-ae51-63c2b03730b9",
+		"9c9c0584-0fd5-4aa0-a7b9-3cb5b4e329a1",
+		"be8fb5ab-0533-4767-b2dd-36a79812e8fd",
+		"b195ce22-83ee-446d-96b9-eec3168d4091",
+		"c9eeda93-73a3-4e50-a19c-29236d5c8e68",
+		"2401dda0-8b09-44f8-8ba3-c9b3eb3f56e0",
+		"15ddb3fd-7bce-46a3-91ff-147644683eeb",
+		"d246e898-0b9d-4fb1-9d91-5c3a693c59de",
+		"426fd0e9-6e0c-411e-ad7e-f4b3f3c6fdbe",
+		"6a7f8950-f9d4-4150-8c6c-1051869a506a",
+		"2bae87e8-f0b6-4271-83b9-b879c9b782c8",
+		"8af9c2be-066a-4f56-90d5-fa79d3d97f41",
+		"4e17ee20-26ab-41b3-9b72-5331e226b3d4",
+		"c4c4af69-5bec-4f64-8488-45762f15137b",
+		"ca2b390f-b759-40cb-af2b-c4b86e35f806",
+		"fdf46742-b0ce-4e72-8716-7e442b353208",
+		"caccc0d8-090a-4e10-bdbc-6789389276d9",
+		"b94701da-f5a5-46b1-aa12-217cf8f7f007",
+		"a4c7355f-d63b-4113-b3d2-0610679436bd",
+		"0c8009c8-bed5-4fb5-ab54-1ec15af16a51",
+		"ae772962-0a69-43c8-bad1-fce43566d1da",
+		"3bb71176-0849-413f-940f-a82969a94632",
+		"80969b3b-ff48-425b-8360-efea81894e27",
+		"bc374924-ae15-4cb2-9594-7c822b5eb0ad",
+		"57bd791b-a94b-4558-996e-8b62011d09a4",
+		"a50d4b94-2686-4063-a6dd-dd7cfc4cc5d0",
+		"9f378e0f-38d7-4ea8-ac96-9b91ed0272fa",
+		"cd2e407d-d796-4795-9620-066c03f55ef7",
+		"0d8d07ec-dd3e-48cc-9074-2fc6972e9906",
+		"89920040-ce19-4cbb-9270-de507e890062",
+		"058ff7af-1b54-46ad-9502-723d81950a0f",
+		"f15e7e7b-3967-441c-8e2a-cee72d4be91b",
+		"1cd39a92-2ff8-4e75-8ee7-80ddffd5a133",
+		"24fc113c-bdc7-4f4a-a243-da7960184df5",
+		"ee9496db-8562-4737-80c1-9dc4fb4d5183",
+		"3f965e4f-ae01-4451-b7c5-88e40ef665ad",
+		"875f34c3-074c-43a1-9e39-df7ed5c0a13b",
+		"216bbf18-147b-4d30-aa02-aefbe788bbdd",
+		"b3e448d2-ab57-4e90-9420-d6e4cb06af58",
+		"426decd2-3ecc-4e0a-a997-7d1c7226c80d",
+		"2cd8e09c-cf30-4ecb-b683-453aa797149d",
+		"6628072b-be73-4162-be32-a405928fea57",
+		"13af00e6-80e9-46d4-bffd-a2b4c71e6262",
+		"2c1cc0a9-f703-4319-acc0-125722226ce3",
+		"34abc242-1aeb-44dc-8710-5e47ae6e89e2",
+		"360edd56-1b2a-4624-9b6c-2d866a7c7cc0",
+		"d66274d9-33bf-4dc0-9153-e7574ade60c5",
+		"1d22cacd-2259-4a87-b2b4-38967db13ff3",
+		"a2d5831a-9dda-405b-a51d-03e1507b64f6",
+		"9d242a17-82e7-499f-ad5a-cb1c509b4e71",
+		"1cc1105e-7ddb-43ae-941a-4fcb5e42dd63",
+		"dd4e0a16-7b15-4b32-880d-945adbfe8bb0",
+		"147afd0c-df2c-41a7-a5bb-24991a280f85",
+		"013c9c07-db8e-4e87-a106-4a1ea55e2d70",
+		"bdad0de6-659f-4bcf-8e33-9773dc668a39",
+		"bef5d5db-b64b-4a12-8d1a-681cf76cd135",
+		"2cfb9797-fb16-4d43-a309-292c9a452da7",
+		"8d653fb8-4b99-471d-bf44-49c1e6081391",
+		"349d4c0d-c8bf-41f0-af9a-695a56a1c67e",
+		"88ebb70e-55fe-448d-8a60-738240518613",
+		"a07b0459-b7c6-4737-a5dd-497d62633568",
+		"ef82b4c5-240e-4da3-8b48-4fd37403e159",
+		"ffa7428e-14aa-4fd9-93f7-875a711e96be",
+		"aaf4d45f-0a1f-42fb-917d-d12fb62ad068",
+		"46eb145f-adbb-400c-a53d-3782b0e9b5c4",
+		"94386993-e4e3-4ad3-8709-2eff425e8f4c",
+		"d73cdffa-ca48-4d81-934c-152b49eb0b92",
+		"a6b36d85-50ba-44a7-9bd8-47e17c7cf560",
+		"8421c112-bea1-4001-aa6e-3aeda2aee3d2",
+		"1516d59f-441b-4fa4-b4df-6ba2d711898b",
+		"6da703e1-0a9f-4692-b1f2-d393257e4670",
+		"98dfc95c-0d67-45b4-94ff-d69ab8262c5c",
+		"01a0823a-5493-4844-9c33-34b4151173d9",
+		"bdb04aba-8d8f-4666-9cca-eb11f59df849",
+		"cd0ec516-c7ff-475d-b6f8-6f7aad7dbd47",
+		"4f62072b-4364-4e16-80be-e9b7294619d1",
+		"df4c81df-c140-4483-89e2-f48e9b1e87e9",
+		"b53fab67-524b-49d9-96af-31d62f67bbd1",
+		"59401429-a402-445f-942e-3b9e487f1b9d",
+		"575d5aba-4a50-436a-ae25-d57a98cc2238",
+		"83a17fd0-129d-42d4-93a3-4630b82301d1",
+		"a10b5ca3-718c-4acb-934a-92dbe4a39031",
+		"836418b0-1a76-44e0-ba31-fd8b0f2a1bce",
+		"3ac14cae-d9d0-4681-8c6b-b1533041775f",
+		"b1c3e591-341c-450b-a02d-01f5873e8a47",
+		"5bc87932-9363-4e77-8525-865a0573786a",
+		"535e48eb-4be3-4e0d-8517-b2ecddd0f5ba",
+		"71e9288b-f59d-464b-bca9-bc84e598a52a",
+		"e9b9ef7a-4b99-4c0e-9f2e-47bb9b8d22f8",
+		"8a751b16-033c-4c02-916e-9a413b756edd",
+		"fb448fcd-cb6c-46de-a844-96aaebf9e027",
+		"1f7ea76f-7c06-4680-9b14-ea78a5995cee",
+		"d8ab897b-8477-4994-ac30-a60077d6348f",
+		"80673127-5222-41a8-9327-d7e8f439a69c",
+		"413cab9e-838c-4412-aadb-8c6f14098730",
+		"7587d514-1ff7-4c19-83f4-74685fc3e595",
+		"67f18022-39e2-4133-aa20-1bb5f7a5b2f2",
+		"33e1a591-d34d-429f-90a8-988979325e8c",
+		"c9e1ceb8-325e-4cc0-a4b1-9053b24f1e03"
+	],
+	"c65019e5-43a8-4a33-8a2a-84c750a5eeb3": [ // Hawkes Bay
+		"9e85c891-9eb7-4f3c-8115-896bf54d979b",
+		"f1408061-856f-4017-a922-b297d72d1fb0",
+		"dbebec2f-5a75-4713-bb08-c32f141bc9a5",
+		"293579a3-b1d9-415a-ad3f-9f876892d9b1",
+		"9a469cd6-0689-49af-86ea-1a2d7022a1e5",
+		"d0c2aa29-763e-45dc-a8fb-41d05322de9e",
+		"6d64c21b-1ae4-47a8-aceb-120cb68ae362",
+		"3b1bffed-bbcf-446e-8824-5855f9df7714",
+		"a58ae30e-00ad-42ec-949d-1d6c5fe1bb47",
+		"0037cdef-80c5-40aa-85f8-1a28588ae954",
+		"020cded4-84d2-48f8-a593-a13b60574cf0",
+		"0b6e8324-8118-40b4-b0b8-4d75d03ff37f",
+		"8c5143d6-ac75-44a5-a67c-cd4cd4304e4a",
+		"71d833e8-5f8d-4cd5-8dc8-48d5097f71e9",
+		"edf64cae-98b1-496e-8b13-31b8e65ccb7e",
+		"6024f334-d840-4418-b3b0-12a2870150c4",
+		"e2196d59-c5fe-43e0-b7e8-508bde38cb67",
+		"1e6be31a-a6f6-4b61-b7fa-6e37d4b69a2c",
+		"d37dbe48-0cd8-480d-9d61-28fe8057d3e1",
+		"77853169-4a3f-40de-90c3-e7b8fc09cc70",
+		"7762eb11-138c-4d5b-bf3c-f28921cfa0e0",
+		"dddfaa8a-b4bc-42b4-a0ce-c44b1d1af75a",
+		"0ec76339-0fd9-4c83-9368-f235b66b3fa0",
+		"c04e1fe2-9227-4c86-9068-8ef098d89b57",
+		"47c00c25-953a-45da-86e0-3fcdadea3487",
+		"e82f3d7f-4e8c-452f-97ae-b0a413cd0d14",
+		"77fea61d-7993-486c-a5d5-71a6e55d414c",
+		"4e98437d-49e2-4cbd-a081-6c3f34c7797d",
+		"afbfb9f3-e629-44f4-bb6d-3537fb94898a",
+		"c8c6979e-2b8b-48cc-b405-7f1138b88e8c",
+		"e1363159-b0aa-40b5-bf01-a3ad41a5230d"
+	],
+	"0e81a82e-b409-41e9-9e3b-5f82e57f7a12": [ // Hokkaido
+		"9bebb40a-3746-4ba2-8bfc-a1fcabaec72c",
+		"9925b896-c624-4e07-b803-e578628af0eb",
+		"bbb337dc-9ccb-43bb-b305-8c57d946dd20",
+		"c6d5eb2f-3c57-46e1-b836-e889c4ea43e4",
+		"fc8f1240-5a99-4395-ad9a-3a38fe8258be",
+		"c4d3d686-04d2-492f-ae09-25291e71eb06",
+		"0173f76f-57c9-4206-9a99-d0f8770a7e27",
+		"0b4f641c-493e-4a29-89ea-d1062d03e395",
+		"c505e135-78b0-44e4-8e30-9f382da36da7",
+		"50018200-489f-4590-b1f3-1887d0f6b845",
+		"667e7165-b941-4b2b-8595-2633f49373de",
+		"d8320880-9bad-48a1-855b-0cf7f894394d",
+		"8b8ee063-7624-4dd9-ae0c-86851f3a268c",
+		"8590d05e-3da5-44fd-9738-064b4a67028b",
+		"d3875016-9aae-4023-8f56-5fca535fad40",
+		"07722609-59d8-4d94-a55e-61c9bf3f330a",
+		"70a7be55-5925-4ad1-aaf2-40042346e01f",
+		"83d15b15-9e2c-4824-adeb-4449ccbc4e54",
+		"7b4882f8-1cfc-49d1-b053-863ba1caf69f",
+		"07567978-5b7e-4dae-9846-329eda915708",
+		"bd47be04-43df-4af1-9912-b593c25d3d3b",
+		"ad7a4507-9c04-4f1f-8516-1d7ec7ffd510",
+		"907b87c9-b84b-43c0-a478-46baf0e65e43",
+		"352f4f67-b730-4deb-927e-9dea18c5b813",
+		"f4821c48-4424-4197-bf7e-008b986286a0",
+		"3e1bb865-3209-46b8-b345-d5b8e0428084",
+		"fded38ae-3194-40dc-aaa6-ddd3fa4f4510",
+		"d41ef68d-65fd-4ffe-abe8-bc2c39a23e8b",
+		"9daccce0-c9f0-4eaf-8ca8-d69a14cd3298",
+		"5417d5ed-0166-4c77-bcce-d803eb5c2254",
+		"48f655ff-a6b6-49a7-a364-0e1d02e835d1",
+		"b0d0c49e-815d-4601-8b14-daa3c9d2629b",
+		"5201dfce-2de0-41a7-a9aa-5526d515b5dc",
+		"953a2632-a2e7-4842-a484-c8953c5bc43b",
+		"92c028a9-a72b-49bc-996b-194b8ddb795d",
+		"f7bb9a06-bbaa-464b-97b3-e3a2eb85711d",
+		"f4b6599a-cef2-494c-87cd-9d0656f34d48",
+		"fe8fcaa5-c221-4f8e-b208-0cf7f37633b9",
+		"1e189a48-9093-4373-bede-4bb3dc051c92",
+		"f32692e1-226c-4a10-bdc0-9298d29655be",
+		"f19cb43e-7f33-4d27-aa42-ecd7918eb2fe",
+		"f50d55e7-59bb-4f89-b5cf-df1e1c53a212",
+		"774d95d9-366b-4f5d-98c0-43fd9505c80d",
+		"74265f75-c537-46a7-b4b7-b1ece9b91399",
+		"ab7da4b9-fb66-4d25-acfe-9a8d58c4ffbc",
+		"92ff92f8-aa5f-4ba3-b500-e807d0819783",
+		"e5cd7d51-fa8f-42fb-93de-c885b45a0925",
+		"1919fa67-81d1-44c1-84a7-722218e0afa8",
+		"0c804787-93f3-49e4-8f11-f445f5b35737",
+		"3a34f128-b441-40dc-be2e-e2485733ee39",
+		"25181bf7-345c-4990-a1c9-7911b7f79f4f",
+		"e0143799-7291-4e70-b761-3f960bf99a42",
+		"e3f211bf-79c4-4fe0-a5a0-34ad5b5de7f7",
+		"1bc14bf4-6797-45ef-a3cb-a929f0c93cf1",
+		"a4b81c2f-017e-4aad-8e7b-178322dca3bf",
+		"5561ba7b-91a6-4403-a351-227015f67c2f",
+		"7f4721a1-7d95-46a7-87e2-1d4f25a1e851",
+		"8c4e3278-2a2d-4db9-8d22-53b602b38270",
+		"ea2291b6-00dd-4bfa-8ad8-b2666c8ab5b6",
+		"f486db1a-8724-4a13-b890-8cbf9cd21484",
+		"efae226f-f38a-4cac-b0bf-c66d4463f617",
+		"7efd7448-67cb-448a-8bca-dae2e360676b",
+		"4c0b5fd0-f546-4855-b841-3edb76f2db10",
+		"2debbe58-179d-43d1-abd4-5c8430caa8c0",
+		"6d50c5e3-251f-4c65-8b1e-18a4bdc7c62d",
+		"76425107-4bc3-4f39-a7f8-2f8970c538e0",
+		"b13314ab-ea25-48b7-9e51-8ebb87788e20",
+		"08919807-a804-4d9c-a7a6-df8d4f147415",
+		"e5125b76-5a98-44bc-81ae-2dcaae9fbcbb",
+		"40f43c67-b6c4-4d26-ae04-8876944df26e",
+		"217286a9-beb9-4a7c-8473-775ab4e9d60e",
+		"a7f5f417-b77e-4ade-8da4-c66b2811449f",
+		"06206416-b9b3-4780-be92-c42c6e0cec2e",
+		"b54f4698-f4ea-4edf-984a-7304bd6eae71",
+		"7569ebfe-ac98-4a2c-8d6c-ff563e535bc6",
+		"79fcf9ce-fb01-4733-95b7-07624f7aa012",
+		"c4801719-eead-48f9-81f6-46bc0e8eb6bf",
+		"9c11b4f7-51ee-423b-a1c1-39b97604415b",
+		"e60cf3c1-2b0e-40cf-ad00-acb57604c620",
+		"1b89ce5c-651f-40cb-b01f-69cce4e593a9",
+		"d8602d8c-b86e-419a-8539-e0c1c1cf9136",
+		"056bd6ac-6124-4831-8312-c46fcc1d2c43",
+		"a6f3dfc8-86fa-4a09-8ddf-0fa398958429",
+		"2b024454-35a1-4414-bf67-f2710891e441",
+		"a1f7ac80-7fe3-4df1-b332-539c78a72a87",
+		"be05317a-3d16-4b41-bede-ff99e126c157",
+		"b7fc9311-ddfd-41da-ae15-f5471f2fd904",
+		"b9e03937-aa4a-4f57-b621-69459d4a5888",
+		"894bdb36-c6ec-433f-9677-0f0486e7bda5",
+		"a7ad514c-1b63-4244-9483-2e665c9e721f",
+		"037b52dd-268d-4a4a-8f95-26d246fa8d2d",
+		"f3a43486-27cb-489e-be07-8f8fde47e638",
+		"cb564208-5059-43e2-b693-e917d88631ec",
+		"805255ab-4f42-4dec-a35f-c60475f1c322",
+		"8bb21b47-8846-4f78-8b6b-42dc1701e6bb",
+		"3d10b323-a438-49cf-ba0d-74022e438b47",
+		"bcdb769b-b7a4-4342-98c8-7d8c5224930d",
+		"66ac5c9e-397a-4c4b-874e-cf7fc4965571",
+		"776cd9fa-8f7b-42e2-9ed9-72328631a867",
+		"4a6f0107-c3f2-47cd-bcf5-ef821e15f3a8",
+		"51956938-6d90-4f1b-822c-2d984189ea1f",
+		"f756fa79-1da1-43a0-922f-acbf75a5c062",
+		"dcb3dcec-2be3-4e7f-bf92-528f384b5cfc",
+		"90527ca8-b658-4b26-bc0a-9c7018881814",
+		"80643220-77ab-4427-8d79-4063fefd9870",
+		"56d45ff8-7428-4787-8f72-a3fa23d58b00",
+		"4ebdd50b-d38e-46a9-82f9-de25fe8419bb",
+		"ca50b57a-9a88-457f-bb5f-dc2bf5a64ade",
+		"c6bdd2e6-533b-4ada-b592-12c326c913b5",
+		"04b112a2-4597-49ab-9b78-febc1462be9c",
+		"ecbe94ac-a5b3-4d80-8c54-140696707168",
+		"1830b453-7d68-4290-a056-97174fb6c8f2",
+		"877818f5-e1d1-49b9-bb7d-4cabc27a2484",
+		"76c91909-3554-42fc-a638-a0e179c70d31",
+		"d0628b4d-98ac-4fc4-af51-a19eec39bc83",
+		"5fc4b849-95db-4bcd-8528-019841814d87",
+		"6be2a9d6-8d18-444f-9efb-b8cef1ba8631",
+		"e6150e64-7178-42b2-9b67-7fcb9a14f1fb",
+		"255d0b0b-ad13-4026-8cdd-73c72a911942",
+		"8e78f7a2-5def-4d32-aae6-001cb76a4d7f",
+		"312718e7-7b0c-41c6-bda0-e06e0233cf85",
+		"11f5308a-a695-4d0c-8576-b81ad11b6379",
+		"5778994e-617e-4f59-848e-a0853e5ed2cd",
+		"608f3fe7-c3a4-481b-b735-4cb1d4ef0e79",
+		"60d684c4-be1c-44ee-8b63-bdafb44ab3d1",
+		"f1dbda48-a516-4080-ba96-47113090dba2",
+		"dd5b7a3c-a522-4c2b-b8e5-f5c551e05ab9",
+		"a7febd58-9136-4f32-ac45-448e1e39b578",
+		"d895f323-64b6-4e55-8c75-e84cd3a48a53",
+		"d4337324-b8ae-4299-b1d7-9a16d6b249d3",
+		"b0273c48-d7a7-43c5-8d82-94cb7603c297",
+		"d81a9636-1a4a-4632-8749-985f58b86457",
+		"901f35bc-5235-44b4-ad01-7a3518d60ee2",
+		"310d3880-11a4-494e-8f62-4e8fb31c62e1",
+		"90d2caad-2bf4-4acb-9a17-19d463a6a619",
+		"b8a1efae-fce5-409d-b5cc-3e5a569548df",
+		"78b2632a-9ffe-4738-abf3-657b72b0786a",
+		"85750842-3f27-4de1-ac2b-dcaf2abc5c48",
+		"6c09bd70-6670-486b-9222-15db93222b56",
+		"c92eab19-bbdf-4708-b86b-49fc1cd90bbb",
+		"1550f37d-d000-46d1-8eb5-9d57318efcba",
+		"aa2537e6-c071-447a-ace6-de84d56fcf1e",
+		"8d9d890e-e18b-4c89-b6e7-cd07229959d1",
+		"24d04ef3-62aa-4b79-bb8e-24ae034ab93f",
+		"6d0bdbf7-2381-4b4a-a25c-40fdfdbe2b6c",
+		"85e084f7-97c8-4629-b299-f415e9c816e0",
+		"911d573b-c3ad-460d-833a-1af91c610264",
+		"c534d42b-1f2b-4298-baf5-1f2fe67a3af9",
+		"f802f821-4b53-40d2-84cb-11a7b1605326",
+		"8f3fb3a0-990f-42c5-b28b-63ac6390ab46",
+		"2b345524-181e-4d20-a9fc-be3ba83ac701",
+		"5a82fd87-3fb5-45da-b8de-4197fa05d8cb",
+		"743eae7d-2d6c-4911-8334-5ddbbe63f1be",
+		"1f9b3262-f7b9-448a-9157-0f67a8e1596c",
+		"1675d777-037c-4300-ac9e-aabd9da59d02",
+		"dc13abd0-f991-41b1-8550-eb29e1ce422e",
+		"1ba50e5b-bc11-4ad4-a548-ecbb2c010f18",
+		"2019e880-44f1-43f7-93a5-d76d4cd83ec2",
+		"f5a087bd-69b8-42da-8f40-b7cfb34cfcca",
+		"2b4ba7b5-ee5b-4b8e-84bd-81f5de34d531",
+		"2f5b82e1-fa91-4e3f-9fa9-e86d1459129c",
+		"c453770d-4b2d-494e-9c55-a8609ac6a1ab",
+		"5020e98e-96db-48c5-971e-6f30dfe0b6d1",
+		"41956eaf-82da-46c4-ae02-0953c3df5a58",
+		"3ffafe6c-7e5c-4eb4-915e-bff57e1b30b7",
+		"2e1a30c5-b1e0-4984-b3f4-67f01f9ebfef",
+		"dfd88cf0-cd02-4994-9de6-661f9aa71d3e",
+		"9327a424-72c1-413e-adbc-4a629e7056c5",
+		"8b12089f-b771-4c3f-bb6a-0a031d0c4201"
+	],
+	"ada5f2b1-8529-48bb-a596-717f75f5eacb": [ // ICA Facility
+		"579f2544-1970-4865-afa3-ad4566e5f98d",
+		"591d9d6e-bb96-42ff-b3bb-77dfcfe06fed",
+		"0e4c615e-e05d-492f-9e8a-08233aae000a",
+		"6bc805b4-e7df-46f1-ad37-deb8b3967e08",
+		"2e6aa26f-3ced-4fc9-ae69-c03b26a43c86",
+		"28b45a5f-1547-44cd-979c-d332cb711832",
+		"809fd7aa-c2df-4c91-bd5d-c3f2dd6c1c6a",
+		"ebf2643b-2281-49fa-8f71-d27e44461749",
+		"2de27dbe-1ae2-415c-8021-4764a08553cd",
+		"bc1145c9-6590-4d4a-83bf-be4b094746b4",
+		"d0676d52-7939-452f-a23a-fa61ed831b75",
+		"62877cf4-cfce-4356-aac9-4fa9cc8e3ca1",
+		"292d7a3f-4a4b-4e82-8e0a-8839ef5eef2b",
+		"4ed6ab6e-ea2f-4608-84c7-4df8ed8a9c9f",
+		"b942c2a5-99e5-46a7-a2b1-017ae56864cf",
+		"7b537e38-3806-4151-bc01-22ae25943410",
+		"288884c1-daed-449e-b925-69532eedf353",
+		"6d110ab1-d238-4309-b5b9-c51070c7e0d3",
+		"80535cb8-3e61-4f8b-986f-091f05858ed3",
+		"acb3c1af-70ab-4f63-9102-8f43ced8aa3e",
+		"7e2bb13f-b4b9-491a-b947-1e9281c1a438",
+		"9b7775ec-a2c8-43a4-9246-d7c48ca1603f",
+		"d854c63a-1526-49d6-91d7-af9374e6ecf6",
+		"3eb2003a-8d8d-4af1-b1c7-a7faa64c855e",
+		"d1261ad5-4167-4e5f-8c80-07c952a7c6ab",
+		"1ae712f6-af5f-4ef9-9a9d-94d56f67e72a",
+		"4b875822-ad53-4166-9326-ce3016713583",
+		"9f06a273-c273-439d-84ff-e55154bc7fb4",
+		"d5f37ab6-1053-4864-b691-17078d8917d1",
+		"46cfc165-dd78-4ce1-8b3e-6450f604912b",
+		"e36cb1fa-0cda-40ef-b210-01fc92544fae",
+		"52b251a1-eff5-4f0e-8939-8744f349993d",
+		"05913836-1acf-4c46-ac8a-ce71f9a2c539",
+		"c84f4ce0-5d60-465a-b9ee-2cb2c2b38682",
+		"70d3ca8f-0352-47f4-8ec0-d5f9eee90712",
+		"e1feb24c-d2b5-4656-ac05-507abc258800",
+		"39d5fb59-7b59-42ad-a7c9-a56eb8547993",
+		"b0e08b65-2688-4940-9899-ba9badf46ff5",
+		"a9cb64c3-e108-4b9f-a707-0ae86ba623e5",
+		"6d5bf7f7-56bb-4329-acbd-2c6f341f0d79",
+		"cdc645f1-7812-4f14-82dc-ba5ac478e0b6",
+		"e1186d27-0ff9-47a7-958c-e4b6b43fcfd4",
+		"f4405c5a-2943-466c-89f2-75d2b105cbe1",
+		"4016d88d-38a5-48bd-9b43-6b8b486e1c46",
+		"a0315056-f7d6-4a54-85ce-d944584cabd6",
+		"20d5b323-cca3-4b5e-b131-11544b528a9d"
+	],
+	"0d225edf-40cd-4f20-a30f-b62a373801d3": [ // Isle of Sgail
+		"04387b7a-25fa-4dec-baa0-eeff1d36ab11",
+		"42ee0ce3-52a3-4e44-b734-571eed236790",
+		"f3df8a98-3506-4f70-ba46-595ea2bca082",
+		"4279720e-584b-4fea-b4e4-29210e6b39b5",
+		"2de3e84f-4853-4d7a-abc0-bd4e005c71bd",
+		"1eb9ae12-b254-4220-884d-ea01c56e3fe7",
+		"f257bd7e-8b93-460e-8a6a-e04f34cd66b2",
+		"489dc73f-473b-44fe-ba8c-0e0ad2a63505",
+		"a354c8b0-96cf-473d-ba98-97d05aca4600",
+		"7e76ec25-d2b1-4c9e-a366-5200bd51e8c1",
+		"af6304e9-b594-45e6-85a1-f037afdf7b31",
+		"59bfeecd-1bdf-4320-bcf9-8cef6761e724",
+		"d3f945d1-0441-455a-b908-9cec675e55dc",
+		"f1f830a3-10a8-4c76-86bf-675f30fc50ec",
+		"b1264169-f85b-420b-9c4c-fbcfa1ad82c4",
+		"241c2efa-e82d-41bd-8d8e-0c3b3812c1f8",
+		"13138c81-4a15-4551-bcbe-e8a07e95644e",
+		"01a8b5ac-9afd-4ada-b7c7-566e2ed98638",
+		"4bf788a8-7a6b-4c6b-b5a9-803fb78be747",
+		"af51b8d7-a21d-4269-8f04-4a1ff4618968",
+		"93c49b7a-4d54-4dbe-adce-733fb61bf44e",
+		"7dd3c2f7-246b-44d1-82ad-d6adf6b11014",
+		"15f1e5fb-e859-452f-9214-35b81cf99724",
+		"e8573572-ce3f-465c-bf3c-c075c4099574",
+		"f56cf001-f048-4ff2-a00d-10b05f50c7f4",
+		"cb322cdc-9807-4f22-9843-02f3e1ad68fe",
+		"52332fdc-836f-415c-85c3-6252a45fd840",
+		"288d5983-26af-4205-bb86-3804035e6beb",
+		"ce9cb8a5-f3a1-4011-a4d6-5256f817ce84",
+		"0bf021e1-3f4d-4e2d-9c45-510600046022",
+		"4819b0b2-e6c8-4949-ad23-3ca13a95911c",
+		"c3314062-0810-44e1-a41c-e2b832277e6c",
+		"4ac38f5e-98b8-489c-b5d4-a1f02824a26e",
+		"ea42e6f7-2dcb-469e-9fd5-2343cb68dc1c",
+		"6bab9ce8-0938-407a-a1aa-d7d429a67bee",
+		"86309d95-f796-4360-8124-a60d71251407",
+		"bb774148-e1ba-43db-94ea-d7447f35f106",
+		"e696c9ce-4f40-457d-8bb3-cb148a60710e",
+		"0836d521-529b-4dcb-a1e0-2b7f395ec7ff",
+		"91e18b67-566b-4954-93d0-b3ebc4bb25cc",
+		"1e1ebb13-0e25-40dc-bc74-dbae6f56d117",
+		"17437f9e-73d5-466a-8307-31e412c86329",
+		"039ec176-54d9-4509-b23b-0f359820ca51",
+		"8ebb711c-7ae7-4b24-af92-afc4463c6653",
+		"323c2e9b-cced-45fa-bb7b-5815685cf8cd",
+		"a861e9ba-7447-4105-aa24-3d25d248da60",
+		"800219d9-e423-4aeb-85cc-7e33c17359f0",
+		"fb857b63-e229-4226-91a5-6fa4d936bf71",
+		"cbda8da2-d506-43e9-a5b6-e2d819e62bff",
+		"96b58d50-9b55-49bb-88a0-5719c1aa77e9",
+		"1c8c1221-e6d6-443f-b510-037209fcbacd",
+		"849253be-de45-4cce-94b4-be39d0d47988",
+		"e30c985f-8a62-42ad-8789-5bef7fc3a267",
+		"b0a1a462-652a-4189-b7cd-093b27e67b6c",
+		"1315da3c-b120-42e3-a71a-d264f97c92a5",
+		"ea6c07d4-7d18-418b-805c-d4b7c5a7ae4b",
+		"bdc07512-8164-4d2c-9c20-1b54c00ae7ae",
+		"026b737d-afed-4954-ab64-03e0106a7614",
+		"63298ea3-6842-44b4-9214-7ec210a9e4eb",
+		"b377b21f-8076-4767-a2de-4917a44dbde8",
+		"1886ac66-64fd-4dcf-b9a5-85e894a1148d",
+		"3a9dce4d-9798-429c-8dfa-a1181f393262",
+		"5ff088bc-8eb6-4487-a269-01693dc743ea",
+		"21f0345b-cf1a-42bd-b820-ca054c6c4a52",
+		"253afc1f-ecfe-4e47-a350-aa2948faa631",
+		"8e39a621-8bbd-43b4-badc-3d6e73e43fd8",
+		"5363ef6c-f6db-4e2d-a3fa-745e844f45d9",
+		"335f9d3f-59ba-40d6-b5e1-bc19b4f4efd1",
+		"22b3234d-74a2-42e4-ba0b-c45621388477",
+		"6eb98e3d-d548-47ae-bd52-555ef3e0a2be",
+		"b15d0232-d58e-4fa6-a1f9-e755f697d312",
+		"ef7c5071-0bb0-4a73-94cc-58561ace27d7",
+		"60dcb7af-65d6-4759-bb28-de176726b063",
+		"1c8396ee-a68e-498b-a000-479dc53ad2b1",
+		"f82ac3af-5af5-4f42-88e6-794d829f1e73",
+		"b1f951d0-45b4-438d-8874-61693b7e52da",
+		"c0641647-5979-47b2-b3d3-febb72c3bd7e",
+		"bc6da930-0bde-4442-bfe7-8a10a0b8df61",
+		"f7e68044-9d27-4e98-a70d-e654432ee6d0",
+		"92d1df2c-91ad-4588-b01f-5d0326732cee",
+		"db352d93-91fd-4415-b3d8-6493198c32e1",
+		"9518436e-aea9-48a6-abf4-a8365db0e6db",
+		"11c896f3-026c-4f0e-837e-3ef3033ea4eb",
+		"4a3b9902-cb00-4646-a096-ae899b3221e2",
+		"ed8b0a21-2225-4305-941f-efbf56142397",
+		"d202a589-7709-4462-93bc-6fad40a38720",
+		"28e398e6-e758-4a14-9851-a064a082b405",
+		"4aefde9f-7528-4f53-b85f-d4ddb204a9d4",
+		"8589b46b-911b-4a93-a5a3-b091639e0181",
+		"5cb87a25-3b0f-4a12-b338-228ea9e7a662",
+		"435c2a04-3512-4b6f-823e-bdbc92f68c05",
+		"e570b688-c43f-4af0-aed4-790703f32086",
+		"b0859d4b-33ca-4549-b58f-d21d8e00c427",
+		"9880423a-15ff-4c98-8a69-969670a6bb4e",
+		"3506b63f-1064-4426-bcd5-8d3d6bd63bac",
+		"582816e6-4453-4ad4-b51c-857a5f8d4307",
+		"71f9d863-21b4-4a22-9605-281442d979e0",
+		"424a5acc-8897-40f8-87cf-fb62e6323cab",
+		"17ac6964-c845-4ec7-bfa5-c22bcb2d3cd4",
+		"cc04e99b-ede0-4996-9c7d-bb3d698a4b27",
+		"9f4e98e6-e647-491a-b0eb-c0398c43937a",
+		"e745bb16-2be6-4f8b-a8eb-57cf924fca2e",
+		"22498e9c-709f-4375-a80b-5239a4727417",
+		"ded6e4d0-aac2-42c0-bf94-4c4e7262093e",
+		"fd663e03-2146-4b4f-93ff-3836bc1c05b8",
+		"d3ec9639-f90e-40ca-af42-41f2a9c722a3",
+		"1e457971-77f1-45f1-8219-f55ee3d8c5f7",
+		"4f5df86e-7b80-40da-878b-1e141f3d125c",
+		"8daaae5c-3218-4909-8584-f3efa32bf2ac",
+		"49fe8094-f5de-479f-bf6e-59f941889334",
+		"f876a75a-2a06-4aea-b0d0-1de8224ee168",
+		"74e64369-3dda-48c4-a6a0-a1f625ede04f",
+		"3d4a2276-afcb-4fbd-81f1-441988e0f816",
+		"dbd34af6-a009-494d-8ca0-a32e807a0cb3",
+		"76dcfbc8-4373-4694-96aa-c6944707cc69",
+		"ef2afb1b-5f45-4b4a-9b19-35d95de52c58",
+		"d300f765-ef35-486f-9121-908c2938d68f",
+		"d50c9160-8b55-4ac1-8ffd-302ab20464e6",
+		"2f43e5b5-04e5-4ee1-98b5-06a49f0c9d4f",
+		"6c142818-98e5-4c69-899d-32418fa26639",
+		"95d153cd-6cef-40b1-8041-5463a001b1fb",
+		"3ef908f2-009d-4931-9642-8f5f68021f15",
+		"4d17aa36-0733-402f-ad27-119b27e8da75",
+		"c8946ba7-283f-4d0c-88b6-65b27c762a27",
+		"ceb45204-2d92-41ba-9994-5a4f7da42f8e",
+		"0c24d05b-ed38-49d8-a120-0d835a87a40d",
+		"93d82ff0-6cb4-43bb-9dd8-16f03011ccf5",
+		"c09063be-4a19-4a9c-8b13-35c0c97cb6ec",
+		"e4028515-b744-4143-959c-66800b6a96cb",
+		"adfcb729-dfc0-49ed-9ea0-41bc4b2ff885",
+		"183b5d86-0363-49a8-b062-d7eee47f6722",
+		"0bcfaa18-66ca-4f98-9639-d5eebce519bb",
+		"f9f78653-9116-4c58-82ea-c0abe9a3a705",
+		"4c6bc7b4-265f-49be-ad90-cb693300a235",
+		"68c062fc-3ee4-471e-ac55-d97b4ec2a739",
+		"6ede24eb-50e4-4633-ae71-65de2db1e245",
+		"c1e1c7df-d3e7-4e33-ab2b-36701dcf965b",
+		"e95e81de-cc5c-4538-a2ac-fc6345b0ce4c",
+		"67f7cf8d-36e1-4c7b-a3b6-55be25b4ae2d",
+		"34ef505e-a849-49fd-bbb6-7c6c64883059",
+		"6e6787af-f652-4f6d-89a1-d20ade362d88",
+		"ea8c866a-a4a7-4eaa-bb00-f605391d5951",
+		"83f9230d-e096-4030-968b-53712f8502b2",
+		"da7a9988-84e6-4d5b-9a46-40a7f615f1cc",
+		"01c89fc6-74b3-4e65-afd9-a6a0f9a59fab",
+		"9789b2fe-b61f-402d-9b5e-f7ac830f6074",
+		"29d714f2-3caf-4253-a9df-8b47e0b2b9be",
+		"f58711ae-1c69-4e22-a71a-8c54044066af",
+		"007af81d-596b-47bb-b60e-7d93db4b0276",
+		"f0dd8f79-6e85-4649-86cf-5f0f4b0af88a",
+		"7b90889f-7d94-4b34-9e03-39e822c597de",
+		"3ded1a4e-914a-4cde-abe6-e9cd8fddeb0f",
+		"bc81b151-d185-4737-9f47-22ab33cd94f5",
+		"1c00525f-cd44-49fa-aff8-c70d2388f031",
+		"b549bc14-ce14-445d-9278-ec27f19ff342",
+		"cd08925f-e27b-4f85-be1a-a2abb0da7034",
+		"51c35c7a-bbd6-4d42-897f-8df42a79268a",
+		"489391c9-ca01-489b-90d0-9b3e8d87556d",
+		"558ee5ef-e82c-4f4f-a0d8-56522b4a6d4f",
+		"03d87e5e-6a58-4044-9be9-971995ab6c5e",
+		"9e34f272-9762-49bb-a272-0a2b8c605e4c",
+		"931242d7-04f9-466b-9f2f-0ea1b068b3a6",
+		"0c775f9b-97a4-4805-a1cc-d1a82dee8fe1",
+		"b42ecffe-aca9-4c3d-964f-052c957c588d",
+		"f81d35a7-3abe-491b-a2db-c4de50d25ad7",
+		"6f3982d1-788a-43e0-9077-3a214dcab30e",
+		"c42821d6-d892-4a3e-8160-27fb1dd140b3",
+		"8a223c38-6ce6-46ba-a34a-460cf46b78e9",
+		"51a0b47f-9bca-4880-9a1b-0ef158a17c5d",
+		"f13b7ce3-dcca-4b99-856e-eb2c60fdd54a",
+		"1202735a-0216-4305-ad76-ab59e469561f",
+		"f5273e73-5962-4c9d-a69d-e4b0ca0a8fe9",
+		"1e9ea531-258b-49cb-90df-cac89a3863a1",
+		"97117ddf-ee5b-429e-a0f8-a5953a9aed78",
+		"9f572508-df0a-46de-be6d-1e0a5ec4d2bc",
+		"b5d5dd3f-3000-4675-87d4-7c3886f2e84f",
+		"60766c88-6047-43f9-a8ab-301881b46e95",
+		"ab0541c5-5c31-4908-9d4d-80b2ebf7cb02",
+		"0efc4f47-23c4-453e-986d-036df65a57ef",
+		"e2ee4298-30d8-45c5-9d2e-d676b1ca41f3",
+		"59cc5a57-a2cc-4081-b5a3-041803864335",
+		"01115db7-3111-4a4a-a83f-a553a4276ff2",
+		"ad71fe20-3c90-4486-a79e-42e33071fbbe",
+		"e8acedeb-71f0-43c7-adf6-50c28325579a",
+		"fe87fd4f-5bb5-40c5-b04b-df1fccaf4a6f",
+		"16d905ea-faa1-411c-a0c2-96e5ca09fb6a",
+		"668e42ed-1858-45c8-897f-571acd810360",
+		"83ca4a55-9dbc-404f-8459-cb831ff2141b",
+		"aed9d066-0859-4a9d-8f1d-64bc929a110b",
+		"7c184d8d-8767-4730-a1a4-a35c0b31fcf9",
+		"32d3a44a-0afe-44cb-81b5-b2d5dfa319b2",
+		"debfe256-1636-4e4b-9497-f3a46d6def8a",
+		"48474fdc-57d8-4c46-bb6c-b10a7b68a661",
+		"ee356512-496e-4a09-9714-2b383027a5c7",
+		"36a104e6-c271-4072-bddc-f663d5dde5df",
+		"4d8544b5-038b-4019-938c-9f0d3068af2d",
+		"0956875a-5c5c-4e77-8d81-7448b8618cdd",
+		"b502805b-59d2-4f5d-9ea4-a4c7326a81bf",
+		"621e1bcc-62ce-41ee-9311-d9f5d1c0bc01",
+		"ecd8df47-ad23-44b3-ac3a-1d2f6703b542",
+		"d7984db1-19a2-4d8b-b2b1-b1d9d375016c",
+		"52cfd5fd-b9b9-454a-8c7c-8a218501d3b4",
+		"5469b8b8-518c-47da-9fd8-01df9583e0f3",
+		"4010dbe2-502e-45dc-8dac-fbb8fb620c91",
+		"1c2bae00-6e88-4015-ae0f-d24f39058649",
+		"e9f1bae7-d8bc-4e6d-9d51-cace751c2382",
+		"533d8c2d-6b19-4b4f-ab69-30a41e74f3d8",
+		"c12999f2-f15e-4f60-9d7f-025a216feb82",
+		"3bb0a157-bc18-4ab1-84e9-140d048dc2f1",
+		"5e767a0a-0f1f-4dab-83f5-38e49726950c",
+		"f0568e33-8bb4-4952-b516-3272be71ee62",
+		"67f39ab8-c25f-48c3-84be-0ec495a553ec",
+		"9c07936b-a3c9-4e35-acaa-62747ebc28ae",
+		"3aa4fe47-d6b0-4aa0-b282-f689e59d4ded",
+		"fb336f46-add8-497b-87f4-fee8d7c1035c",
+		"2d3197f2-599c-49e6-95e5-90bca1f3f83f",
+		"fc9b6bd5-71fe-491f-aae5-d36d87105575",
+		"e4ae82a5-24ac-4b2f-85c0-9fd735a53543",
+		"a3a87b62-99b5-45e4-8b55-bd2402c0023b",
+		"7a720096-f14b-434a-8d4b-59456ca68ee7",
+		"08e9c5b1-ce92-4b9d-b1b3-8dd2a3e4a594",
+		"0a32fa85-b92a-4b25-8a31-6a67af7e0bc0",
+		"234015b3-0a38-401e-80c4-aa57c4a94ed6",
+		"41cf80a2-8caf-4a7e-8603-f8d5a223c404",
+		"735126ad-2961-468f-a617-aa90ac46b601",
+		"bbea1a6a-fb3c-44b5-b8e6-2f8fc9080ed0",
+		"ebd66e2d-5e6f-407e-8b40-c38c363e983b",
+		"eeaeeee3-87cb-4a04-b537-ceeff27d45d3",
+		"25970bd6-e620-4f79-9307-c82a7da6e26b",
+		"d05e354d-6ff7-45f3-af27-952bf557c9e2",
+		"fe8218c9-a387-4bb4-b349-1c8412506055",
+		"e0b6cb9a-92eb-4e49-a758-400e5f4a3e14",
+		"8bdb5800-70dd-495e-acab-1964d1fcff84",
+		"22c67988-8406-4471-b417-cf49264664eb",
+		"04613fe9-7702-4e7f-8feb-afd0c33f45a2",
+		"059fedbc-b098-4580-9066-10ec5ae7ea6d",
+		"8c577ecd-dfe0-48bb-bc46-4eb79ec430f6",
+		"bc505eb5-8f28-4863-afb0-28a2cca9884a",
+		"f5c711db-6fd3-41df-9a50-bfbf897c46bb",
+		"2ad879c7-4692-4a54-ae30-012450d9e18d",
+		"08a5547a-fd8d-415c-b9f9-6c492bd95b7b",
+		"03ad9aec-d7aa-430b-9655-2516a80b7813",
+		"dabe2cd4-3760-41b9-bf93-e2a81e7931f6",
+		"61b68604-83da-482f-8e0b-285e2c254c45",
+		"a86b51f9-cce4-410e-b4f7-dff3b7e1b511",
+		"7f41f6cc-629e-4369-a009-49ee77a14a46",
+		"64e74014-4ae1-49ce-97b5-c79267a20162",
+		"a2043357-cf17-4580-9924-000631df8dcc",
+		"2e400ea7-982d-44d8-a281-faf58c5ffb46",
+		"6066469e-1b6f-47df-afcf-ec6e6baa9d53",
+		"79e64736-8f6c-4cf0-9f5e-607c44de6fdd",
+		"2b940402-8cf5-462d-9c95-8f0f98f416a8",
+		"faa39283-d9de-44b5-9451-1b2e72ab3274",
+		"a25391c4-a37b-4531-90d4-0af209e7ae83",
+		"33555c77-363d-41fa-a36f-df72c16f95b7",
+		"279b96f9-070d-48fa-9515-2ba591847511",
+		"3f335767-12e8-4c49-8e86-5a78498e0275",
+		"ab66b3bf-d723-4819-8b67-1223c287901d",
+		"e3625251-db99-4415-bb33-c2a928c2c1f8",
+		"e0efd866-2a02-4d03-816d-4dd7dfeec2ed",
+		"8b33ce0d-20cf-4205-8fa6-0e9552c1d662",
+		"7380f916-bdd0-4173-a21d-459f03f30f1b",
+		"4a3a2639-08c3-4316-adfd-76a92a318c50",
+		"88382779-1275-493b-b80c-42f035a816c0",
+		"8d276a99-09f9-443e-906f-eb74db460644",
+		"4bc038ca-716d-4982-9557-fb931d047b07",
+		"29a8f83b-8c0d-4f45-a104-0c848b4ca2b6",
+		"b1aee682-b032-41bb-8e49-42f8624a37ca",
+		"55143784-a718-44e5-af05-a284fa8ed19b",
+		"3cccfd71-5978-4571-8dda-3c79f10423dc",
+		"4afe3274-b283-451f-84be-08d46f5dac9e",
+		"577a77ba-a705-463f-9a51-7490ec9625e2",
+		"4b0fd816-63e0-44a9-b9f5-069ecc85c31e",
+		"0a5a934a-2357-4de7-87d8-6c6aac606a28",
+		"38253678-92ae-438b-ab73-300cc5373553",
+		"67152d4f-cf55-45be-b2d9-7c73ddd9fb5c",
+		"8ee156a6-0848-4f79-89d4-a28db5c4154f",
+		"71d1f428-f261-495c-ad86-7c98caca7273",
+		"a45d83b0-0388-4f9b-9d3e-20cf2727cd6e",
+		"7eb39f2d-1030-44d2-be82-6df608085ec0",
+		"fdc6949b-f7a9-4fa2-bc23-c0a6be1b0e8d",
+		"263caedd-07b7-4080-95de-229f464cafee",
+		"8c39db8a-7530-4410-9ccc-0b5c3d41ca56",
+		"cba10dd2-6189-4e2c-bb9e-559bfd073a6b",
+		"a3b7bd9c-b28f-490f-ab64-d5d4a1268e56",
+		"5a5d5f5e-5b88-4bfc-b809-838ecc0dc84f",
+		"702e7077-2629-47d2-a212-6f450b179939",
+		"5519eb1d-e76e-45dc-81ee-3f1868ee1913",
+		"11bfc89b-86de-4097-80f0-3f3b71864902",
+		"ec865186-e250-4d28-a733-8e17d474cce8",
+		"d80d1187-66c7-4154-a00b-cd5c06b70753",
+		"6b5eb0b9-a16c-49e5-ab83-cd4aa0c45b52",
+		"d4623770-e77c-445a-bade-5978b37e6fe9",
+		"cb54d26b-f2d3-4b23-b19e-2a410a15ad0f",
+		"4dbc5784-a413-4446-bdd7-f7f8fd146690",
+		"758bfd07-7df8-44f2-bb1f-3b7b54d84089",
+		"7d99771f-9c96-48ee-9d28-218c6a21778b",
+		"440da024-6f35-4238-90e3-c66b9bda5f71",
+		"77e40b86-60b4-4f44-87e2-d00611d44aec",
+		"60402abf-6878-4fce-b554-5703151246c2",
+		"f9a89986-f677-4da2-99e9-c7b74c60dd9d",
+		"6c821ceb-43f9-49a7-b133-5175c149e859",
+		"f8046954-61a3-49da-8909-374c45ec10c7",
+		"42e2440b-c866-4afe-9552-d681ac232dce",
+		"3e865ee7-dac9-4f3e-913f-584af1aa2c72",
+		"5e429964-5dbe-40e2-82f7-459973641158",
+		"318b5e9c-9dbb-4283-bf40-19630672162f",
+		"cdbc8c5d-166f-4db4-be21-db919065f5a3",
+		"3a6c4581-f378-41bd-8828-592317582c9a",
+		"e82d4acb-9ca6-45ba-b8ca-72b8c9fc75a4",
+		"577aebd9-a14d-41f9-b2a7-d4e3be7fcf14",
+		"cc5f1b73-d056-4aaa-adcc-98dc0673a4f1",
+		"719fffe0-2444-4af7-a5b0-28a2286ce543",
+		"2050a38d-755f-4993-9b27-653f479e4575",
+		"58255863-6c6e-4f04-87b7-80f47925a957",
+		"0d108b6b-c308-44f6-80be-ddaddca2ca12",
+		"756fc97e-c31a-4f7b-bb13-05f005fd1366",
+		"2f4d628b-c70a-4218-935d-63cbbadf3356",
+		"deb93f61-a6c2-4691-8524-1353510483c4",
+		"764b295e-c3d5-40b9-a434-ecd0a301fdd6",
+		"c146a016-8667-4b6a-beab-1640e6f81cda",
+		"7adaa588-74b3-4e3f-83c1-5539f3548fbf",
+		"cc910e73-37d1-451b-b861-38c09f6eed5d",
+		"4aca6d0b-eb2f-43a7-bb69-4ef03e4e4b01",
+		"a1d4a37f-fa46-4c9b-a0c1-e0836dbc56a9",
+		"ce59af9c-f07d-45bd-9bb7-d1956a12d823",
+		"d0ca45fa-9795-41c0-9abf-bbbbb8b714e8",
+		"fb566888-9783-4b4c-87c0-9a5827108a9d",
+		"7da7595f-0309-45ee-9f8e-48abffde613d",
+		"c96fddae-9b75-4d34-b89c-7aa3f8f7831b",
+		"46c012f0-129f-46c6-88dc-c08ae10a1b61",
+		"9d32d303-aa5a-4f8a-a4a8-0f6e27f4ce41",
+		"e5aad86e-d2e7-4a08-971d-29dcb527132c",
+		"65885717-b540-4cf4-afbb-641f6e08c44a",
+		"f668e2b2-95fc-4ce2-b42e-1d63c69bfcab",
+		"8895dcdb-44a2-4958-b4bb-89e3943958fe",
+		"179d8081-598a-400e-b05a-46b51d00e5e1",
+		"6ce8ef16-9fa9-4408-8be4-16a067766ac1",
+		"823b6821-4f5b-45ef-9db5-e73a9ba99834",
+		"865b2556-e9ed-46c2-bb9e-ebd94e27fbcd",
+		"f7922ce7-9c28-4d66-994b-5b7562ee1bb5",
+		"bb50b14c-53cf-479e-80ad-666e6657c5bd",
+		"2d5adc87-7c0b-4e0a-8140-93bfb372e42d",
+		"f57b5298-579e-45b7-b530-939bebba2731",
+		"1f3bb321-2a51-49f7-8287-725035a83ce5",
+		"e7874f9e-2d0d-4216-9964-5f17cbe4bc5f",
+		"56e6ee80-e888-4501-9d6d-0ea304b41b40",
+		"b716a116-00ed-4ee0-adbf-ade1799b8a3f",
+		"0301b47b-f8ac-4777-9a79-680dedb6ea4f",
+		"b1c27190-d14e-4962-81a5-9e9a670607f9",
+		"9bceceff-591c-4a33-af99-8d9fe3a92043",
+		"242ea195-afa9-4fad-b28a-b499a35f67d7",
+		"77fd4297-ce65-404e-8796-d228b68efc78",
+		"fddb2a2f-9710-4676-aa04-5acee82dbc5b",
+		"543aa136-c28a-41c4-918b-f75702fd06b5",
+		"daf28403-0256-4431-9180-8425ae03a736",
+		"1d4f6e99-9683-4fa0-b3ea-f4d680428871",
+		"d7b35270-1558-407e-bb39-b58e8ef53503",
+		"34182928-7362-40e9-8b99-109b4092ad39",
+		"20b4fe64-5751-4476-969b-c0221669f4ab",
+		"502ed111-4a76-4e59-a8db-915fa7230c80",
+		"9779c66d-7bad-4856-a65b-1feb4127785f",
+		"2a4015b6-5d6b-4578-b8f9-20ce29c7cb4d",
+		"05a12d4c-a8ea-4792-952a-4a7ae4a7dbf4",
+		"3ceda305-7513-45bf-8493-5f17454634d4"
+	],
+	"00000000-0000-0000-0000-000000000400": [ // Marrakesh
+		"ca31c88f-d15e-407b-8407-231f1b068402",
+		"b38b0b62-8071-4761-b2a5-2f635cd8da1b",
+		"dded0aca-273b-4db8-8cc8-dd9f6a36a1df",
+		"67e17cc4-7609-4ed6-aa17-8bcdb80ca640",
+		"e450889e-1e00-42bf-937f-6b1520af01a7",
+		"32fec88b-b82d-4510-b290-09b392592635",
+		"8e4f8b38-5953-429d-9f3a-2deb17e5f8f9",
+		"ccf44a09-2819-4c55-87c5-2a64b29b375a",
+		"901c43cf-a7ef-4327-9cec-b8e9fbe3705b",
+		"f0bc270e-cb1e-4037-8f1d-5d6be3bf002f",
+		"446b26c9-f218-4374-ad13-9780a60e0bb5",
+		"08b0cd8c-381e-463e-948a-781efafd01d8",
+		"aa8c2e81-d16d-4559-93d2-428477f7a4c5",
+		"536c51ac-2c2f-45f7-b815-a9ffe83df8bf",
+		"be9c0705-c092-4913-a995-f2a66a499606",
+		"3de8a3d1-71f4-4833-a88d-912eb97e7ff8",
+		"d68412ac-38e6-46b2-af10-d7d3e7f3608a",
+		"2a9ac690-b61d-4b03-976a-603ba186fdb5",
+		"0c1815f9-63a7-407f-aaa1-7170e7732477",
+		"2c3b49db-7810-498c-a906-4746f4c778be",
+		"46574190-8015-4dac-907e-06ca41227e9a",
+		"d39a4a8b-e7c7-4c84-8bba-d87beaf9784f",
+		"c5df1361-1395-4631-8696-03b6b4e4637f",
+		"e563313d-185a-459d-8e84-bff09495eb5a",
+		"bb77e9af-2e2d-47d0-895c-b12915dc3cbf",
+		"3ef0876d-50c9-4f83-a0dd-fbf7f8e7174d",
+		"88b9d879-d5b7-4f40-be5a-a872ad975428",
+		"db6619f7-61f0-4303-94a8-c6b4c93c73b9",
+		"225d60db-0150-41b1-aec1-fceb1896d9c4",
+		"4c6bf2bf-3924-49ba-95ba-b69e3cf2ad27",
+		"3a73412e-81e0-42a1-a9b5-d59501e04ae2",
+		"199c898c-cf64-4cf9-90e9-6bf441e37650",
+		"6d00ef24-fa24-4139-b33a-a721e4390c5c",
+		"aa4152e3-120d-478c-b88c-a6bb1024ea65",
+		"82a9265a-0311-45fe-803f-89f25de6ea4e",
+		"eb9dd388-e881-431f-81d0-eca3fcfcfd59",
+		"a9ff7ef9-1adb-4873-9724-e6ea9ecea5e6",
+		"d050ebf5-c564-4cee-afeb-b1b37188b598",
+		"169fc45a-470a-4fab-a7e9-28e4eff2e584",
+		"83827c9d-8510-4ca1-a6cb-71b79200b0bd",
+		"7d58dcb0-7c1c-49e4-8f94-753354ad4c24",
+		"321fd25f-42ab-4720-bfe3-fcd53949a0ab",
+		"e767f471-81dc-44e0-8375-cee50c5e8bf8",
+		"c51e4bc9-7b4a-4618-be00-3021fa49ced9",
+		"c31d6dcb-230b-4b8e-b3f0-739330f127e8",
+		"fee8c307-47f1-47d9-857f-2397e3d79863",
+		"98b9c81e-5ce8-42f7-967a-e7920176ddc8",
+		"a7c0d285-1a9f-4744-bb95-c64749e24ae5",
+		"47e301d5-e089-4635-8293-b8a1fa69c879",
+		"32048b5a-3904-48c8-85d0-409bd1be11ad",
+		"85a40c77-353c-4862-9578-438717d610dc",
+		"09325b9d-b7eb-45fd-be68-46c4ac8118aa",
+		"7213bf63-8d17-42f7-b448-f28cf2270cfb",
+		"0db6c6a4-01ce-4108-b91c-5144759087a3",
+		"d9da6974-7d10-48de-97b7-8ae0b122cd96",
+		"9c285739-cc51-4b62-be79-05c5a8710c8f",
+		"c2b063d3-6fcd-42fc-b6d1-287657d95ad9",
+		"20fe3a6e-2274-4098-9247-91a74c8fe03f",
+		"d4b69b28-d096-47d8-ad11-b52b726364bb",
+		"1dc63596-1b90-44c1-8da0-17cd50cc76d4",
+		"b274e60e-0aae-4c3f-bfdd-9db8f9e83d10",
+		"766853cd-b505-40d2-a0e7-0ca5b560b2a2",
+		"59b24c7f-e8d2-457a-a1b5-988aeec84480",
+		"3f4e86f2-0467-4386-b1c9-6e3c0ee323e4",
+		"3dda752f-4c88-4b55-99aa-7a51b84c769f",
+		"2804cb5a-c5cc-435b-a451-a3202f4f3181",
+		"33eb89b8-5f61-426d-b660-69b54b33a93b",
+		"d151696c-278d-4c88-8f43-eabe9af4d569",
+		"4284f812-ebc1-4c85-bbeb-06072d0db800",
+		"96870731-7c5c-4991-9672-189e7df924c0",
+		"1636b04a-e6c1-4713-8723-31e2fae629db",
+		"a79a724d-739b-4d34-9b02-f9551ec5fc33",
+		"3b3a9321-49b0-44c8-aa92-5de361633b22",
+		"2723322b-4986-440b-a079-68e28f0b1a41",
+		"58fb569e-711d-4457-8115-841e4acd14db",
+		"a4f83b41-7d59-4692-aceb-3f158b49c267",
+		"0721cdca-65b2-4626-8201-b47c6a9a87e5",
+		"3b947da5-9d09-46e0-9601-2485eda0f7cb",
+		"bb6b48d8-d032-4c93-9504-1408de2c972f",
+		"bd50ed3e-cd7d-4b10-baf1-eee3271a94e6",
+		"6b361407-9f8c-48d5-8169-2e9cabd9e3a5",
+		"0c37003c-8890-4216-9a31-45bede4b73de",
+		"9fcd83f6-2718-4926-8d3f-1b84b913c7ce",
+		"f815d8ee-8374-4fb4-b911-e79f92cc4062",
+		"fbc01079-8c4a-4213-84ca-c5f8629774eb",
+		"b0eef857-d6db-4a75-a5f0-8912d4272e77",
+		"7d107128-ceb9-4d41-ad0f-e906b4d40dfc",
+		"4c27d155-7678-4bf1-8ecb-183c75b3f512",
+		"8df7debb-1ed9-460b-bebd-7169c8d9d018",
+		"c09bb5ba-562c-44d1-8288-495f9ea44fcf",
+		"4a5023f9-eba4-4e87-ae89-963963f24f0f",
+		"df531ff3-8cc0-425f-b773-158fa6c01b66",
+		"0906e2ad-d1b7-45ac-ab31-a96c9d0430c1",
+		"d488c3a9-1e74-4704-a852-207b9b881e0e",
+		"8d902cd0-2f8b-4547-bb14-9d8c8f467aa8",
+		"c6349ef4-7fda-4155-99b7-82f45fa444fd",
+		"30f343fa-a435-454a-9b44-9c2d1e3d40b5",
+		"85b69c33-75dd-4680-af20-e93d80c9457c",
+		"62d3cd6f-b369-4b63-9940-ca39863eeb62",
+		"9171aeb1-258a-404f-8f0d-3e1d8ef1d40b",
+		"07873556-fec4-42e6-8efe-692bb459969b",
+		"72c2ee90-b453-477e-b92e-1a80a1bc6ec4",
+		"b914ec7f-041d-4779-b985-2fd79a03237b",
+		"f54a682c-4931-49d6-b586-d28f2b37fcc9",
+		"1aa0a3ce-2b65-4edb-8c6c-315f4558d05e",
+		"5e510aeb-7959-4551-aafa-8aab3bc24a3e",
+		"a56e482e-7e67-4f87-b14b-0d7efb96d1f2",
+		"09a85534-1035-43e6-bf68-39eef02278a6",
+		"fd320180-6a50-48af-8708-3f83ece64493",
+		"45463b89-0bda-408c-99be-698e1028c24c",
+		"d1a748cb-a9de-4c66-9711-3dd4f71fc483",
+		"70579a09-5938-42fd-b9de-53002cc2f422",
+		"74c99b73-3d45-4c37-b68c-600022714d43",
+		"6a6ad790-e080-4e26-bede-600824cdfcb4",
+		"b542b0fe-36d2-4cde-88ff-345acf95909c",
+		"26afdfb7-a026-4a0c-b49d-c698bedac6db",
+		"32c17cd4-9048-4d80-ad9d-9b0767b3ab6e",
+		"fa2a6cc2-870a-48b8-93ee-3dc331085613",
+		"ccac5896-6640-4929-b5db-028a7f2ef578",
+		"a37f4050-4f4d-4bd7-92bf-6c463ab243a9",
+		"4edc1667-0b3a-42c8-8ac2-09e0b179d263",
+		"2e1aba0c-a52d-4531-b7f5-41b9c6d11044",
+		"35b63603-d84c-4e28-aded-85ceb6a0b27f",
+		"cf444b72-dcba-4fe8-a260-937df0428c4c",
+		"17f3cba2-5075-40bd-b51c-3b7a4c21d728",
+		"bf527524-ca7a-4f65-80a9-8ec92c97409e",
+		"c01a0e31-2e51-4f35-967b-1a8ef6491d41",
+		"412a0063-cdee-42f9-9301-bedf253de39a",
+		"d9d7f7d2-534a-4f3a-bef6-5bc45019307b",
+		"a35845bf-5004-47c0-a78f-cf0885c95f0b",
+		"441619df-c52b-4272-b71e-6c289e435c68",
+		"278424d0-5d1b-499f-9aae-11b4c647983f",
+		"9a3b58b7-a52d-4174-8e12-c5a819ae8096",
+		"2f647ee4-f1f7-4a37-919f-edbb9631820d",
+		"f309fb59-017d-42e6-8f54-742182763e2e",
+		"727d4aa7-b896-47fe-b0b6-c59926a68ad6",
+		"bd89eeac-e60c-4e53-9a87-2f359e04477f",
+		"da8ecf18-dcfc-4b98-a01a-b98dfe206244",
+		"97d788e3-00e6-4cac-8322-59515eb1b66c",
+		"80ebf6f8-7b8d-42e9-84b0-fa68bc27d4cf",
+		"62cc634c-e454-4bb5-bd0c-5042c7428493",
+		"212a9df2-c335-4418-93b2-9f43370d0876",
+		"4a4fde16-42e9-4c63-b3f0-8b205b945022",
+		"45973cdb-bdcb-4410-bae2-a3cdff2cf467",
+		"2871adca-e389-4c87-9672-b2537c3441e9",
+		"48804831-7a28-4997-99fe-96dcbd372f4d",
+		"7b010c85-8fe9-4eff-b2b8-a2c58af802e3",
+		"163397ee-b837-43ef-9ef1-cb19f180d4ea",
+		"f60f49d6-9fca-41b1-9517-4bcfe42bf705",
+		"b859425e-91f2-4589-acfd-60a461cb90e7",
+		"1e142575-830c-4e58-8bdb-8d39b613e406",
+		"2666a829-bd29-44ce-96de-8189eb0ed02b",
+		"82731283-2d66-439e-a137-2032eb515742",
+		"debf759f-42c0-40fa-84d1-55fc54e7040f",
+		"ea3565ee-575c-4cd1-aee9-7995324b8ab7",
+		"a55a056b-e5e5-452c-aa75-c5edfc1b73f5",
+		"f7d0d81b-a16e-481e-89aa-d7e86a564d4c",
+		"b9b7aa8a-d50e-4aef-91be-6b50f8b96278",
+		"4b882572-607e-42f8-9bd2-956d9826ea8e",
+		"bde03d80-643e-4e68-9500-00b2fbe8b137",
+		"893576e1-65f5-4110-8239-648629b526a9",
+		"b43d4448-7ef3-46e2-9508-30fb5ddad8c0",
+		"b6a59f22-e46c-43dc-9370-5953e5e33b78",
+		"c2c93fe4-3ae8-4598-b4e5-838c44ae86da",
+		"8c4ab97e-da32-497a-b857-e5a4f0407245",
+		"0148caef-c70f-4e5c-b7c4-2381cf35c76e",
+		"ad482f31-033c-4d89-9db2-3c2ba22f7351",
+		"b4f5c2f0-c905-4ad5-b3fb-2494c269457f",
+		"9806dd7c-0126-4549-8ea1-1f38b29af9b3",
+		"3d63160b-1533-4916-b680-8eaeb5e6eec7",
+		"166a9a6d-9e01-43f3-a587-877b837d4128",
+		"c723ff5e-af25-437b-b0f5-0fd68260411e",
+		"21ed57c0-193b-4eb2-89bd-af9cd7885482",
+		"d131cc85-e73e-42e1-b200-eb1544dac5c5",
+		"089a94f3-043d-41ee-819f-d04a98c29a06",
+		"954593b4-40ee-4a90-a8ac-0990948a260d",
+		"5172ee26-142b-40e3-8118-ec96d7d9a65a",
+		"45046047-cc5f-4ac5-b673-b70317858878",
+		"b35bfdce-0efb-4b68-8349-b39837df41bb",
+		"f360a37c-1b36-4344-912d-a26e0ad3afde",
+		"85c7bc34-3d25-436f-8400-c0017503b171",
+		"dfad7656-dea5-4597-ac86-be6151a88ce8",
+		"95b12282-2e79-48de-8479-7844bc765110",
+		"f35bf610-b6e0-498b-ac51-b6c1908d2155",
+		"ea66f187-f2f0-4024-a253-daba8e851675",
+		"3839e984-ef49-412d-a49b-48aecda60739",
+		"360e7958-e16a-43a9-bc7e-b0365a1e2374",
+		"33422a18-9ed1-4d43-9fdf-da7e7193e0d9",
+		"57ba9bd6-f453-43b0-ac49-abd4929e2a3f",
+		"3eddacfd-1d2b-4619-b486-a7cdf05f2897",
+		"fb1fadec-a4e3-43ea-9ba7-9a3f98ab1ef0",
+		"02f82ead-3484-4dd6-bd78-1fdd4395fa84",
+		"9eaedab6-9550-4f62-8a6e-94f628eea16a",
+		"b707050a-9ed5-41d6-b5e7-ee33e13b49e4",
+		"4305b036-2cc2-4afa-9848-99a982d6129d",
+		"830496e8-d1e8-4f63-856e-d258785c9fcc",
+		"f7a8a179-d33d-482e-b504-5956668bebe5",
+		"1ef4fcd5-a721-4fc0-8fd0-2892c86ea707",
+		"a9ae6309-f84e-44eb-932f-ba6bc152e8ee",
+		"e28cf7b7-b26a-4c7c-8c01-424d46057b14",
+		"e6e41d63-4821-49a1-b951-1faf49851ddf",
+		"53a870dc-1c5d-4c5e-b777-2a1869fdae67",
+		"9ee25107-46b2-4cfa-a3e0-bf752bc4cd8e",
+		"92d31496-455b-43e5-be30-699d169cac6d",
+		"e324d6f5-add5-42c2-9e6a-265d64875b0c",
+		"18bd15f9-dc81-4783-9dde-c005abec7198",
+		"00179aa0-8f52-4230-b5e7-0f4cc7031b70",
+		"dc405f71-4a78-4f46-aa7e-0e509a35d6c2",
+		"226803de-2caa-4e50-84f9-d6feed6f12d4",
+		"becd57ab-8577-48c5-94bc-78a4a8c07480",
+		"c4438add-45e4-4580-90d6-ff03beda89bb",
+		"cd8cc169-84db-45ae-a8ca-c5c4062e9fde",
+		"a3b79fd5-4f6d-435b-92db-5ca2809c5c75",
+		"a29ac225-b9bf-4174-9ffd-ba50148a805e",
+		"5e2739b7-360b-48bf-8bb3-3035a6fd491c",
+		"6bfa910a-51bd-41ea-bb3c-3ffcfa5f442e",
+		"8cf38182-72a4-4ba5-8d42-23a8e63a4196",
+		"630b8f46-2bb1-4695-bd9c-9e1bba4ac163",
+		"e2377e5d-4b1b-48a2-9094-2f3b84a57012",
+		"3cfa6010-c01c-4d6c-92f5-94fd3bee5e66",
+		"26bb164c-282d-4bce-b8a4-cbaa2da73432",
+		"d0aa3aac-6e08-4bf8-b17c-2078297ceed8",
+		"0ef08c68-c651-4ef4-a39a-e5cdb0c0009f",
+		"7da56f95-d37b-4ed8-abd9-828b8078ef13",
+		"ca809920-626b-44f8-b1d7-c2dbb97287c4",
+		"c60745a2-b6d9-4275-8597-b724dbbafcf4",
+		"9aebef7b-c289-44db-9d3a-8778f01a4b04",
+		"8bf35f41-a9ec-4758-9513-8074d07b0fb5",
+		"f5ecade6-1a58-44d1-a457-7688746a988d",
+		"20e5ea2a-c250-4acb-b276-fec5c66e05ec",
+		"1ccadf6e-95b9-4f65-9026-abaa91aaccb4",
+		"46fe58b9-208e-40c4-88ec-ad6ba8881a29",
+		"3ffdc309-93a1-4f29-9f11-6dfb895e3403",
+		"a77dcdf5-97ea-495f-b72d-ba74c5c6399e",
+		"aaca07ab-baf8-462b-86c9-9d7b8eb8438b",
+		"3dd40096-05eb-471f-aa9e-225e5106975b",
+		"cf7f697a-6ce6-42dc-a871-9c769b76423c",
+		"dbeb6d4d-4eb9-4d4f-970c-bee29d314527",
+		"830ea218-1026-45e1-acc6-13d035d0abde",
+		"0f0a3bbe-8f2e-48f9-b9f9-61f569a746d4",
+		"b54f69f6-84e0-4815-b876-4c5740b1fc68",
+		"6043b114-23e5-45e3-a256-7649b43f09f7",
+		"4a6b40ed-5055-4709-aca2-9bbec9bce16b",
+		"08d94d2a-fc81-479d-9d41-381485d02e8d",
+		"d376b9af-677f-40bf-a8bd-4483e90d9e92",
+		"5749a0fb-65b2-4889-89a3-3db0d3b81ae8",
+		"c90c8b30-19cd-4c87-a185-f40d235243e0",
+		"6f862816-5107-44b0-a0f8-cd3c88178c22",
+		"5285dea2-68af-45e4-8712-5c80310b1cf2",
+		"f1ee1ee4-5df2-4660-9d12-32f25c989444",
+		"a5096127-0331-433a-888b-ed65d14ef2fd",
+		"fef6c2d0-b8a2-4cd6-967e-32978414804f",
+		"5c35c57a-2d50-4858-879f-9d562a8e3ce9",
+		"9c12f8bb-ddb0-4276-8d73-bc7d57ace7ec",
+		"b48eccf9-2e00-417a-8478-63c37f4a9a74",
+		"ee7b20bb-b52f-4884-a375-7c05a5b7a601",
+		"124c4ff5-b4e0-4be5-a538-0ea86bb5346c",
+		"cedf7473-7558-40ef-bda1-d6b705521fa1",
+		"4003dcb4-0f17-4011-820a-ff6a25d5e764",
+		"aa307543-09fd-4146-967d-c0fb53a688ae",
+		"c0ae62a4-21f7-4798-9ce4-fb0141791be0",
+		"82d213e2-24fa-4fe8-81e6-2bbca0a70115",
+		"2a1dbaa6-e684-4f0c-a27b-81c078a11027",
+		"6418021b-1f07-4f53-bd97-ff1f41049957",
+		"71d4a980-9194-4f32-9f1d-444c7b04666e",
+		"9f3376e9-2031-434d-81a7-ba553c92e1db",
+		"9528ebd3-ab8a-49e2-8d4d-d5b46bbc8f0e",
+		"eac166f1-79be-42ae-8a40-3ba7b8ccefdf",
+		"33cdf73d-a29b-4f4b-aeec-b6709835a5d5",
+		"83f9c584-7f9f-479d-ad75-344da0a4afb2",
+		"deca60cb-f8cb-4ac2-bf1a-24211b1bcd08",
+		"15ad68eb-989b-4ecf-8953-d1378701b626",
+		"735c6b62-df0b-4ce3-a62e-22dc1a2f5bd4",
+		"6183dc56-4255-4ed8-9815-72fdc137b6ad",
+		"c5ea5c0f-6c00-4776-b11d-42673ed84118",
+		"9fd5a22c-0bee-4a8e-9788-cd80f65fcd73",
+		"5994c8f9-a690-4e9b-9567-c2856164ac84",
+		"31de68e7-433c-4224-9581-f20eef62282e",
+		"8ddfaf3a-ab5e-4ce7-b641-e3b22c3a154d",
+		"986ef508-8bf7-4848-a9e6-cfa21a22e9a0",
+		"2e21a497-2586-4e2d-b9ef-938e2d2eea4a",
+		"ed4d39e0-98ce-4146-9e06-c668447485d7",
+		"4904097b-4535-44ec-9353-781bf4dc5615",
+		"63227ee5-2a0b-46f0-b279-a42c475ab6c1",
+		"7f631a35-208e-4d67-a034-1446a18392ab",
+		"ca967a22-8b3a-406a-b7d9-788fb9f56d01",
+		"96b7412e-3109-4508-98dc-7f10a049eed2",
+		"cbb41922-e15a-4e5e-a728-b8a70552d4af",
+		"188305eb-82ff-419e-acc3-fc6fea1a24d9",
+		"b9c465be-82a6-4bf6-bee7-c44055a7c64b"
+	],
+	"d42f850f-ca55-4fc9-9766-8c6a2b5c3129": [ // Mendoza
+		"57907f04-329e-4faf-b753-7e95d5c2e085",
+		"651ceb9a-117f-4f8d-89dd-9b6bd2a38b5a",
+		"0c4c1a02-5740-4fe8-aea6-ac1ecfd5fa62",
+		"c3aa5ab8-88b4-4e4f-a502-f2a3a1a8c48e",
+		"dc6a4d8b-ffab-4fd2-96cb-8c0f3590a860",
+		"89836517-acef-4e72-9f19-26b8e2738f27",
+		"8c662a54-19f2-44b7-b840-82d4c5734725",
+		"b86d0032-018c-43ea-a0ae-6d921a42c6a8",
+		"e3fd2ea7-c1d8-412a-89fe-9939c0c0cbdc",
+		"84da2163-f733-4416-ac47-9439ad26a77f",
+		"4a4bc333-704d-4247-867b-7919718174e2",
+		"1d8a162f-b8fd-44e7-9a05-e52eb03d80d2",
+		"066210c3-0aa9-4c6b-a7f7-eebb1d5f5a53",
+		"b076eaf6-1fe0-475f-88da-701648ae3940",
+		"8b6389c5-08cc-42fd-99b9-e73bbcfbc749",
+		"997d7905-1a94-48d9-b767-369afdb8a139",
+		"096aee35-6623-4591-9a67-e87cc596928c",
+		"51585605-ddad-4c70-a969-a1680ad3056a",
+		"53475db7-82e5-43e3-9c01-a633668c14d8",
+		"a3705a8d-b70b-4358-ad19-1d9059ee5bd6",
+		"2bb75603-f945-461a-84fc-a8d82d9b6af4",
+		"3d8fc5d1-7cab-4764-bdf7-40f2c1411925",
+		"6becc152-a370-4db3-a8fb-7b377fdd5c16",
+		"fae4f6a7-8594-4424-afdf-16beea4966d3",
+		"593a1bbc-7dc5-49d0-975e-994eada3dcda",
+		"d5075089-fbb8-4c26-876b-708476a648b1",
+		"c76452de-4e87-463e-92f6-42a442669202",
+		"b1425d9d-0792-4b8a-97fa-44eb0dc9caa9",
+		"1c237341-0b81-4929-8c0e-31b964a288ed",
+		"71f8b2ba-5613-4ede-adae-64bf1a743201",
+		"ec3f1168-e010-4696-8e67-6aa9cf2a20af",
+		"ffb17930-6906-429f-840b-56fc69167765",
+		"f3d0ceed-ee12-4336-9d8c-b85e86517179",
+		"40b34e4f-dabe-4a10-abf0-739a63418425",
+		"b2cdf231-2bd5-40bb-aa22-789884c16cae",
+		"950f834c-e7d8-4675-898f-063b3aaa0c9f",
+		"0a5c1d39-5791-43d9-98c5-4f69854baae9",
+		"87074555-5008-4451-9b56-8d362d835676",
+		"8d1166de-8bfe-442b-b90b-9cc4a8376ee0",
+		"2e191f4f-a91a-4bce-bd37-925095972b3c",
+		"f9cd3202-9ac7-4b84-81a7-b5dae37853b0",
+		"11b71fad-60f2-4305-8e07-c82353a1540b",
+		"b5e01e1c-1337-4e18-ac88-47e1f451767d",
+		"a1138567-381d-455e-98ae-a5bf2717aab4",
+		"0cd71eb1-0db1-4112-a920-dcc6360ffbf0",
+		"9052b694-0d9a-4679-b024-aa56f9e46cde",
+		"8d386d24-6eb6-41ed-ba90-12ab89a3329c",
+		"573fe97c-020d-44f4-b9ae-0fc9e9ea4558",
+		"ba5181d6-27ce-406a-9fed-57cb9f1c3701",
+		"ef4d0343-bb8f-4432-9868-2ff7835e7969",
+		"7da84618-46d2-48f4-83ed-4a26b66cfcb1",
+		"c658f01b-b83e-49ab-9fe6-68239b0f659d",
+		"a4a60607-7512-4154-a435-d89440b9b520",
+		"31711b91-fdae-4804-abaf-d8213ca13a78",
+		"317b7601-8896-4d27-bff4-ca74da3dbb60",
+		"16e2ed03-a733-4709-baf4-6ecee3f85ef4",
+		"b5857d0d-2487-47c5-bc61-7c29aafb826e",
+		"dcad5707-3b09-48ea-816c-421e89cee741",
+		"fd94d8e0-076f-45a7-a7c1-9df78bab5142",
+		"7551c6f0-9763-44ae-8152-c00c380f837a",
+		"041e6786-1a35-4441-9cac-dd19b8e58851",
+		"2bf722b1-3ecc-4e65-b7c2-0d7e287abf2d",
+		"c602ae7f-32fa-4390-a86f-39442311b47b",
+		"46269b2a-cd45-439f-9ddb-1a0110b5d666",
+		"6be3eeff-d038-4798-b61b-e81bfa3243f0",
+		"9a17757d-812c-4018-a95c-04b2bddbdbe0",
+		"9b89283d-63b3-44bc-8f23-2013a7ecee3a",
+		"e25b224b-22db-4fb3-a5f9-1895f0daf4ed",
+		"025efd93-4338-4a47-89d8-f4174afe1064",
+		"f84cc09d-5fb9-41db-b9b8-c9e186f95a64",
+		"082b8cca-e511-45c9-b41b-882b5c8faedc",
+		"c0977365-0b56-4226-a57f-8800b9d0cf6e",
+		"ff339e67-e2d0-4268-be0d-00b3ca5bc561",
+		"6ca02d70-ce2d-467f-a908-f6b93b685f38",
+		"c210c72b-a03b-40ce-a370-da5b895e8351",
+		"34f3fb49-646c-49a5-b607-db6671750284",
+		"8275167f-5f0f-4eba-a11a-99fbcca79e32",
+		"4e65d836-75ed-446f-b20c-e2e54b59496a",
+		"93144bc8-e10d-4340-8530-3b70e67d0dee",
+		"abbd2107-282a-47d3-8472-83251bed6c5b",
+		"d76a61d7-152d-4f9f-8fa7-af86e8ca160f",
+		"e1a66853-fee8-4c04-92dd-1260b9d44c16",
+		"9111be60-2647-44f9-900e-d59f548b4da5",
+		"960560e0-6388-4236-8723-b8dfd00f6fc6",
+		"c9133a7f-b9b0-4287-86df-80b352c31451",
+		"72c2abc1-8325-4cf1-91cd-b7f20e98c7c2",
+		"dc1b83fb-847a-4898-91e7-80d0ec8f3871",
+		"3de41fa0-219c-46f5-9768-3d61d6e91764",
+		"c5e9d0ea-d807-42bd-a0dd-9d67e0ba4ef8",
+		"54944a40-d1b8-4b6f-9f83-1b5f9c257da2",
+		"46f11ec3-984d-4471-8b4a-c7af4cdb2631",
+		"fabbb88c-e36a-43c1-964c-6b3d11898f96",
+		"981851b1-d6bb-4bb0-a595-20cd2d2978b4",
+		"f02527a5-ca8b-4f58-a60c-a1679346239b",
+		"dc423880-19ac-4fd2-b390-79724ff0300d",
+		"76f9a73e-2bdb-4aea-a692-613dceae2fc9",
+		"cf6d62dc-066d-4a66-9314-7f6d055983ca",
+		"94874e30-b4a8-4336-afaf-686bdd559b5b",
+		"5fd822fe-0735-4915-9a5d-0a010b49cc8d",
+		"eb9793fd-4f4a-4181-aca9-b304beed659e",
+		"5264a3e5-378c-4adc-984c-e94180609849",
+		"5ca1b982-e47d-494e-8531-ed6abcacee94",
+		"e4725537-177c-40da-97e1-3d876f47e255",
+		"b6ce4116-84a4-4d09-955a-b5fadbc839d1",
+		"733718dc-1edc-41a7-9518-5dc36f42d2de",
+		"df196d39-bf1c-4c78-9aa0-6d5f0790946e",
+		"d1c16abd-a582-4e2d-99c4-75610c2457b8",
+		"c32ada8e-a184-432e-9a7e-d027dfaa8faf",
+		"4feb2f95-8fe3-4c53-bec0-dcb48e8e4ea6",
+		"7b83b579-2c61-4796-bbda-09d0302d0c65",
+		"550ed10b-0a76-4bdb-af61-ef2034600b1c",
+		"ab5d4ac4-f2f9-45da-b8e0-71c68543784f",
+		"4670e410-4d2f-4c59-856d-5c91e0484f6a",
+		"4d5bdb1b-bbc0-4af5-8195-fa57ca6b6049",
+		"09bfc865-f9bf-4ca7-8b21-2db94c9e3b3e",
+		"93a1f16f-93a4-437c-80fe-ed5be0640f0c",
+		"edb52392-ec06-439f-9660-4414cd9ea035",
+		"772a769b-fdfa-4b3d-b435-bdcbe57d0614",
+		"0022d6cc-3204-45e3-b105-62fff728f3c7",
+		"8946f489-5ee5-4ea7-9e80-f7f89ff508cb",
+		"4cf5c05c-03c6-45ef-a81e-3eff9e0e50a2",
+		"2aca2162-89bf-4f09-bd14-6b083384e762",
+		"3081cb75-928d-4b20-a5b1-1340a7c00163",
+		"034224b6-e4a5-4d86-b634-1f4a55903690",
+		"463bfa93-c0a8-4934-a35c-cf151ea68b3b",
+		"0f1fe762-3b21-4421-8347-42e8504da05d",
+		"556d251d-2d3a-4da0-a41c-ace8dd90c29b",
+		"fd7b9c00-d876-42e4-9006-90cf01cd6ab2",
+		"cbab7323-5bb8-47d5-8029-5077aa7b8bb1",
+		"fda6819d-c713-4f97-a13b-402c8d8c557c",
+		"1c11ba8c-6e24-436d-b67a-4c96d3d239f8",
+		"b89e80bf-7cc8-4c3c-906b-d9cdd5a1bd27",
+		"f3f8847d-3c5d-4ef0-8fb4-da1fca1f537e",
+		"26b9b080-d227-4379-a386-35d46effb342",
+		"7a3ae151-e302-4073-88ba-4538e7641102",
+		"0f54b455-61c7-44de-a2cb-582accb943b3",
+		"e9b49239-4fc8-4f2c-9a48-2ea83e84ae80",
+		"babac020-e545-4473-817c-3212c3f516b7",
+		"43d17717-5d65-41d0-bc38-7b0bc7503469",
+		"e2135541-d146-4a28-97bc-986407a6b286",
+		"5eb8551d-8793-4f13-a786-f84bab9fe30d",
+		"419f62aa-f04d-4364-9fe5-6375afcef434",
+		"5bd14d59-83fe-4817-9215-64a1e04376b4",
+		"0bc64f8e-b6bc-4e03-9e7e-a9ef82e38074",
+		"ac1c3c2a-bc9e-43df-852e-3eee97437628",
+		"eb108c70-08d1-410d-825d-978f4199f083",
+		"d32ad933-ec8f-4f87-9685-d5f7f1cce38d",
+		"31663e20-739e-426a-a5e3-1c448c874a6c",
+		"f2148e20-ae7f-4232-8110-124791063b3c",
+		"d931e933-29f5-4a4d-8b33-844eeb0952ee",
+		"98b2a4c6-cb4b-403a-bf1b-44557e52a1f9",
+		"26631f97-44f0-4d37-be99-425df5ff9144",
+		"515c0000-98e6-43fc-bb31-2dbe03eadd48",
+		"57d2b614-2da1-4600-aafb-d8ccd66e7085",
+		"1a867bbe-d1bf-483b-be90-db7118f99efd",
+		"758df3b4-ce74-4b07-9de3-52f04a723524",
+		"2dbade01-13f2-4919-bd68-7ca668fb29cd",
+		"d2b8ab22-a44c-4894-b957-913bbd5b617d",
+		"0d4727a6-da97-49c4-b46d-a42b82406e1a",
+		"97571320-bcb4-44cf-898e-714b4967512d",
+		"b1aa520d-f9d6-47a0-b4bb-bd9dfab9ea9a",
+		"4122a58a-2cfe-4ff5-8af0-27fba8d58040",
+		"3f979b7d-bafb-447a-8dd9-7323ede4fb1e",
+		"22c669c5-2030-4449-888c-87b28bdfb735",
+		"bdb4357b-7c92-406b-9507-951c1eca1e6d",
+		"4601f70d-be0e-461b-8b54-2e2ac483b72f",
+		"a5828ceb-6da1-49b9-b2dc-10a13374f580",
+		"9aefeec0-4d76-4633-aff2-6b2238b150ee",
+		"9844258f-44cd-4362-882b-b3b961cf605e",
+		"190cf2af-744b-4f90-b0b2-9b41549ce388",
+		"352f9378-0bd5-47cf-8286-ee8e8de0221f",
+		"2d206606-b1ac-4dd8-bdb6-5261d7ff0574",
+		"da039be6-6226-4fa0-9dff-00ae50648a30",
+		"dee56c2d-e1cf-496f-be2d-78aa42477d85",
+		"01b33e48-034e-45ae-b97a-e6570eed6b8c",
+		"db85e020-98d2-485e-ba21-ebfc53b91daa",
+		"d140b71d-1223-478c-812c-e6382ef9a236",
+		"8cd4f240-a0c0-4ff2-9b89-e90a875bda42",
+		"c5f70d0c-7068-46f4-9171-f5640d7efcb6",
+		"5497400e-8806-49b9-bca0-76f58266b959",
+		"9b30c706-acbc-4113-94fa-35a8be43a0dc",
+		"92feb198-74f7-4907-88ae-eef3bdf5f4a1",
+		"daa6a057-d25c-488e-96e4-1a36aed4b994",
+		"d0cee9bf-0df0-491b-8662-5b988c49ef9c",
+		"b0399773-08a2-4707-b5e6-f13d41c037ab",
+		"341bc0bf-e8a7-436b-ad62-e616579ea99f",
+		"0cfb53fb-3ef8-498e-bcd2-14c96a9e8bae",
+		"084f41be-843f-44dc-bdc6-f1d85debf865",
+		"c480a7ee-33a3-4147-b2f1-fefb2ec8e1a3",
+		"65a4944f-3c80-4ecf-b7f8-51b78a449bbd",
+		"9316ca0e-f3f2-49ae-b2d4-b65c0b3cbc20",
+		"16fbc550-f4cd-4eed-ad87-07da456100d3",
+		"e08ee063-cc5c-48d9-8627-3e82a2fce75f",
+		"da537f29-e518-4086-8214-4737dc4c27a9",
+		"3fac8d7f-ef90-43bd-82a7-6e58a369d713",
+		"1b9db6ec-a713-49a6-b682-991fc2579502",
+		"36110202-4149-45c0-86e9-a8eb8ee25701",
+		"d2ce60d5-50ee-4119-b255-e560af276c2a",
+		"50f85ca0-2527-4523-a34e-339cd4edc979",
+		"be7a87ec-c18e-4d9d-8c82-571ac65fab55",
+		"5d66981e-2ced-499c-9330-3e0bfd4688b3",
+		"55a665e8-e9cc-4ffb-8939-789e818b7c4e",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"69533c73-c58f-4f22-94b0-9c4043c180f4",
+		"47f94031-3b05-47bb-b75d-0948998ca9e2",
+		"2cc915f1-ccb6-4c89-9cec-5ee875b8e29f",
+		"d6f17003-2408-41b5-beaf-3e00ed4e498d",
+		"033ba97c-8f4a-49f9-a9fe-a621e2d8891d",
+		"cd1e7a6d-679d-486f-a66a-be9794e9daa7",
+		"02030e13-2f72-489f-b1b6-c76d0c324bf7",
+		"c96a788b-a964-45b2-b775-ac609f298a7b",
+		"2b573293-0146-4d78-816b-c196173d2847",
+		"235712e9-f438-4eee-905e-0c0455aaed9a",
+		"b7b91b30-956f-47ac-84c3-3398c3771d81",
+		"f3812214-ac9d-48ab-870a-6edd562cfea2",
+		"8397ae00-384f-4a78-aef0-82ed48d7869d",
+		"4038aa7a-f980-4231-a0b0-60d4b197d6c3",
+		"6b02176b-3283-4617-888e-ce914fba1d3b",
+		"355e5e81-ae35-4d22-9a87-ec22e33cc322",
+		"e719b16f-9696-4e49-b1b2-3665427a07c4",
+		"14d5636e-2fc1-4e1e-ad12-a8d41795ad89",
+		"c696c8db-3434-4153-afd2-05255548937f",
+		"b1912b0b-3bd7-4d5f-9cea-664d824a36be",
+		"78c7b342-0344-457e-b7c8-37de97869817",
+		"91362686-6af8-4690-bdef-eb362dc757da",
+		"5288ef73-7819-4f32-a0dd-02a53e520612",
+		"c065ff9f-f47f-45ca-8b56-354386a0b7f0",
+		"0019338a-a4c2-458f-ae2c-619dd2ce83fa",
+		"645d1646-c910-4d8a-9f9a-b39aca226eef",
+		"c98ea7f1-0271-47d9-822f-97bf52657cda",
+		"dfb1dfd7-9f39-4759-807b-23b8c23c0833",
+		"e84e37da-f091-422d-88b6-11ef37716d46",
+		"6f792629-713d-47a3-ab4d-f6d8f3bdf7cd",
+		"a133258a-ae9a-4eae-a939-c82992ec100a",
+		"3aea7ad5-ae36-4afe-bc70-a322ff862431",
+		"10ed13c7-fe6a-414e-9774-af2bde045590",
+		"0cbec8fa-7d1e-44c7-9d60-400d281abd61",
+		"cd7713d6-92e5-4116-9b11-8394d078f2ec",
+		"09a292f2-4457-4197-adf7-7b6bbb4d6df2",
+		"9765b0d9-03e0-4e18-9e79-2103cd39ae9a",
+		"dca97e52-93ae-40f7-abe3-b7699809e282",
+		"12a79b1b-fea9-4a0b-811b-9ca741f15d70",
+		"05514773-213b-4f1c-9235-f007aa2bdfd6",
+		"3c75f6d8-5b88-4bb9-913a-13eb854a68b2",
+		"ee64e127-98ed-4049-8b7f-e0e1d7676c1d",
+		"43aedcff-77c7-4690-8730-0238d118c2a4",
+		"535165f9-0786-4778-b4c8-4ba0ecbd8899",
+		"ba5ddc45-aab6-4f25-afb5-930104cde361",
+		"0e9eb72f-e5a2-4ef9-add9-55a842c637dd",
+		"cee2d438-b77e-44e2-98b4-21c44882f8e8",
+		"f82ca8e3-302b-406f-9067-9d1b93978918",
+		"891fc1a1-c2b2-4bdf-8e9a-44614690932f",
+		"bb83e42f-e27f-4cf1-b59b-ccdb6efb4108",
+		"9e1403b5-c957-44e1-bd1a-f3265d189c87",
+		"58dba19f-aa5b-4671-b4be-dbb4ebbd9a5b",
+		"1488b284-def8-429a-bfc3-8255b8d9ebf6",
+		"773649ac-bac8-4b5b-a03d-104e78d3d40d",
+		"090c4c21-cbec-4781-97cf-51eb44ae716f",
+		"173cfbe0-ee1e-4cf3-8ea8-e555b3f9707b",
+		"c99fc710-0253-4125-83a8-89b4792c9091",
+		"281790cc-8e45-4e70-9e28-056880f099bf",
+		"921a94d3-8c83-4ca0-98f3-738ce3b8ed5f",
+		"93221913-4b54-4885-8479-2d90814c413d",
+		"29e0d2f3-0636-496e-88a5-744485afbd9f",
+		"418215b9-bb3d-45f9-9be2-a2736f6c9c71",
+		"5b6b206b-1ba9-45d7-b6d1-eccc0c0b95c9",
+		"18e334da-621c-457d-a11e-b8c899fa7e99",
+		"adae1c21-fe5e-4027-b4c4-760ad5fd632c",
+		"02ad7675-4050-423a-9aaf-9c1dc83e6258",
+		"db928f7b-bf66-4b43-82aa-e79b8a788e76",
+		"d4c68a8f-aab1-40f2-b5ed-6f7d017dde17",
+		"0f59a80b-dd77-4b99-b894-2ae8575fd8c0",
+		"3b6940b9-f74d-4b3f-9675-4dc620586c85",
+		"b00aa9b3-5ca2-4e97-b8e8-30cae5dcee99",
+		"0f4829d8-35f2-4dc5-b7e9-85009cc90c67",
+		"50356ca8-7372-4783-b143-31f2a2cd7c3d",
+		"6f9697a0-e552-471d-8ab8-a4d7459635d1",
+		"4a17145f-b988-4334-814c-787c583ed7e5",
+		"805e0487-5d25-4e35-a5d8-d6dddac6bc8f",
+		"9c5f7b2b-066c-4f14-a3d0-6eabd9a5161f",
+		"351dbb36-2691-4720-bf01-ea39e4628f99",
+		"fb3bf379-a0c6-46b4-842e-b265c5ef83ab",
+		"7e6c742c-0176-48ad-bcec-3fb790dbd29f",
+		"352dcb41-31ef-4992-9983-a29277393f17",
+		"360f9eb2-21cf-416e-9a59-ec045307f3f9",
+		"7186c25d-b870-477a-8907-53b860e1e9b9",
+		"08428eba-b2f2-40f2-86c8-8157a8706426",
+		"a01bf5d3-b4b3-40de-bdbe-56129fdf5663",
+		"69b212c3-cf9f-4317-89ad-e06d40a02c52",
+		"11351da6-914b-462f-a272-a7fc64acceb9",
+		"58d7d00f-35a0-4a83-82d5-093a035655eb",
+		"6a5bf1a9-0922-4cd5-bcda-3b4f3d4f4a29",
+		"dc60ef72-2393-4124-93b6-207c876a8400",
+		"0af7b3ba-4ac8-470e-ada3-20263e38ba24",
+		"b4ef3973-d3e1-4ea8-b169-f3bec93d3d08",
+		"bd5f9c0f-f9c7-4d87-8252-990a8e83a1b7",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"c523055f-e442-4d07-a19e-466c300956c8",
+		"9514999b-766c-4eef-8e42-9b16279bebdb",
+		"e778bd85-f2a6-4500-bab1-0f2a7c61ead8",
+		"d94a474e-a767-4046-9320-f809fccc3498",
+		"4c466667-f285-4e4e-8a92-5574063e681a",
+		"4f57cf59-ccb7-4232-9f07-cc594192b044",
+		"7d0f02e3-5ece-4232-ab01-dbf80d573f7c",
+		"43224d4f-74ce-4ec7-8814-fafdb1185f8a",
+		"df1a56fe-597c-447d-8a66-969f7fd97506",
+		"18af4827-e7ac-48ea-bff1-8a32eee0b0bf",
+		"27c432df-2c27-49b6-805b-3cafc87f90c5"
+	],
+	"c1d015b4-be08-4e44-808e-ada0f387656f": [ // Miami
+		"c0ab162c-1502-40d5-801f-c5471289d6b7",
+		"ee454990-0c4b-49e5-9572-a67887325283",
+		"cf4ab390-bd42-4919-93c9-d80ea31ba232",
+		"fdc1bb46-fedc-4605-8506-1f67b554d02c",
+		"4665dab1-e099-438b-8419-f80d3106ec33",
+		"3253b9fc-d6af-4127-90dc-c275a4619ee5",
+		"e9c2f7b0-5bcb-4af7-be59-d30b467289c4",
+		"57758d75-a8fc-4548-a9f1-a66cde0d1d52",
+		"404090e5-6fbe-4c74-9831-ce64a6cd6d01",
+		"d60ec27c-9144-434a-a689-185c68b0267b",
+		"79f10ae2-291c-41cb-b55f-017462536286",
+		"1fe56ce4-c906-4bf4-8d80-f5f05811bdf9",
+		"28498b96-80eb-4006-8894-41a0f3f9ed62",
+		"ab2f84f7-5429-4c3a-9726-b770f9d693ee",
+		"6910769b-de01-45e5-be79-aa77788b9c6a",
+		"dfc05dcb-900b-4662-ba40-295c83e079a9",
+		"da1583b9-b8cb-425c-94c5-e0977e81c87b",
+		"cc24c2f9-7dfc-47ae-9e1c-a4f3a45bc5b0",
+		"eb060d0d-7a0c-49dd-bdf4-fc908c119a28",
+		"614621d1-23d9-4d46-b758-a674c2ce80fa",
+		"fedbf99a-c43f-42c9-89af-b79ca033a557",
+		"c09e9402-be42-427e-9bc9-59f4626ac229",
+		"8cbfd074-89e3-40a1-8f4e-52384b037b3d",
+		"0c6a7f78-c52c-446e-9a60-6a7ae5b21376",
+		"6b544375-5f63-4bba-9591-822b43607243",
+		"a601e524-9e17-4372-9b05-2d17db6b8b6d",
+		"f3cb1423-028a-490e-aa86-12b4355ddb71",
+		"825a0653-d5a3-468f-b07e-c1eebe9d8f68",
+		"6105f0a4-6169-48f3-9e54-764cf4ec991b",
+		"604c6ea2-b8e4-4855-bcf2-cde9bd4cec3c",
+		"fb9d6ace-aa5f-427a-a39a-a979906437a4",
+		"1fdddc03-998d-4070-a0a5-d1c89d6217cf",
+		"1ca35544-d53b-4e9c-89c8-9417a64673a9",
+		"4e3a4188-aa48-4bfd-8f03-4ae4b693ba69",
+		"f74208a6-821b-4aa6-b89c-8fafe9010a0a",
+		"63ce19e1-3956-46d1-8979-62f939ffefa6",
+		"2e2235cf-65f8-4a91-a727-32d7e9366c55",
+		"94b8a6ea-7438-43a0-b2ce-08b790cc871c",
+		"bab4c108-105a-4a95-80d6-8263db3463df",
+		"5c2d470f-73f8-4532-93e1-18b61c725f21",
+		"027e581c-812d-4309-bbeb-b106e51066e4",
+		"05242eed-a950-449e-8765-b3a1fcfad4df",
+		"ee243399-3c24-40e5-8dfe-b19c4b99d9b6",
+		"f4769ff4-24bc-4f54-9424-af5572978351",
+		"b61a86d3-b811-4d25-8d12-b6e06fee64c4",
+		"2fc0d975-f8d7-4bff-9d8e-1167ad941d70",
+		"59f4e78e-9f91-4831-aa7c-357849df5385",
+		"98c331e2-2220-4f25-9849-f11d04ab92ef",
+		"4e0db843-6c12-4c6e-b1d7-c0fcfd9f0cf3",
+		"9789c707-f4f7-4a66-b955-7e54550d7ff9",
+		"720daa8b-ba44-429f-8605-00c77fb4b9e6",
+		"85bfdf51-5f33-4f1d-96b4-b9673e22cf02",
+		"14ef9606-229b-4ee5-9f79-bd8fa7893e1e",
+		"11ec70e9-ebe6-43a7-bd73-f2135e00a115",
+		"dc86d9ba-5c13-41ed-931d-92625a565707",
+		"59cbe5e4-eebe-4d2e-8519-6b1e5dcc1bf8",
+		"0771273c-2ea6-4d2b-a636-409925f626c9",
+		"e6b8e082-38a1-4107-ae70-9087037d86b9",
+		"048e0f9a-e685-42d3-8bc7-0d3090291309",
+		"d43f7ec1-6f1b-4769-86b4-44da33ba6f48",
+		"ad466c09-55ca-4094-8cf0-4ed5b0b58777",
+		"fabd5230-4afe-44a4-86e7-245ad342d7c6",
+		"13dd6c0e-9b9c-4521-88f3-a5de84f0e9b2",
+		"5165076e-a5cb-4597-8a5a-583fadc00639",
+		"9e518d13-2941-4573-b044-9285b3aff5aa",
+		"52a93318-61ba-4fbe-8217-f6aac64a0f22",
+		"ea638c1b-d4e5-42c9-bf70-e4b2825a846e",
+		"86280bb7-3e6e-40fa-90a4-8639cd6c5761",
+		"90cc6741-5c98-45bb-8acc-a9f3baf8c00d",
+		"e32236e6-cdf6-4bee-9f76-3f5d36ac6bf8",
+		"c73706c8-d0ba-468c-847e-7355a97392bf",
+		"2375a32b-b0e6-449d-95ad-bd6cf365a053",
+		"293445ef-f9d7-483f-bf90-1c87a10f046e",
+		"6fff92f8-22e3-484c-9968-170cd45d3361",
+		"9b2c906e-d66d-4d88-a578-a626e29acf6e",
+		"4f6798b4-d857-4c81-a76e-828a26a85aa3",
+		"c3480851-49b3-4fdb-abb8-92a13e22157d",
+		"bcb16ffc-218f-470b-a77e-993c8905605e",
+		"045649e5-0a15-4f13-ae80-176eb790d42a",
+		"02aa2bf7-238c-4935-813d-ad5858330ff9",
+		"f6973f46-fced-4ba0-9de4-c4b209fac5d0",
+		"c5e243c3-34ac-4541-a94f-614cc4df4af3",
+		"2a4bb5cc-794a-453f-8b72-549a965770ae",
+		"efcaa5f8-57e2-4da1-9c9b-bf71dc28424d",
+		"e7e655cc-c716-47c0-973d-05da6b3c4c0b",
+		"7be13f24-c306-49f9-8050-0a95712c6771",
+		"23e4e0e2-862c-42be-97a6-722402378228",
+		"29d46e35-b20e-489e-ac55-d73443acd214",
+		"fc56064c-1b5a-40d7-b193-9bfc209f5358",
+		"880dc3b4-6aea-4f28-9508-d4831501e9ac",
+		"f28b4a11-2dac-44dc-a7c3-7627c96103cb",
+		"20dc3721-4baf-4dc9-9491-b963e9696da4",
+		"96c071c9-4da2-44bd-ae20-842452ad4ee9",
+		"8e31f743-d10d-4e62-9e02-84b49c6e15ce",
+		"84482418-5ae1-4089-88b3-7949ca11fa89",
+		"2cacc515-06ab-4bb7-b2f5-df10137bf96d",
+		"6af08065-2f75-4df6-afcd-3d5ebaf144c1",
+		"a15a045b-cdd6-4ca4-aad5-9653e00d9f9f",
+		"43e8601c-0a01-463a-9295-80c86efc9856",
+		"fe9c9b8d-b2eb-43f5-ae31-5564752d66cf",
+		"6978be3c-76ed-48c0-bccf-eeb6fa45ab4b",
+		"6a1d5a96-66d5-424e-9a94-cdada18d326a",
+		"f3e796af-bc6f-41db-8694-1424235250e7",
+		"30c02421-2bb6-4ae2-a1c7-c10f6d97fe50",
+		"714e1c8f-c547-4e87-88ed-9a847bc523f2",
+		"89620533-89a3-4045-ac02-df3c8f78f28d",
+		"75a06769-6be7-4645-9b25-fc81d1071ca1",
+		"a8a1969d-8bbb-4747-8a04-23e757e489e1",
+		"f040aa4c-ba9b-4597-a074-8b2b4178c391",
+		"8127ceab-5e7c-4018-ab91-1afc1d8a51f8",
+		"7a65519e-008a-4a0a-b233-768d39287842",
+		"e360ed3a-3cdf-40c9-b503-0385898ba5c3",
+		"eef9d3d5-37cf-45e8-8115-579ea5985332",
+		"f19715d2-aa73-4330-af6e-ac2dadc2bef4",
+		"a27afd9c-4187-4c9c-9785-f82d7e966f28",
+		"1e5f8f18-029a-4ef5-be4c-9874e34b0b4c",
+		"749e8aa5-0bd3-4568-bc70-f664d5303794",
+		"d96dd365-1035-4c34-a605-32899a8fd67a",
+		"d3d7e828-d40c-4fe8-9aca-3be14fb44428",
+		"f412903b-4f2d-4680-8b66-d1e7f004a314",
+		"b9b7052f-e135-4396-8a3d-4a50fb71423d",
+		"cea45903-4e6b-425f-b27a-00200971d2bc",
+		"dd1d24e4-a1c3-40b4-85a8-c4bcd3173c5d",
+		"a7765b2b-4a37-4490-990a-dfd922bb6079",
+		"b7bd3e6d-8f37-4bac-ae4d-1f30f5ab4152",
+		"2de69518-5954-4608-b2c4-462b89b0bd99",
+		"5c309d9c-a738-4d83-898c-e427e6f67d9a",
+		"5bda8014-60eb-4fe1-91ef-e349707b0f5b",
+		"294f2b42-21ff-4a98-925c-2752faeb24b1",
+		"f1059598-377a-455d-b236-39fa45f3c20c",
+		"5dfe9522-8f19-41ef-b127-bd4c2abe5889",
+		"1c106c55-6bb8-4b39-91e1-e974fda2b90b",
+		"35b393a7-7b60-48d8-9507-7b1993daa7a9",
+		"afff12f5-2762-4e96-85cf-7603a85a945b",
+		"d5e91f82-09c2-461e-bc46-94aa82f86765",
+		"9b7660f4-f85d-487c-8e96-591b0fb1c7d8",
+		"d34449c0-e6b7-4c7b-b00c-6995440c9c82",
+		"06d3ea2b-bc62-4af1-9e1b-180c4eeef41f",
+		"b1d1cc12-97c9-4563-8cd1-769bba55969a",
+		"8459796f-75e0-4449-bb05-03faf08d73a5",
+		"df6706f9-6fe5-4ac2-aaf6-84d63922cde3",
+		"52d3a356-dd04-468f-88ca-7441d9baff1e",
+		"536ca481-8fd1-4c1e-95ef-4d9dd31ba8c7",
+		"9581f021-5ac8-4626-969b-49ae5a930840",
+		"80500733-547d-4b65-9868-bf07a5e1f3d0",
+		"01cce827-b192-455b-a430-be2fc6c581ee",
+		"0c88a00d-0c90-4709-a119-55a8d8c9db50",
+		"794e142c-2f4c-4dcb-a24a-8f0a5280ac72",
+		"6f89886b-ac8a-4828-bc04-6e314ded5c28",
+		"de86c37d-3037-4c26-ab7e-0ef3baf5ceec",
+		"4bb21927-0f37-4f6a-b8bd-d811f5efea84",
+		"b2a1ebc3-d874-4281-98d1-e284797998d4",
+		"5a9a03d7-0e61-4f36-b8a0-b98f74f3c20d",
+		"4ccedf53-aca3-4c34-8493-644b40c65f9f",
+		"39cb4cc3-e27e-4dd8-877d-fcbc57836bf4",
+		"086996d2-a1b9-443d-9b4e-f05c5090be89",
+		"1d45fbb0-1b25-479b-b9b1-6c49ddb0fc1d",
+		"bf2b0cf4-c1e5-4690-bce0-132066f8f478",
+		"a862493f-226a-46b4-98f1-bae428636694",
+		"61ba06e4-0592-409e-8dd2-c2c5500e1ae2",
+		"32a178ff-7271-42bb-b266-4447614e229a",
+		"ecc907c9-5e40-4bc2-b492-9bef5c49cd64",
+		"58a138d5-af25-42b8-b8b8-884b4e54e404",
+		"4f790c6b-95ff-4bb1-bcf5-41969e57f0ec",
+		"4c1bd245-1dd8-4da6-b7a3-1257a0a2015a",
+		"c0349064-9106-4f23-9a64-3557cac48751",
+		"89d256cf-7cf3-48dc-83ed-536e073c4e5f",
+		"15470ded-868c-4820-9428-72e40baf4108",
+		"ba040957-eb5b-471e-ac71-77bd6f6985ae",
+		"d262ec9c-97d0-4d92-97a6-f2f9e0378b86",
+		"58f4b89c-5868-4e7e-9e70-cb2d0702246d",
+		"978e1632-1e00-43b3-abcf-f9c79a4543c4",
+		"84afa070-b860-4855-9703-23f2e4e622c1",
+		"d12696bc-d23f-4ca6-8be3-a59689fa5539",
+		"0ecfc2ec-a712-4398-ad3d-d381926576ff",
+		"cc65797d-5bfe-4138-a219-dd9ab8eb04e5",
+		"91d89e91-4ccd-4f8d-9297-e00832a256fc",
+		"ca69f431-c110-4c8c-b375-7cd9be3c3400",
+		"f0b7b553-b839-49d1-b234-ba943dfee15c",
+		"6b5d5e16-8f8a-4e39-a424-19b4f981e927",
+		"5b01c46e-1847-4b1b-9fde-e4ce3d6f708e",
+		"fc72cb45-f74a-452c-b801-39d792a3be6a",
+		"5cf179c7-79b3-4782-8d3a-b0dfe3ca277f",
+		"9cd4b567-74ba-4a05-a8e1-d61e60699d14",
+		"b3f5dd87-6820-40a5-8f66-5d0789fffca4",
+		"f8d3683f-1914-4f93-92ee-7e0c15ea9231",
+		"509f903c-bd91-4e09-88bd-fc8d89b8d29a",
+		"4dac36ea-0df5-4eee-b345-f18bde88cad6",
+		"36b85be9-4c56-491a-8413-4d3292b596e9",
+		"ebd3f33e-a9a1-462d-819d-523234e1e53d",
+		"71c079af-329f-4fe1-a355-6b0aaf479d73",
+		"270c38fa-0c5d-4ce6-93a1-15de1231ab43",
+		"a6d8ec7a-2a30-499a-8bcc-1638c24bf780",
+		"f5f5028c-6974-46d9-a76d-594398124b1f",
+		"bc7ca5bb-5338-4242-8e65-8562ab521bd6",
+		"fd68b2d7-e436-4656-a131-237ba52cc712",
+		"b0b69e8b-bbca-4c69-82b3-e43e5f6b1a00",
+		"a95a560f-963f-4fba-aa0d-e0c554a13988",
+		"85f6ec10-9bb0-4fd8-952c-d19487ca2d48",
+		"f0ed06b6-0ab5-46ba-a6cb-80b573c6876d",
+		"0ded9c27-53d0-4d43-baba-f0cb6a9fa64b",
+		"9f591262-1a63-49b1-a237-0a26d5196660",
+		"339b653a-5bb9-4081-bb64-100a1d1e29b0",
+		"c7fe7fa4-8122-4975-9390-5d154a526528",
+		"3f03704c-f51a-4c09-b347-7cea02c15e12",
+		"e02401e2-aeaf-436a-9b48-3133746af4a2",
+		"85c109f4-9b10-4abf-b1bc-ffeacf72b23d",
+		"bf60280b-9b3b-4837-a90e-8cbcfe46d515",
+		"a5c4a3e8-40d6-497b-a688-c65611161cba",
+		"fc0b073f-59e9-41a6-a114-a61690aab414",
+		"411ce52e-66e6-46e0-84a5-6401951043ca",
+		"b7f20ccf-01c2-4e48-8dc7-946747769629",
+		"ebab0a37-8d2b-4778-9006-8614e7ffd058",
+		"3cf8176e-6ea9-43d2-96d2-af31b197c1f5",
+		"842298b3-58f8-41cd-9779-84eee28336bf",
+		"b9896f90-aa45-45fa-859b-f5304bba41d4",
+		"13c61816-832e-4f4d-97e9-cfcc61e52be4",
+		"79e543c3-a491-4cae-9fa4-be29efcd0345",
+		"b721d739-c590-41cf-89e6-5f8c03525858",
+		"12719ff3-ac40-4a42-bbd7-ac7ee494d298",
+		"8f1af576-9e1f-4a25-9bf8-bc598ca8f997",
+		"863ed6b3-6bd1-4c01-9eac-8f1e9f9ff4ba",
+		"c167bcf3-eabd-4b93-a599-d390939e27b7",
+		"b1ee90c9-5c66-4752-83ca-3e01e4d30a97",
+		"662ed3e4-139b-418d-978d-df7956755f5e",
+		"07f69a7a-31c6-4a53-a249-da40369c56a8",
+		"6850bff2-94ef-4bed-86c8-6d4e044ee6c8",
+		"7d6976a6-57bb-4096-a2f0-cf2b3a0c82d6",
+		"88412608-22c1-4671-bcd7-f164b07397a1",
+		"f3c8b28b-8f1d-45e8-b247-fb23557d1482",
+		"ed200170-d928-421a-86b1-34bb8f252a60",
+		"f2c03083-8ac4-4daa-82b2-f1ca8258c163",
+		"de2bff3b-e47d-4d12-89ad-a4a9bb4b0a0b",
+		"a7767942-81f5-41c2-ad2d-becff0ddcd1d",
+		"2cfa3c4e-f8a6-4fe9-8215-22c6c1a4eaf9",
+		"72004f91-3b6a-4fcc-bd14-1d2a9a1023ab",
+		"dd18fcaf-e145-4db7-91fc-54356e42d4fc",
+		"98d71e20-2c0e-4d67-bfb8-474b41b70666",
+		"8c2c1042-3bdd-4197-9dd2-85c605776cd6",
+		"b45fb802-de01-4770-a730-ba39cd116f6f",
+		"a7d355c3-e4e6-49b7-8a6e-f229801e4e3e",
+		"501437e7-4233-4ad5-ace5-95294725d713",
+		"bd77de97-e398-47be-a948-a88a3da74aed",
+		"3606bcd7-7a23-4114-8240-e2a02041f894",
+		"d99d1919-be4f-49d4-a8f5-af81f98c2ea3",
+		"25b04fa2-510d-4243-b3f0-c80835d14a9e",
+		"8230ac87-2ecc-4f10-91b3-e4bc53502b47",
+		"5b8459ee-b1a5-4654-90a8-0826b97e94b9",
+		"7cffa769-d65e-420e-aa6c-08d2e08885b4",
+		"e2422ec7-1adc-4121-8b02-3d7001d8b6b7",
+		"02ec00db-dc54-4ce6-8d87-3657ff59440a",
+		"79772c4b-196b-49dd-a26d-f42b9ae7d4f5",
+		"bc214938-12e6-48dd-85b0-c2b3ca588c50",
+		"25a783d8-f7db-4c5d-89d1-b589538ac3e5",
+		"fdd09ddf-7208-4a60-a775-f0f6f5b74eb2",
+		"0bd1dc4b-0d16-490e-a74b-2ee1b7a2d72d",
+		"10d9982a-8f5e-4297-ad16-17b8140aa310",
+		"67deb66c-8d55-4d1b-89e1-4cf2a0eb23dc",
+		"985fbe52-cac5-4c89-9af8-2fd8c43864c4",
+		"34452d7e-10ee-4bec-a26f-9dc3a5f34161",
+		"5371b319-ae23-42fb-ac8e-13c796ba83b8",
+		"3ef8b1bf-a752-49c7-9412-d4eb01709b60",
+		"752c8c5b-2a03-4d71-ab25-d507639dc679",
+		"85a09cf1-1b8c-496b-abb4-638caad45312",
+		"bd92ef52-cda8-4c52-8dfb-4f718703ca2b",
+		"70162e1b-9fd3-4b62-9f17-d44113571961",
+		"b33f296f-7853-448e-a80d-603b6761ec64",
+		"0ac6e1da-d07e-4f13-a827-a7687410ba63",
+		"c1c39abe-7ab7-4383-a085-96049401245d",
+		"f467497e-9ea9-4c18-8d53-9864e9ac93d3",
+		"7cab1f03-11de-4cf6-90f6-2b64ef724b62",
+		"f5c53f12-434e-4e02-b279-792d81cee3ea",
+		"55c9c357-9b04-4506-a13b-98fae0958d61",
+		"b054d588-54dc-4edd-a68a-53ad1f304181",
+		"ca1e11d8-8a96-45f0-a70f-fcdc0a859888",
+		"7e9a8b3d-dbe8-4a60-b603-9dfd3e017585",
+		"54497c8e-b6c4-4902-a41c-1b5ee8012d0b",
+		"ee2af034-8ebe-43f8-a8f3-525e060dbb31",
+		"258946e6-07a0-422c-91d1-9459d046346e",
+		"925502ee-0af1-40c0-9b13-e6f9f39f9e0a",
+		"83755386-3230-4231-95e0-622d259f6c16",
+		"8500481c-6d49-4a82-9aae-e35d764468d6",
+		"db099f3a-87b9-46d1-a473-caf76d4527d7",
+		"ebb56ad5-7370-43cb-9e2d-e079acdb9ec2",
+		"3a04acb3-cc63-40cd-a72c-3d763f36e6b3",
+		"9b0d0651-4f81-40e5-bf2a-5aec6fd763a5",
+		"d7950c40-709d-4b75-84c0-b14b65b489cf",
+		"63db078f-c402-42d3-8e0b-672a5de7120c",
+		"253393a1-ee2d-4fc6-b353-c00957dd178c",
+		"9500703b-258b-46aa-ba53-0a6491b17da9",
+		"96fd59a1-fddc-42dd-ac00-92c99123a4c3",
+		"620fa6a1-251f-471e-bd6d-0ef99af40abf",
+		"5572e2eb-5084-4bb3-bb64-6fc154d106da",
+		"91aa9b80-5cf6-4b3d-8f88-2917a6d4821b",
+		"7053e98c-54ac-4fd8-90e2-9d330d229c16",
+		"83580a10-b94d-47d8-acc9-147df1869715",
+		"5425c9e1-9de3-4633-a48d-b52a5439f4cf",
+		"ca356256-6987-4817-8e82-8c48c4aabf58",
+		"9541cebe-902e-4141-9fa9-212eeb0864f5",
+		"bc7edd5f-fb78-4272-bb76-52fbf2bced13"
+	],
+	"0fad48d7-3d0f-4c66-8605-6cbe9c3a46d7": [ // Mumbai
+		"076f23cc-09d8-423f-b890-74020f53b1d6",
+		"78f98c70-b7be-4578-9b6a-1c96a3e1ff1a",
+		"c7c9e213-16f9-4215-bf07-dd8f801ce3e0",
+		"36f334f7-c485-453d-9bd6-57f1603720d9",
+		"aa2a8ac6-eee3-4023-b82f-98053ac79ccb",
+		"1401cb28-7359-4c3b-8ada-2f4b9a7700f6",
+		"cd1bd9a6-9201-4c5c-af98-5593c73c2134",
+		"f77301bb-be15-4164-a46f-6198312d131c",
+		"7593bfb0-7a53-428d-ab81-870247af54df",
+		"bc6f97ce-c8dc-44a9-b3b9-5b2e87521174",
+		"d3f6dc15-17bd-4ca2-9091-8e974bd7fe2f",
+		"dcfe2f5d-0da0-4b70-8ca4-117071cbf443",
+		"3a4b8c74-bd87-4900-ac87-f64b822c6169",
+		"3a3af57b-3813-4611-b86d-9f4c3045eaec",
+		"6e13d23b-a91a-415d-9665-fc423ae1d6f3",
+		"82198df8-983b-4aeb-a352-14bdc9ade929",
+		"e833cf8e-6cb2-4669-9684-ee78c3d4e4d6",
+		"bd367c20-3eaf-40cd-849a-376928026b50",
+		"2c786095-7d9b-42c4-a33b-549735614c72",
+		"c21548fa-86a0-4ea9-a736-c8c37e4ad9f1",
+		"ff79d84f-94f9-4f0a-8de8-4c848e4c7a96",
+		"80051c02-e026-40fe-970a-7b7aaa62302c",
+		"e9a9bc5a-6558-4baa-9fd9-affc452b6c2a",
+		"c4e5211c-643d-4eb1-ba83-82cda0278d33",
+		"6cca1f8f-260d-41e9-a208-958f8d3e9a19",
+		"d45c4ba4-7260-436d-941d-3359248bcac2",
+		"1f8f0aaa-9347-4ce7-a31f-6b0fc0c57fb9",
+		"7ed46048-145f-490f-96fc-257070e6dcf3",
+		"d5af1249-893c-4419-8ee1-f8690e666f35",
+		"60c0b205-0e51-4866-ac80-4551188c236c",
+		"7ca0ded9-daad-48b4-b5f1-e7a4e584e6a1",
+		"332280ad-3b31-4913-99f1-794a4a46b98b",
+		"d40cbca0-7445-4b7d-8e33-0cc7b4ac8af2",
+		"cfea473d-88ae-4be0-aa77-31b178568061",
+		"0e4fa72a-cbda-45a0-ab6f-5bdaeccfd5f5",
+		"7770bc0b-f457-466c-93fe-fad968d71d54",
+		"abf5909f-3a0a-4bc5-abe7-427e733fdbe6",
+		"dc7bc982-4d65-4b0b-9b25-887fc1799bd2",
+		"7b8b125d-4868-4dd3-9346-59b1e16d8c96",
+		"2a5df3fe-94de-4ccc-95b2-30ecfafe8255",
+		"55012659-31f4-49ad-830e-d3613a837b7f",
+		"6f791881-7fa3-418d-a057-eb509fc3f5c0",
+		"1cb30a2b-3365-4762-8b29-fcd3cee245f2",
+		"f8bea099-627f-47a1-9cd6-21bd9c742426",
+		"47248221-227c-4b11-87e3-3ad5221033b4",
+		"1a507d22-6bcb-4945-9fbe-502b7439b321",
+		"fd9c36dd-c7df-45c2-942d-aae5b3247558",
+		"13c3807c-c99a-4031-bb32-91ab6be24784",
+		"ed9cf9fc-6f39-4f39-b945-dbb854918f63",
+		"38277677-eb1b-4de6-8ef1-3835999b8bca",
+		"4650d199-c354-45bb-a20e-197dfa6e9fe5",
+		"2479d620-81a7-45b6-b1b5-fc6cb5f95359",
+		"4cb7ff88-3028-49cf-9104-1c3b4630b699",
+		"ada5bb3d-e336-4b18-bcfc-a23ba62e431e",
+		"038e0c03-c8e4-46bb-994c-07db3c586a45",
+		"fc4a7a9f-1977-4313-b467-d0e9c476e725",
+		"286cd608-9129-47b1-897a-cdb2f6db1946",
+		"d342d744-68db-423f-9926-709e503399b6",
+		"a03044d0-229c-4cf1-a144-a31b9feb4b84",
+		"49dd5013-cc28-4e0b-bac3-e0b913e90a54",
+		"8f8b89e6-be05-4136-a624-aa452dc01fc9",
+		"46aae155-0a72-4d08-afbe-968dab464365",
+		"e8c0d4e5-2a38-4686-b59d-60f3713e4648",
+		"d232a351-dffe-427a-9f0f-d7fba8736a56",
+		"6f7190ab-7d2c-4bc2-8fbe-369c42325273",
+		"72aa012a-d74d-493f-8b84-397b95efd385",
+		"91458b65-088c-4748-9884-df230428171d",
+		"f2c167d2-b517-4695-9ec3-3f5875e043c7",
+		"0a96f1d2-efdd-4c3d-aeb9-8eb8710f785a",
+		"c8734bd3-d451-41a3-a4ec-eb28cb0d344e",
+		"bfb171c7-61f2-40da-aece-5f40c6654333",
+		"39413da5-bab6-42b6-a27b-eae657c3a917",
+		"068944ae-6bd5-41af-95f8-78d57b132189",
+		"31e77ea6-b8eb-43e3-846a-b36bc7006b73",
+		"4a2cb12f-c693-4a1a-b6c1-e42fd18ef3c9",
+		"471a8ca7-ee58-46db-88a1-a8440b2e1b0a",
+		"a1c5f61d-cd48-45b0-a10e-0d03f18938bb",
+		"fce57472-52d2-4c9d-8138-3894fe389bad",
+		"5c74e9c2-66c9-47b2-9e85-39d75b40a8b9",
+		"8de45b76-2fef-4603-824d-cdb608e7f961",
+		"263b376b-632a-48b7-83c1-2481d4634c6c",
+		"f4a3ef00-a205-41da-bd20-f30e5a4bddd5",
+		"106b70fe-b8f5-4823-b2f8-547ac5abe2c4",
+		"8c006449-1d24-478d-8248-e674897bc4da",
+		"cdf72773-a822-4eb4-84f0-cc49918d6d9f",
+		"7ddc4e51-e9ff-4aa7-833b-cceb4e59e243",
+		"04c22b80-1df8-47c5-9ccc-fc22f731abd9",
+		"2fd04601-824e-44c6-a9b2-2de5798ab8e8",
+		"4852ac89-c9a3-4937-9cff-9351bef01f08",
+		"01d739d9-d4ea-406f-ab3c-c2b28a27fc71",
+		"8685f6e8-76b9-48e5-b12a-39064347927c",
+		"956a1269-c5f6-45c4-ad52-1dbed88aec9e",
+		"794be2a9-b4a1-4d9b-bf02-99ffe5e8869f",
+		"a9eb7be4-f9f1-401e-ade9-be524af44970",
+		"510c8129-6081-442f-875b-fe78b0cca16e",
+		"ed952d7f-456c-4685-a379-e851d44e15c1",
+		"3298eacb-ad6e-4812-a804-06198efac439",
+		"919651fa-4b8c-45da-b7c4-50caf62011ee",
+		"90f6420a-fea0-440d-85a7-052e81189464",
+		"519557b9-a4a2-47e9-a1f6-b9f51dbaf8e9",
+		"57732619-c7d3-4cec-979e-fe5f1610f497",
+		"9bdea55a-5091-45f3-af5f-db4cba2e7bae",
+		"4c9fb1a2-54ab-4055-9a51-080fc84909f6",
+		"f3b6faa0-9649-4498-94bd-fe07a4e47da1",
+		"cbac531c-f56d-4367-9846-29878efdc8d3",
+		"7adfb719-a98f-4e26-b33d-9f0c74d49561",
+		"516ca389-fd0f-4dcc-921a-c7f58a455e3c",
+		"892a722b-a349-4f9f-bc8d-c9f71d4e43b3",
+		"3b061fe6-5692-4e0b-983e-de183a82ce68",
+		"5c2990f6-367c-4a13-926c-071afaa4da73",
+		"807da445-0a65-4f11-9d57-648cafd302d4",
+		"e96d830c-868b-4cfe-a5f6-0446326237d7",
+		"b054c3bf-2c3f-4651-ba35-86ee783ccd3b",
+		"fd8ed2b3-08cc-494a-8cff-9d2ef0f9ba9f",
+		"8f4dd701-1ae6-48ab-91ea-3526bc8dd0eb",
+		"b39cc3e5-3fbe-43b6-a34c-e52cce60273d",
+		"7da93b75-5319-479b-b664-b18370723e7f",
+		"12e5b5d2-7405-4bfd-9ce9-13bb62c36b49",
+		"49e5fa6d-3355-4baf-9512-699aa0215c44",
+		"fca26a47-3751-4d9a-9145-f5623d2fbc7e",
+		"3190e825-5e10-4652-b93a-7981129ae3b8",
+		"eb9c9fe2-c1cc-42ec-9471-c3aa1217d0e7",
+		"0221ad83-e342-403f-88bf-d3c3dcfe97ba",
+		"b48e1fb4-35c8-4de9-95b9-433d4ed545fb",
+		"857a0a1c-0db9-41d4-8391-9e4bc1357ae0",
+		"4e78e497-742a-4d73-8203-bc718cae55c7",
+		"abf12e5f-ad50-44a8-8791-748f5e368dbe",
+		"34ae7db0-4740-407b-a0cb-4ff832386de6",
+		"25c23a1f-fc30-46cc-bcc2-3c9f05fcdc85",
+		"f6020213-2114-4842-a2ad-d62fdf182400",
+		"be5321b2-4b49-4a36-9ead-e353b4c10cb7",
+		"9847fe4a-587c-4d98-a958-32dc420c689b",
+		"ce619b1a-5817-406b-bdda-c424203d56e1",
+		"4afb6812-dbb4-45cf-a68b-42f0aee5445b",
+		"863a6934-7504-4ebc-9613-2f7396fc20d4",
+		"107b4593-8ce1-4c90-86a9-a7f7b4acd7d0",
+		"7fc453db-21bf-4dde-90a7-2c1662a81fac",
+		"e447da3f-0ae7-40fd-ba06-9484159e18a7",
+		"ba9148b8-da89-405b-9b34-aa7b3175ecbc",
+		"f802fd57-9bdd-4ce5-89e1-2639b9972bbc",
+		"aea7bd81-188c-474b-bcdc-5798800ff838",
+		"ca3ee17b-3c5d-4f36-a4b8-35ee9ce56a1e",
+		"253ffa72-1ecd-4f37-b9af-6d369b607588",
+		"4b49edae-c711-47a9-b68d-176d5399fb0b",
+		"d9f7907e-dcd1-469f-9fd1-b1f500e3d015",
+		"c605827f-73bc-4473-b52c-d0c018b89df9",
+		"4a180292-8189-4461-b9d6-8f72d3b4ac5a",
+		"953aef51-63ed-4a3f-a311-c55a69c20bde",
+		"037e9369-d072-4eeb-947a-405cabdf64a1",
+		"0b3e1a3b-6f05-4d4b-bd3b-d35374e3f4d4",
+		"fa69deed-a05d-45d9-bdf0-4ccf075a0dd5",
+		"2f4fe49e-7042-4d6e-923a-4070d17fd4f2",
+		"34afe139-c5fa-4937-8f49-f567299ed6c4",
+		"baf3e862-48fd-4bcf-a326-b10e0f2089c4",
+		"27f0bc6c-9508-43ce-a380-5e1971dcbd1a",
+		"7e3a7287-6ea8-4e8b-9f5e-68d7e80f7b16",
+		"51cebc84-e937-4ea1-99eb-9ad25195c450",
+		"67259a91-5c43-41bc-87a7-fd1565405734",
+		"8125ecef-49ed-4327-b8be-f2117dc59a32",
+		"cf44b935-9604-4757-901d-3771860bc357",
+		"adf14d33-eb21-4ba8-b7a7-43f39a62f980",
+		"1b95eca7-f046-40f5-ac98-2ac89f057744",
+		"f7b1b5c0-4231-4d16-b93e-a7128d41e9aa",
+		"fdd810a9-1f9d-4115-8ef5-3f6016e8a66b",
+		"952c756d-82f4-48e3-8b86-66a5f73c4e85",
+		"a9414165-6806-4a48-8473-49f2747d59b0",
+		"3d9bdca0-74b6-44c4-8b39-0b2e36b9a98f",
+		"cfd42c44-7ff5-4cc8-81b0-b8c791eb6a21",
+		"15ba7078-bb83-4ed4-bbfe-b583d4b7d66a",
+		"a8d24110-0839-43eb-a1a0-493d4c485da9",
+		"13217009-a49b-407c-b2da-ee2ba63529f9",
+		"332eb76d-8c99-45c0-9cc1-6801e6915396",
+		"2ae836c4-afd3-4908-8f14-78b470b2cf61",
+		"3b4672e4-5ad0-4cb3-a01d-f8690800db43",
+		"6f6e6bbc-df0c-4ad2-9c94-301113d6e09f",
+		"a034163c-f1c9-4c18-8583-207504a5058b",
+		"c3eb9d08-ab6c-48f8-918f-35aa5be8a0ab",
+		"30a6026f-d990-43fd-a6b9-586ca4db19a3",
+		"e0263af8-80c7-4292-8470-2ed5aa54f353",
+		"ab893033-a3ee-494d-a201-5de4c9273370",
+		"58029450-f0a6-415c-a993-38bd340c31ae",
+		"83ab2ba9-7a5b-46da-a3bf-3f9d2fb8b471",
+		"e69ac98f-1d7b-4e20-bfd1-d25d72a96b5c",
+		"10eeb4a2-810f-4a0f-b7a1-adb773480149",
+		"1ae94312-b566-4f45-82da-fc1368bc74ff",
+		"5ce075c6-c78a-4a5f-ae5d-9a516404ac46",
+		"6a681990-2406-4f98-b84b-e6f789006555",
+		"fec3830f-3ef8-4ab0-95ef-9df03ceed9cb",
+		"eb601b94-abc7-4c82-8974-8de07a061ce7",
+		"0e7d3840-d9de-483e-8908-1d16279453af",
+		"6c2bf72e-fb8e-4965-8150-657ee77e0487",
+		"5ac0c207-6921-4f9b-ab2c-a80569ceb798",
+		"e2842db3-3f67-4047-95d6-677a22c3cfa6",
+		"606e5ad4-124f-4bb3-9bb0-de2e68f4ca2a",
+		"125bd1b9-f153-4513-a86a-682aea2ef72b",
+		"d3fe0859-9fe0-44b1-8711-cb33c0f09321",
+		"a5afc840-da0e-4c33-87f6-3cb071457183",
+		"60a9e3c4-3e79-4f9f-86d5-d30d33cd4017",
+		"07ae1fc2-e9cf-48e9-9ff6-3774e6a1b5b5",
+		"38acd088-5cf9-462b-8267-e87fd9ac1bb4",
+		"0980db36-47e6-4168-a9f9-53c9c4b48832",
+		"90255fb4-5ec7-4191-94bd-1d6c0fa73618",
+		"22cdb031-155a-441f-a882-336dfc7b04e1",
+		"a9513851-de3a-4607-acd0-d2392d663103",
+		"49246f55-ee3c-402d-acae-10936d4ec9cc",
+		"8102e896-abb4-4684-b1cf-a024dbc42a24",
+		"70a54ef8-ccfe-421e-84aa-6c9c037a2998",
+		"a0aa5209-d2c7-492d-8602-635b22bb0a0d",
+		"fab4e3c8-32a4-48f5-9a87-4127f1971115",
+		"0f406c8d-6665-467b-9911-45eb161dcb25",
+		"dbd85cd8-f99b-452e-a6cd-5fb58ff5c060",
+		"83bfb708-d8f5-441c-8cbb-6a46296b0219",
+		"348e35aa-128d-4b8a-8fcc-a4cd61d7114a",
+		"231eb3f7-37ea-4930-8d39-e93292fd792b",
+		"1f5e40b5-775f-4a4b-8c91-0f9fe59b2001",
+		"956148e9-9b27-422f-97c8-ac022585a642",
+		"f2758042-a25d-4ff8-9c3e-8385c9bb5b73",
+		"7f6bb2f8-7ef7-4c1a-abdc-34305240f364",
+		"22a19308-5b21-4e80-a915-467ebc43a1de",
+		"eb7aaf12-c5c2-4df9-a342-17a79f3febeb",
+		"f0ac4e9f-47dc-4dbd-ad11-bce617737e98",
+		"83b7568f-1b70-4843-a882-49ce2e5987c6",
+		"039a418f-43a4-4dc1-8803-963142f85a03",
+		"b0004597-ed47-41e2-a114-63566086668b",
+		"b1ab76fd-2602-45b9-a7cc-4013c2df192b",
+		"b717b6f8-2e16-4086-a0fe-af7ddcac4071",
+		"1f7cc7c4-8eae-4fd8-aa91-f17d4f7e5f9a",
+		"daa09380-806a-4008-b887-3c7abbbfe17c",
+		"3011d0eb-3780-4b6b-a551-1b859a2e686c",
+		"ed44a9f6-fbd1-4cb2-b3c8-0bd269bca9a6",
+		"e5f2586b-0c46-4d81-b2b8-7cf4f7af86fc",
+		"00e6e00d-0c58-458b-9947-ab8c46aab731",
+		"abd3f5b6-4dc7-4b16-8a57-692774ae951d",
+		"4638c3eb-9327-47c8-a8df-3babafcdfa43",
+		"bb4a95e5-9db1-45b5-a1da-d23e87da92ec",
+		"aa85dc15-120c-4c21-be3c-8324ccc64aef",
+		"4965d0c2-23db-4170-829f-6b6bc4980d23",
+		"36b8ae96-9a15-4ef7-8967-369c284d876f",
+		"ad2f19fe-b275-4d40-8ad2-961b0e450e5d",
+		"f51170ff-0dc6-417e-a208-8e27fcced3dd",
+		"5415d5a5-99db-459a-a863-de115ddb75a4",
+		"7050b7a8-80aa-4761-b752-b7940e290434",
+		"65919ad9-2dd5-42ce-982a-fd7397a3045f",
+		"9e79ec41-a7ae-45c8-abb0-4030cb834e51",
+		"58debb6c-52ff-4779-86f8-4d6b4f8fb000",
+		"e11b5bdc-2d2a-468f-a1f6-c6df7fe2bf6f",
+		"b63e8fa7-b80c-47f7-8ee5-a48fa664d9d9",
+		"b395fabb-c557-414c-a315-661e1722b1ee",
+		"e110e02f-0552-40db-87a0-83a0956fa1b4",
+		"53c4c739-ae83-44f3-abcf-1e1b336178d5",
+		"948002eb-d0b8-4e9e-99f1-a38acd4d4d90",
+		"5f86e15d-341c-4e21-ab8f-781c517dbe43",
+		"09084edc-23f3-49a7-ae4b-fb9e4da3e5f6",
+		"f711ea37-1c7e-48a5-b3dc-c48c4e6e4a83",
+		"b092bef2-6994-430e-bc84-59a5585429e6",
+		"bc42af96-0d81-4ae0-8c94-d969e60d602f",
+		"97e6eb67-2215-4f46-8b1c-2698bd298496",
+		"7d505b8c-3c34-47e3-b903-e744afd4fdcf",
+		"a9513dc0-9819-46a7-a7f6-323a8f6cf6ca",
+		"2ff2e1a2-0fa8-43d1-8a02-0e86a6f07dd3",
+		"4e8a1812-067c-4bef-aacf-48b15519e7d2",
+		"3096382b-263a-48cc-bfe4-c227302125d2",
+		"fc14279f-ceff-43db-a4f3-d038b19f4fd5",
+		"a3949df5-09e4-44e2-9729-50ae494ff3b8",
+		"10a1458e-6cb2-4541-8cf0-12a0dfe55a94",
+		"0821d4ef-86a8-4bcc-b92e-176479ffa844",
+		"7d5cde6a-d65f-4d5c-8f0b-811e2cd2dc52",
+		"a7d50e82-514e-48b6-a8a9-ffa80b86c141",
+		"4e3e2967-bedc-4b87-80c1-4104a7b9a915",
+		"20f3f7a3-76f4-4a7d-bae4-ce6f062e608b",
+		"7e8a9266-c12b-4187-924a-1615d7e15c32",
+		"613dc931-2494-435a-9691-395dc482cccd",
+		"621381b4-a9a7-4819-b892-057fcb24d205",
+		"d89dd811-be7c-480c-8dda-d78d94f8714f",
+		"5121a851-4338-49af-976d-9f4e96a1cc6d",
+		"f945da6e-479c-4a87-b31c-48e2fa20da0a",
+		"c1c50637-31b5-4888-94b2-67ba75487c46",
+		"76d9066b-47d4-4ac6-a264-bf70e08709e9",
+		"cd032e96-95b2-4be2-8bda-15b0dc2d7d50",
+		"b0fb0663-89db-412b-b079-d558ecaa5bda",
+		"f4f60011-df2c-4f5d-994a-92e2bcdbd0e4",
+		"5ad23a04-3ee0-42e4-9c36-128c5c21cb3c",
+		"c4800a35-19ed-45f2-bba9-5e17a3f24a39",
+		"448d679d-dfd1-44c5-be15-dec902bc1d72",
+		"76f59d20-e058-476a-9b1d-c71b98a8515b",
+		"5a847f17-3868-4d78-8538-8809fafd1af2",
+		"d873e890-f1d7-488b-a02b-ce0eec26eb79",
+		"7d9dce00-b32f-462c-b641-025959be102f",
+		"77ef890d-6fa6-40c6-a902-4d1d43c7e0f3",
+		"0610c280-1234-45d3-bd2c-6215a85e97bf",
+		"ad15deea-be52-4eef-a33f-caa7dd2dc908",
+		"743f058f-56a0-420f-8b5e-46dababaca37",
+		"e5f81ff3-4f52-42fe-b457-e8ea64e4ab02",
+		"c4043de4-9c70-4b50-a1ca-8bb39c68ad98",
+		"f91db458-afed-4289-aeff-ba9b68b69dfb",
+		"141187a5-d751-4d54-8f42-35def40706f6"
+	],
+	"7a03a97d-238c-48bd-bda0-e5f279569cce": [ // New York
+		"ad93e268-3d6e-4aba-bec0-607cb5451ac7",
+		"c5358117-c966-4ceb-af31-ae74c9e80fef",
+		"1348888b-2f16-44e4-9cf2-4fe6f4e7625a",
+		"2e8ee73d-b965-4db5-92df-0549980173e0",
+		"92478768-9a59-4148-9afa-b27c6bbf63e0",
+		"00e27597-5055-436c-864f-b591fe247b86",
+		"962e0654-2727-4e4a-aa4c-f01081e83806",
+		"d60362c3-f2c5-4812-a6d2-30de578b2fd4",
+		"94a32cd6-98eb-40ec-8df1-af6d91a03663",
+		"52e6850f-acf6-4767-941b-6d82c2469613",
+		"81c65f3a-18da-4e8a-a4e2-2e3c870301d9",
+		"3f808b28-3647-44f3-9aeb-4d5ae6d63573",
+		"8091e74e-d23c-4f31-b7f9-d220ccdfd792",
+		"f7d6188f-ea49-48ca-8434-922dcbf1af4f",
+		"8ade9a6f-ec27-4acf-82ed-e9da527518be",
+		"380b4b23-50fb-4eab-a9ca-54f741a5935e",
+		"d7a5c36f-3dfe-49a5-9b11-01bc46420d51",
+		"89c446da-527e-4bd1-b707-6f78949ffd38",
+		"c596a947-fb3d-4ada-8440-a5ed205733be",
+		"409d928e-b706-4032-9e7e-024af200a6aa",
+		"8f23aa6b-8b8c-44f5-bde4-b4d8a3c2b906",
+		"c35d1d7c-ac6f-45b0-ad9d-36a3e3be7232",
+		"73d0cf63-6c66-4dd4-a451-d5679ca1d45f",
+		"91259083-a59d-416c-b3eb-41ee81a09c5a",
+		"c155e1d4-0624-4061-9504-1620773a048d",
+		"e782309d-9014-4ca7-8910-59d2b0b8c18d",
+		"ddc7a132-9108-44b9-a69e-49babb90334e",
+		"ad80f0c0-0935-45bf-8d83-d5bf516f0c96",
+		"8f15d9f9-326e-41ca-bb48-2c3a272a0433",
+		"3af5f53b-ec61-445e-b798-b5d7f5db450e",
+		"3281c289-aabf-4cc4-8b82-286efb9aa8e1",
+		"a3b88878-fdca-4592-8423-f96ebab62f82",
+		"6e7f5b98-2a0d-46a7-975c-9013102c3790",
+		"f3e81a0f-5f00-457f-980b-9d78d77c4b24",
+		"2f535f0e-c3f7-4274-bdec-50476b50e538",
+		"57414fad-32e4-44bc-8e7f-06289891f35e",
+		"a60c2842-4ce5-4c72-a560-0d515d990eae",
+		"dab94294-69b8-472f-9a05-cb474b9a671f",
+		"5b76b821-b4d5-42e7-a3ce-52bb5775614a",
+		"d6a3b494-28b8-40f7-a95b-bee0edebf384",
+		"57960c97-b8ca-46bd-8b23-41e6161a4fe4",
+		"37404add-fbf0-4698-9712-50ced4f4b46c",
+		"a61dc4ce-93cd-4a5a-bdc0-f58f46fb2043",
+		"1a1049a8-62fe-4b91-ad84-0ba68e8e8663",
+		"43e275d2-410e-4d3d-8958-dbc27591fab9",
+		"7e4c00a3-4c0f-4de5-92a3-bfcd27276c03",
+		"928fe230-791b-4f73-a617-ec05c35d6902",
+		"2e7bc87c-d1c8-4739-a228-c6632eb73d93",
+		"83958fd6-ae13-4d06-b258-4925b355915b",
+		"4d4ee135-ef81-4b66-8149-ad774fb34970",
+		"4225c033-5e29-4f7b-ab03-e51a0aadc8ed",
+		"3411bfb2-0213-4efc-9ad8-2e183882a64d",
+		"216804b1-e400-4349-b8c9-e7703bd4fdb8",
+		"17d2a812-d0fa-43cd-bbb6-fc02694b5ff1",
+		"ea42e21d-791c-4d70-b8f6-f2e26edbfe37",
+		"3443690a-272c-4faf-be85-5070fee0407b",
+		"8003899b-0129-44d2-af00-0a6256a43efc",
+		"85f4e178-96fd-4c4b-80ec-a692a9a050cd",
+		"f03a4c5a-767f-4315-a160-baef4bd1def0",
+		"20d546d9-9d4c-49b4-879a-db9038b4c805",
+		"987fe2c3-1de8-4cd1-85e8-8252eb9b8dcb",
+		"a23f4ad5-6857-4501-a53d-53522a671b88",
+		"f1f378ec-9607-4dc7-b311-b0a7a6073749",
+		"ed93a545-e9f2-4944-991d-9b369bd6a51e",
+		"6b421fc2-1090-4daf-ac0e-8468e9eaad18",
+		"08db58c2-025c-4774-980e-cee1ba857ba1",
+		"a6389c85-78c8-485d-8e71-b6f02562d656",
+		"2090d9d9-c9bb-479a-a0eb-2b2c07560b0f",
+		"1802d240-d439-4ae0-be63-ce7f3c59a925",
+		"3a309afd-b673-49ff-b58c-9ec3ef77447a",
+		"de075218-ac98-4c62-8428-38ddcd20971d",
+		"805a49d5-e70e-4c03-b4bc-943e0babcd2c",
+		"fc45b96b-b9a0-4ed2-82c6-fbec726c35ec",
+		"59fa9d8e-60f4-44ba-842f-7061c2931cd3",
+		"eea1f3d3-21a7-49f0-b6c7-ee0e8fbdd9f3",
+		"14622aba-c7ec-4c84-aa97-e039127ad30c",
+		"107c1fef-8005-4be7-9bb9-df76114ef406",
+		"46f4d52c-f392-429a-87d1-db7b43ca9083",
+		"07157dab-839b-4a5b-bbe8-1d439c52d3c9",
+		"57cc8bff-946e-4593-af86-255e71cdc09c",
+		"eef933f2-e53d-4004-b2d4-5e94fb2c3cef",
+		"d0aabdd4-0e19-4939-b01a-b38bb8bc2d40",
+		"5ae26275-4cd4-49c3-98a3-35fd068a4e61",
+		"04fb5d48-df21-47ad-8027-b57db95a7367",
+		"f64e1d41-3356-4d3d-9d84-c5695f145daf",
+		"9eea16f6-f523-4120-bbcc-95e398bcfbf9",
+		"1b01d523-3c31-4fe9-8669-df524191ae70",
+		"62755855-8f3c-4588-bcc1-8c30ac5c8314",
+		"db51f79b-578b-470b-8bf8-bed82e2e250e",
+		"9d60b868-6eb4-4f2e-b3a6-51145dbb8ab9",
+		"56a189b9-4d58-4f70-9bc7-d452629e8dbe",
+		"799e5b66-b968-4ecf-b2f5-a99a892138fe",
+		"493d744a-da6d-430f-a3c0-da87e6093d07",
+		"f2efb273-d0a8-4442-8cea-8a3ac205cfc6",
+		"8378974a-5fe2-4bd4-94f0-23a9815ef28d",
+		"1ea813c8-038d-473a-aecb-ac9afe0adbdb",
+		"967f26c6-f862-449d-a873-a068c176dd3b",
+		"2f53c1f6-a17e-4b64-8b71-7c807255efbf",
+		"80f54fb9-da6b-4c66-b8fb-f423c25bc432",
+		"26a41cc0-bdec-410e-85c3-2118d6d02423",
+		"eab30219-cd83-43ec-86c8-2be0e3e27119",
+		"0ad63eea-4a2e-4f1c-8bfa-d7cc4ea28b51",
+		"55e9c6b3-2077-4347-8361-b7374ae17bf0",
+		"f7606890-2c29-4e9c-973b-9ae71facf9f6",
+		"207f8711-832d-4458-89ea-ae6a9c5761af",
+		"75f8b08b-18d5-4d88-9606-d0e8e1adfa19",
+		"c7faa8bd-7de3-494b-840b-8ab812e36ef9",
+		"fb0bdd68-6710-40f4-9524-efdaabc5fc4d",
+		"8707ec2a-45ef-4ec9-9a3e-c8bbe58443d4",
+		"9d9d51ae-435b-4879-9b14-028d9fdf6802",
+		"3bb28398-d0ea-42da-a514-d969fa59a916",
+		"99399bfb-584a-40d7-9236-143317f1e7a7",
+		"ebd039a9-8327-436e-bbcb-738378b95430",
+		"63f73974-dd6a-4778-8a3c-80ed02acc1e1",
+		"4b4aca9b-d73f-4e82-8725-35feee255e9e",
+		"af418cd2-c42f-4ee2-972c-2c2f1ecd7ea2",
+		"c1c83037-b8c6-42b4-b46f-3f94f8ebfef4",
+		"f695426f-c7ac-461c-bf62-550d76b0d465",
+		"36e9581f-ff91-4ff6-9256-d4b7c5ad5504",
+		"ac3e013d-393d-40a7-b559-2a037e7bdba8",
+		"a610f524-466d-4ac9-b3e8-861b37a9b848",
+		"e49c4444-6ef9-4bca-bf3f-ed7fcbdaf19c",
+		"f5837297-08e4-473d-8a4d-c348c58e1b3d",
+		"99cf3182-1a18-491b-97a8-07b5056a46ea",
+		"99d0bfc4-2918-444d-8373-db00b6d927d7",
+		"a6333e0c-f40e-4463-8c79-e458bf293a7d",
+		"9f027f88-6dd5-4335-bc3b-1e7680d66a22",
+		"9b7cbbb8-ab80-479f-9b60-c96ebd3d7230",
+		"859f2eb3-d81e-4c4a-9e65-9afe9570e92f",
+		"ea90f5d5-9270-4488-8d4e-e637953f4ec5",
+		"72c03ea6-11ce-4257-921f-cf527f3201ff",
+		"0620a57f-9532-4749-9cb8-de1a75d7befb",
+		"8978cbc6-7f05-4314-941f-f9615cc2dbee",
+		"7dbb32c1-8e38-4888-ba23-bf3be66368f7",
+		"25d7b1c0-873e-4b7a-ac40-5502b88eedc9",
+		"522d3bd1-b77a-44bf-85bd-1aa49dbbaa45",
+		"1afcaef8-0a92-4b86-bdc7-885fae639e81",
+		"c81e8cb5-221e-4cb2-8da6-8f67486f68a8"
+	],
+	"00000000-0000-0000-0000-000000000200": [ // Paris
+		"052434e7-f451-462f-a9d7-13657cb047c0",
+		"edad702b-5b37-4dc1-a47c-36a1588f1d3f",
+		"94f977c7-4238-437b-a3fb-478a7b712515",
+		"b8118e66-47ee-4119-b893-ebbbda88bf80",
+		"6c957e96-9a74-42b5-9dfb-3641e2de0e22",
+		"43c7d492-44bc-4483-b229-fb76a100d786",
+		"2546248b-0df8-4b51-aefe-b4269f041197",
+		"5d75e73d-5067-414d-94ba-fdc3d9c32cf5",
+		"ad2ae42f-052a-4ef9-9106-669923d34be0",
+		"04536bd7-a50d-4e5f-b586-e60d52c5e911",
+		"c6b70e77-8b10-48e1-867a-f69a700fd5d2",
+		"c7e4e2a2-3fdb-450b-be29-87ac47404e29",
+		"5c75cacf-c878-45a7-88c2-c3aa071a4b67",
+		"a2e9d675-f15e-45b4-973d-7c321b363da8",
+		"80527cca-f2bc-4bbc-8a3f-6e186d52504a",
+		"9585ebd3-5997-4af1-9023-4ccb1a733c14",
+		"9f7cd379-8321-440c-b166-7b6746695e91",
+		"90d781f3-1e41-4eed-b66d-3df5eeb138a4",
+		"efac8958-cb25-4abb-9683-cd5ecd786065",
+		"71c95ed4-ca91-4e50-a579-df328f6a2f44",
+		"e0c5afdd-66b8-4933-afa3-048394317b11",
+		"901410a1-abeb-4bc4-a691-2ad7c67a4dd1",
+		"1e7b2e92-13f0-4dea-b656-f86f0896f362",
+		"1aaf283d-e5b1-4b6b-8c56-d8ef5263152a",
+		"2998ef53-3c27-4ce3-83e2-70260ef0ceee",
+		"b64e4209-66ad-40ab-baeb-78277efb2e39",
+		"85d78223-6c1d-4ab6-9e07-538e5ee220dc",
+		"22155bb6-890f-4a8a-8842-4d5441bc8e64",
+		"2697b700-363c-43f7-af81-ae91c0373fbf",
+		"7a3222ff-ebd9-4dec-ae68-ca51f3e77b5b",
+		"5a3a3205-75d6-4cd9-b397-fee70e878601",
+		"3da9a746-0108-4636-9827-73a9ec150e3d",
+		"da974748-9a92-4d06-acaa-e9828af72954",
+		"8f1e0db8-e681-45c5-b95c-f1c1912306ce",
+		"6e8bcfff-c9e9-49e4-b441-3411a8ef1659",
+		"23c918e7-1110-42b0-aeca-29d32d8d2dcd",
+		"eef6c31d-0761-41cd-9643-ecd2e75e5b07",
+		"8b4299ee-b72d-444c-b990-2eb909aff59f",
+		"33b54f3e-e726-4365-b341-305edfc6f93a",
+		"8863f076-3ac3-458e-9207-2328d59edb81",
+		"eb0b6314-17fb-4652-ad3a-878afbeb47e6",
+		"c1b4ae91-7873-4c6f-9c07-af4dbbfd4a0e",
+		"a8274a75-25ce-4b84-81ee-766500d58399",
+		"9477dd4b-9944-40bf-923f-60a7bbba70bf",
+		"1495eec0-764f-4646-a456-c2cf63d41d32",
+		"16cd7617-c26b-4647-aed9-3d50a258ca69",
+		"b3d3d11c-989d-414c-86a6-700fff65b536",
+		"e50778ea-6907-4e1d-8e61-7d166a3c96f8",
+		"d85b4a79-6efe-40e0-96ca-284304d92378",
+		"016ffadd-8ff5-4168-b03c-e3d9d489b64e",
+		"4d0a7296-0cd7-441b-8453-10bc26009970",
+		"b69d7239-a130-48c5-ada6-82b7c49a0807",
+		"c89bbde5-f2b8-4efb-9db8-9f8025ecfb01",
+		"e1771d22-1ce6-46c5-a905-1f61894fa3b0",
+		"adb8b3e1-604d-4aab-bd23-75f299ce7aec",
+		"04f94e21-8a9f-4fb3-bbc2-a3fdfdc61b75",
+		"9030fd61-b671-47cc-86f5-b7bb38fffc3a",
+		"4e677baf-e849-4029-aa0c-013b2f985b7d",
+		"d5904557-e353-4545-bce8-8c3046592731",
+		"a6a92581-d72b-4692-8381-8efd6feeca08",
+		"3c1247e1-91c2-4245-8764-e828271f68d3",
+		"dea09b62-294d-40e9-b98d-cf6a1c3e4510",
+		"feebde99-6cbf-408c-8b57-a98c3d6e3099",
+		"f911d7ee-169d-4cfe-9a77-b0d28177e3f0",
+		"3236e09a-4d07-476d-b8d8-a8fe453bc4ee",
+		"6bbc8fb3-5867-40d5-a193-b7f57cf8fccd",
+		"aa1c8b40-8692-11e4-a689-07980bf9330f",
+		"9b449f23-6a1f-410b-9cc8-905d8de2d043",
+		"5dc7ede5-bb9d-4f93-a892-cb7fb2791b19",
+		"c4d11d8a-d8e6-4072-98cf-d73b72abfbd1",
+		"aa0e779d-17aa-4657-ad8b-97770ae1ff7a",
+		"2a3846bc-0e5c-47cc-a513-f88a5ff43850",
+		"662b5932-d80e-4e83-968d-df586044c11d",
+		"11154daf-3572-4b84-8239-48233e761af7",
+		"58acfdec-f8da-40d0-82f4-542cc9123464",
+		"b8e30adb-94fc-4a16-ae97-67894b20755f",
+		"82879616-4011-42d2-ba39-08a231e79741",
+		"208e9ab6-a4c4-4e7f-8a28-50c51a9c82a6",
+		"5ba3404c-cf6b-4104-849c-af3cd4ca15b3",
+		"9c196bbd-13f7-4c76-9c1b-fca1f87fb39b",
+		"eab56c26-a5dd-4c89-9189-30a3283a0db1",
+		"c2e83fdf-0cfa-45cd-8092-a3dbfa42c1f1",
+		"06c736eb-28f7-469f-ab9e-4652383fdb6f",
+		"118b962d-963f-4ecc-8916-eda81c9e5ec5",
+		"5b7b00b7-3243-4033-b5f4-4616794e64db",
+		"a245262c-3e66-4477-b334-0f693ed5acb7",
+		"cd7bd6b0-2d78-43af-a759-9420d921aeca",
+		"e81efbd9-0aa4-40ff-8c4e-db5a10b368ab",
+		"35bb1a0f-eb40-4b8a-b861-b280a710aeba",
+		"d4e449f5-8c58-4210-b2ac-c85e19a9afdd",
+		"5965ab65-cdaa-4700-953a-c174c7b0f42e",
+		"19860c30-d781-4ecc-8b2d-89e75be40264",
+		"0ef7ac00-098d-474a-9d22-eb74d6384575",
+		"fd60e737-5448-4805-8371-cb0f936731d0",
+		"4e82e131-797f-44e3-91b6-f5924e876417",
+		"4af68a2b-239b-4e01-960d-d9049aca731a",
+		"238926bb-371d-4a65-a364-0606e9166f05",
+		"8f582837-4cb9-4169-a7ec-5a77e63c1e27",
+		"8bfbdcfc-aabd-45d3-aee3-6001bec07a80",
+		"53a183b3-6b3b-4a6a-845e-8d5c8debea4e",
+		"b07d7f01-16f8-4096-a351-405bc29d8205",
+		"255d7480-ca91-4b1d-a9c0-33ff78268524",
+		"ba129119-7278-42e8-acba-a481cfb709b0",
+		"6d4bab83-21b8-48eb-9b97-550cc3528212",
+		"a223aa72-2f4e-4d8d-96c2-683154adce60",
+		"e9139ae5-a176-4f59-97f0-165060f62a5a",
+		"109a074d-3c91-4c97-8f9b-cae506f0c9f9",
+		"ad9f7ad0-ff67-44b0-ad51-5d969a23b03d",
+		"5da75472-1749-42e3-b9c5-f5506f121501",
+		"7ee5455a-9d06-456a-b23a-1a9cf59a876a",
+		"33775dd1-3ace-4a8b-942f-2c6e3a934fbd",
+		"55d263c1-4894-49fe-b016-73a54ed52252",
+		"ffa05f01-d6f4-4578-864d-54c09abe40e0",
+		"c72e112c-7073-4e7b-9f9f-93dc17e9c5a0",
+		"a2569eec-ac38-40ed-a547-cd39cd74102c",
+		"3674b39a-7012-436f-a09b-a097ff1c9c38",
+		"71761c91-a77a-41cd-a6b9-1e66337fecfc",
+		"7d819fc9-3782-4943-868d-3548743abfbb",
+		"c08cb113-e571-444f-9209-96b58ebd0c3b",
+		"f2f2bdc8-281a-48c8-9606-77a0413c0d24",
+		"3b41ebf4-944a-4bd6-8353-8a63b554e236",
+		"af1980b2-88f1-4d7d-bfb1-1aa1017245e7",
+		"f9c3905a-ec94-43b6-aae6-8b2f752467f7",
+		"2b60bf07-408d-404b-b7ef-9635a00e7f14",
+		"fb4b474c-c8ea-4ed1-a353-eee294cbab0e",
+		"083610cc-17cd-4e78-9274-c5b00c8f1059",
+		"cf550573-4d43-4185-9062-586b434d2abe",
+		"27085828-6844-4d4c-912a-1491840e915a",
+		"ae40d308-7bbd-4257-8661-bd8a13cabaad",
+		"55b61400-90e0-40c1-9613-809c8238b6b1",
+		"458b0a07-49e8-4da9-ac49-6f5516a3207a",
+		"6483f35c-2fdf-45a0-9c7d-c0379383131f",
+		"95fdddcb-34db-4fb1-9973-ce014954db06",
+		"8bc9d5f8-4dbe-4406-82dc-a5ceef002f73",
+		"fb0615e0-2265-409a-9ef7-bf1af06dbcc5",
+		"62840f01-8d65-4a6d-89e7-c19e7ce28e19",
+		"6ae81c4c-e9cd-4bd4-91ff-108e0bbe02e2",
+		"e4e8176f-b85c-474f-9420-9798e0c811e9",
+		"624fa9b2-4db0-4a0f-8468-ec5ca91fd331",
+		"4a69e8ca-96c9-4f6d-b977-65c10f3ca202",
+		"a32f37e7-ccce-4866-b773-bde021d79df4",
+		"4d1bf0d3-5a6e-4264-b4c3-a6d5e7cfbceb",
+		"430f58b4-6c88-4b45-9c36-f6036789be06",
+		"19dd4206-5386-4a88-9899-0e1bd46d2805",
+		"6f1e4a48-9efb-4b5e-b811-d596b9a0c5e6",
+		"a8f7faed-60b0-450b-b88c-b642774641b3",
+		"84f3661e-72c2-4b4b-b750-8516c13e5102",
+		"f4df6a75-41de-4e7a-a8e5-26b6352ce9b7",
+		"97d02236-39ef-4a0c-90c6-cff13fb46766",
+		"7c6fe038-14da-4395-8f83-3da053699b8c",
+		"25c6dda5-b907-4486-9f4e-90da839718ca",
+		"ab22f88d-f567-43a2-b20f-0ecc17257ffe",
+		"0bf717d8-0f92-48b3-8df7-586a23712082",
+		"9eddabf7-f8a8-4606-a79b-e24456a9b55e",
+		"ea6513f6-58de-4cde-b004-f4b151d4fa8b",
+		"2dbdc1ed-b834-4d34-8f3e-4a09b3526b9a",
+		"ba30e5e5-aace-48cd-b273-62a2e1f13c99",
+		"bd67c6e5-236c-4be6-a874-cca6e5d5ce95",
+		"585f8b0b-8ccb-4d59-b060-6613e1d554b8",
+		"16c9d8e2-7627-4d2d-b510-5af2fefdcda4",
+		"da2193f7-d2bd-4db4-bbe9-af8f664787d2",
+		"b3050a5f-77e7-4deb-8a8a-09f39bfaf4af",
+		"12e37dc5-3a96-42bc-9815-fcb6f9d94bc6",
+		"61c4c30b-c581-48b5-8c51-b4741daaaed6",
+		"8f720ba7-23a6-4c99-8bab-ca096711d80b",
+		"a340b96e-a9a2-411b-a02b-ee27aac723fe",
+		"791103da-5886-4bd4-8ffb-696be9dd45b3",
+		"023d0cd6-349c-498f-a291-d44c3edb4fe7",
+		"e65cff4c-7023-448d-b875-18e8336e7ec8",
+		"1fc1b11c-ad9a-4d3c-824a-b151a308daa9",
+		"e52ece8a-755f-4b4d-8f52-fc93653d90bd",
+		"5dfbd35f-fe8c-4748-a96e-40baa9d9c8e7",
+		"b63d263c-d156-48cc-bb8a-8f7f8c561002",
+		"b40ac293-1689-4083-aa86-d896089343b2",
+		"ded0a677-9a2d-43dd-b4ce-0c8c7e71f637",
+		"db91e20f-f7ab-4739-a5fe-4323ce5c2fe8",
+		"c400e1cd-500f-4f20-a6d3-efe8d31eb288",
+		"a5cdd554-ae92-45d2-be6b-3385245e1277",
+		"fa1556b4-9169-4d14-80a1-cae8e5abab63",
+		"5d85724d-39b4-4c34-a588-f336bc282e70",
+		"48c5f1ef-d0d9-494f-a9b3-53ce4cbdbcdd",
+		"dab6ebca-cd7d-467a-b569-ab5a1a6e693f",
+		"bc631938-35c0-47ab-9e62-3bae05920ea7",
+		"c58c065d-f73d-42e8-a0c7-67ed46903d0f",
+		"ecbb3ecc-84d5-4650-b4c3-64e180c91f75",
+		"2a0f2a31-b101-496e-8061-fb32284f7d15",
+		"519c17ee-dbb4-492d-bc68-9c36a20e226a",
+		"df617e32-609c-4aea-bf56-b2a98e4c6c4c",
+		"7c5783fe-52c9-4c47-b2f3-7f3a01a25bb4",
+		"5549da64-d059-4308-98de-76809763cd02",
+		"6a7d576d-df71-4207-a409-c671b949ceeb",
+		"e5b4a8e0-c01d-4bd9-9a8c-2eabb0c785d8",
+		"3420a8a5-bf9b-4376-b2a0-943aaaaff85d",
+		"99b126aa-b92f-48ea-bb3b-8286cf86c10f",
+		"371032ea-34fa-40a1-9370-877a8b3ae170",
+		"b9a842a1-cccd-44e0-9694-7ae2e22867e7",
+		"4f8ff83e-3fef-4c08-b267-69f7edab4774",
+		"61b53960-4184-44d2-9da5-f8dc40464dcf",
+		"bf5d5152-d884-40cd-bd21-5bcd79133339",
+		"d663392b-1fa2-4346-8ac8-557d1033cf97",
+		"f7504015-a010-4828-813d-accb23edc287",
+		"28aaef75-5446-4578-b91f-fa4e1554ebcb",
+		"da23c7df-d41e-4483-82ad-5a7454852064",
+		"6e755959-86cd-403a-89a8-bfc656771b19",
+		"e0d2b4f3-bd0c-437d-a817-3aead15385f2",
+		"37a829d8-0a28-4d44-89bd-f4c1070690bb",
+		"b3d1ba44-e74b-4586-abf1-ec5e8c01f2fa",
+		"5fbd8b71-f798-48d3-9db1-263bd29352f2",
+		"e3ca6150-73d4-4356-be92-5f54feec1164",
+		"961903f0-1815-4a24-8fc2-a61e7b39da26",
+		"cf7c1cd2-9387-42e7-aa92-8cc712c57c92",
+		"669020b2-14ea-4e7a-b059-ccbad99332ae",
+		"a8285614-671d-486e-91b2-20ffb8754d24",
+		"1b78b4e3-4421-4ad6-818b-35bdb2b28d3c",
+		"63483b25-2a8b-40e4-846b-8f709228e0f3",
+		"2d3e2174-301f-491c-8cb6-4e585ce5b870",
+		"456abdb7-86a8-43c7-8461-f0fca8f45659",
+		"ab6d4ee5-6252-4592-8ea6-76dd77ec708d",
+		"e8eafc53-8027-4c25-97de-4edd28a48430",
+		"8d4ca481-e137-48db-92e7-9db3a422be70",
+		"86c8139b-7fac-4c12-8006-48fc74770fe9",
+		"7dbda616-4c6a-45fe-bc9c-ad61620fab3f",
+		"d392c64d-8a88-43a8-957c-374d429ec984",
+		"14052a7a-1cf2-4b2d-b300-4c925c779d2b",
+		"35ad9343-5a50-4149-94f3-83fb0aa01e5b",
+		"3ec5ac4d-77c0-4840-8c1a-3cec7441158f",
+		"48e64433-6930-4b27-832d-30b0df8f6878",
+		"8aae07a5-4fc6-4062-ab46-92af46e88074",
+		"2a276c08-6720-40db-950f-18d6d699884e",
+		"6f4dcd7a-f1ca-436b-a7f2-be53f6fd3794",
+		"d14367d5-7604-4182-9d2d-0f32dcf8855c",
+		"ad2ca2d8-566d-4f71-be64-d977454be800",
+		"51cfc04c-3fd1-41f9-b3f2-d9bf2e6b72d7",
+		"07803e0c-ef2f-41b9-b875-98d56fe43efc",
+		"01166425-2d56-475c-9dc9-2a871f1e7a7c",
+		"6f4bacdf-a91b-45aa-af50-5e211b739d9d",
+		"247d3f8f-b482-4dcc-95b3-58d2c0ef72fd",
+		"47f28f35-d1e1-49dc-a32d-59f49d92c852",
+		"c8f1e97e-02e8-46bf-942b-80660e244914",
+		"6f592c07-601b-4574-ba39-f6d397ba1a10",
+		"4b4f6f94-bae0-41df-83db-e913ffe45103",
+		"d0750d1b-2684-4b48-830c-da325b76d425",
+		"487278bb-d824-4a02-a8c5-0686e1ee8dd3",
+		"7cad3eb8-e260-4f77-8f70-7ddbfecc5b3e",
+		"371f783f-e503-44b8-8740-d3b9b4bff03c",
+		"d5220463-43ca-4d48-a5b5-3b4825713bda",
+		"b3ec488a-12ad-447f-805a-7a78afdec14e",
+		"d57142b8-4b19-4725-8651-fb179cf461ba",
+		"881fde89-e112-4e1d-a05b-7fbf2fab2213",
+		"4a4c197a-4837-41f2-93da-5bd86ed238f9",
+		"7dec4bdb-11d1-4c56-9102-26246a1cc69d",
+		"7809503d-5324-4e73-8915-db8b1e029151",
+		"1c8d419d-f594-4d44-b07f-ad937260b8eb",
+		"0ea44836-fa79-45f1-a739-35d7fce12d2d",
+		"ca6d8b64-5f88-4c23-a860-289a81aa0e35",
+		"bbd56dbf-f855-4389-88b3-f8e8a924cc8b",
+		"55e8d675-d7db-4a78-8cfd-3ca3eb659b25",
+		"a0c03c7d-ba38-4366-a4d0-1d48281c56e0",
+		"79b0eec8-7bc4-435c-b8fc-a83393907a64",
+		"54de1b19-82f3-4a95-97f1-15077271306f",
+		"50fa6f5e-0c79-4b3a-bf55-6135dd5fef6e",
+		"857ae943-2efd-454c-ac43-07aa49cca43f",
+		"6742f51d-2d6e-49c4-be2c-313625976540",
+		"4d5f3014-748a-4421-a189-ab4b83424176",
+		"96265f8f-b505-4234-8f7c-b4ca43467444",
+		"8cf6c6d0-aeb9-4e78-97a6-0722c84e24b2",
+		"65976c9c-75c7-4379-a2ab-e6ccf4df5b58",
+		"5e95141f-c81c-4975-8089-059dc1fbac8c",
+		"eceaf168-27aa-4f79-afb8-061f9272acff",
+		"bdb629b2-92ef-4246-8641-e2b826925741",
+		"99831d97-b3f6-4db3-84fe-5206a13fdecd",
+		"f5f4d636-2bb3-423b-9f2b-726b2aaf9d59",
+		"186fb427-3127-4609-8c25-3a51bea5d6d3",
+		"70c205e2-049f-4125-9576-f3b0bc8cfd93",
+		"f66b5852-a0ed-4c80-bd70-6969ac263d18",
+		"5c68fef3-1eb4-4742-93dd-026ab87a5934",
+		"0c58bacd-79fa-428f-b1a3-d13390c087aa",
+		"272eba8b-f073-43f2-8371-c3bace01bc4c",
+		"66a75fa9-48d9-4595-8be7-ea346c1b9e1b",
+		"3a58746c-3602-43bf-9d6c-8ce6d6befb09",
+		"c9ba330a-9c8d-40e1-9fbc-551fd46bae2d",
+		"335ce4e7-36bb-45cd-aa24-18564d48ed4e",
+		"43207611-7c6e-4b98-8b52-5a84915ade5b",
+		"c2b5b339-4c60-45df-a597-b1f5ba1d29ac",
+		"4b6af8c8-e83d-479b-9192-eeb44cc38b1f",
+		"41596e91-d67c-4bc7-9736-c956a351bd7c",
+		"5d442b15-9a98-484f-881c-abe19f19838d",
+		"6f17bcde-5cee-4f6f-8ade-a386d6e705a6",
+		"b974a84e-8c7f-4b86-99da-ef649698576c",
+		"c350e052-0582-4797-b47b-5031586514e5",
+		"b19493bb-e13f-4e2a-b591-e2f41d5f3f51",
+		"fb7e96cf-4ff4-4365-9c70-acac5246b7ec",
+		"6987c409-fec7-47b8-bc4b-037adb1247cb",
+		"ae1cc149-321e-42d3-a9f1-15ddfbfc9a73",
+		"0d61ff82-6d34-4755-aee3-0e8f23aed387",
+		"2e0ade53-39fb-426a-b3dc-402ebc82d810",
+		"6314a1ac-e583-4f63-a4b6-d1f044dfc6b6",
+		"64c391f7-4765-48b6-96bc-df8aa5a4186b",
+		"c3ef8f1c-9857-4196-acd3-fd9ea1b81d52",
+		"f2c587e6-7900-4db4-b252-ed2f6515521f"
+	],
+	"422519be-ed2e-44df-9dac-18f739d44fd9": [ // Santa Fortuna
+		"db21a429-add2-46fa-8176-540f846d89e0",
+		"00df867e-f27f-4904-8bc7-9504443ccb5a",
+		"00df867e-f27f-4904-8bc7-9504443ccb5a",
+		"b87b242e-4ef4-42d8-94ed-17cbfc9009bf",
+		"b87b242e-4ef4-42d8-94ed-17cbfc9009bf",
+		"1e867cf0-16bf-41a3-b5f0-b8bb1ff088b0",
+		"b098b85b-8296-4bf2-a09d-14cb3462007c",
+		"07d1d494-e162-45bf-a316-369e101d5535",
+		"8fc06766-7883-45c7-9064-d3909cb19fb3",
+		"d7f8aa58-7642-40a7-b56a-b8aaf0a509a7",
+		"e22dc196-63f0-410b-a280-48c69ef2e0fa",
+		"5d0ab4bf-589c-432d-8cc4-ad29513ab497",
+		"a74a554f-e40c-4e50-9264-6c9de6b68cd2",
+		"46dd34f5-3402-48b9-a806-e8e53bf5c009",
+		"ca6eb4bb-e2e7-4fdb-8236-c4ae9067341b",
+		"ea9a6b70-4d1f-4837-b75b-76c5bf4a25e0",
+		"dc4fd89e-4f4a-424e-8778-e59c1a4e6f54",
+		"6dc76af9-62ac-41c9-aaeb-822f4604b91a",
+		"dd130f8b-885d-45b7-b296-2a356b8cf9bc",
+		"9f501176-f6fc-4ac7-a04a-1bef18fa4ab2",
+		"f650f0bb-b97a-4b6d-97ef-3bae9795cee8",
+		"b2115298-8016-4a54-b587-bec2b6b65d9c",
+		"fbd019b3-cf68-47d6-897c-2d36fb94b7fe",
+		"562210f0-9298-4a23-afd5-0d959578693f",
+		"be565b8d-3ba9-419c-9551-47e06cff57a4",
+		"ba9c9d97-a4e7-41a0-9e99-8b302a88cd2b",
+		"bfce3574-12e9-46d9-94ef-a272ec8a8313",
+		"cdef527b-e581-49c4-82d5-5b5c0bc7441b",
+		"315bd9f7-42b1-41ae-9876-c29a0ebb4028",
+		"62409c34-ee23-4c5d-9926-146051813e72",
+		"d89e660c-6f3f-4b9c-b48d-7c2dc417655b",
+		"50e9f6ca-cde7-4ba6-b762-ec1b91d762c7",
+		"ef62d2af-726a-4213-8c68-dbb9598eb3df",
+		"6ba3ee90-e339-4361-bf43-1ea35c287c45",
+		"ea954042-2c56-4528-a724-7392fc5dd08f",
+		"0fc86f91-56d1-4928-a342-d677e33b50e3",
+		"2aa81a13-25cd-41da-863e-f76bd83b1351",
+		"843b5f32-2fa0-47ce-8b3d-85b54b95cd18",
+		"c369b371-3186-4f4a-b545-53a83c632905",
+		"565a50b8-ffa2-4513-94ae-6f1e27b788a8",
+		"860f06e7-fa23-43a8-b286-b1f5d8c6b396",
+		"2f29f64c-6e73-4b5b-844f-e6bbd6b2b788",
+		"4c974a45-1108-4e43-973c-67e728c0f154",
+		"960a993f-ca1b-4b3d-879f-7455fb2b2a27",
+		"f0513b06-9684-4252-921e-cf1fca7c86f0",
+		"19defc43-02e5-4e89-9aee-3a1c935f06ad",
+		"b87b242e-4ef4-42d8-94ed-17cbfc9009bf",
+		"b87b242e-4ef4-42d8-94ed-17cbfc9009bf",
+		"d31a723a-f0a6-4b10-8bac-7ab496a7f095",
+		"91a25949-b6f1-4237-965e-e7621d1225d8",
+		"10ddfe2c-cf1b-4641-9b32-4b54f996a1bb",
+		"2d30f9a0-5691-4902-9c18-2292f760c773",
+		"17e88d56-0323-440b-a23f-fd74e0900246",
+		"d8e4778d-9735-4e76-b6ad-a6dbd2024eda",
+		"72576411-6d97-48d7-921d-2dec3802432f",
+		"a1dd398f-09fd-4cac-8a69-d57ab9fc593f",
+		"f0ba884a-19f0-434b-8b03-36d7ffd02ab9",
+		"c0003768-c252-4952-8fcb-045246f72ec7",
+		"c7f8cec5-d2f2-457a-9a55-f53f440d6f64",
+		"af1e2d72-ddb1-4dfd-a911-ca13a094a8d8",
+		"f7bde343-c680-4d54-9fc1-cdfd7a41a88a",
+		"c8b375bb-f064-4020-ba16-9f16eb415a84",
+		"0b2c5866-7739-4b2b-a337-9790e22e0342",
+		"dff56738-57eb-4c29-8d8e-eea6b6312a65",
+		"878a4996-b1d9-4510-9449-67cfe448e5d8",
+		"127c1e6c-dacc-4a3d-8ed5-b8784e42093c",
+		"a94d711d-9d7f-409d-b5a2-87b91a6c4c6d",
+		"adc42b4f-6fe4-40d0-909e-99e3fc33a877",
+		"8c1f33e9-b3d0-4171-8aee-dad1ea10ce0a",
+		"0284a718-f586-4717-aa27-d320fbabf30b",
+		"4229a0c7-8ad8-4306-8a6d-d311eade911b",
+		"55f06116-e8de-4c59-89b3-d8a7ecbca896",
+		"6d11e41d-4ec7-4c21-abe9-b877811fbdcf",
+		"82444695-5392-4962-b574-8df27ce315e8",
+		"e78c9fc2-4c96-48d2-be4c-a97933beca85",
+		"e8d59ec9-57ab-4b59-a1dd-64f4ba25abda",
+		"c4e2223b-9e88-4bf5-8dd0-258dc2fffb4c",
+		"1951baff-1faa-4c89-943d-0227cb85f187",
+		"d2d4bd71-bd7a-4113-a4ba-15c9b15ed438",
+		"3e78d551-bb59-4ad2-9958-4b313df719b2",
+		"06c1d678-ae36-40ab-97dd-4d15132dbd7c",
+		"23ff6f42-42d4-4e48-a0f8-96362d810b4f",
+		"c577a352-6f1f-4c5e-ad0a-3e9c3c180288",
+		"1d0d5e8b-083c-4b42-bc95-a278d4012edb",
+		"61b047f7-16a8-4002-916b-b142c93877e5",
+		"a2d8c60a-570f-4d09-bbd9-4a6a26cd2892",
+		"31b5dac4-8a56-40ef-9979-87e40a5c1e22",
+		"75ae4664-33ba-42d9-a371-c6cc3a5d31e4",
+		"f559fd89-0c3f-4e8c-aa84-a9de98b0f9d3",
+		"624ee74b-d87a-42c7-a37b-16ee38c9f22c",
+		"957a8b5a-8f3c-483d-926d-9536fae1ac7d",
+		"31a7f159-0652-45af-8f12-fee957f3cdeb",
+		"3bdb829c-f61b-4a5c-9123-855438a15497",
+		"cac6e4cb-8e4a-44ac-accb-0c74d8f4a2e2",
+		"40fc0b77-81fc-46ac-a949-a30e4c4fd207",
+		"d761a122-4709-41ca-b62f-cbaae5dbf91f",
+		"06f6e45e-2dde-461f-b463-f5232f960709",
+		"7974cd40-ce78-4b2f-9a47-e184c82c1358",
+		"ed557053-6368-4f45-8d35-530d7c5e5a76",
+		"652fa8d3-40aa-4e24-b4ba-72aa72a25423",
+		"950f9f7d-21e3-4741-af99-0c3105150dba",
+		"e8ce32ff-7ae2-4ff8-9dde-c09592874748",
+		"4aa86cdf-31d7-42ec-8c5f-74d66e8b8836",
+		"9edd63dc-1256-4d42-bcf6-5acd53851829",
+		"840edfac-d439-406c-8e6d-4e3930b31e4c",
+		"f1a2c964-d514-4003-a214-28e7b86cc807",
+		"c2fd0c9c-beab-4865-96ae-9c179e900e82",
+		"5d64e0b3-ccc7-47b1-804d-72cec8531aa9",
+		"0a312c26-9548-4d6e-8007-8f645b0ba02b",
+		"f8f37f16-3edb-406c-82d1-f352a2d0e5ef",
+		"0c9b4645-53d0-4f15-96f9-0f3d50c5e970",
+		"4085565c-0ee4-4e74-addc-ee935cb4a334",
+		"11262d6e-adb5-48a4-9312-0f0fdc3866cb",
+		"818a0480-bc5f-4ae4-a17a-baeeab88776e",
+		"b10590b9-b330-4f96-a6b1-93fcfd08207f",
+		"00df867e-f27f-4904-8bc7-9504443ccb5a",
+		"00df867e-f27f-4904-8bc7-9504443ccb5a",
+		"eb41cbf5-484c-47b1-820c-682c45c2c7a0",
+		"2862473f-7c5d-4206-b283-c51eb5a0beae",
+		"8c1189b3-9762-4159-af49-1294bb43d90f",
+		"b864b6ee-b17a-4737-a270-69aa8bc2e21f",
+		"b0160989-6263-4b35-b44f-1aabfe5830a9",
+		"cb88ff0e-247b-48de-86ab-6cab6f21c9c8",
+		"b80474ed-ec33-4955-b215-5f80ab8de933",
+		"003e2ca4-1f36-4e0c-9598-c4c5955e6274",
+		"e3040063-521d-4bd1-8aae-d3df3cb8000e",
+		"f0e1b244-ee56-421c-a09c-084d798c7922",
+		"198e92d1-0c93-4e38-a216-097e5a9c285f",
+		"928efcc4-9b16-452b-ae8e-17162b8f8830",
+		"be868e2f-d7c9-4ba9-8c20-81f884d06fdc",
+		"224d239c-8f37-4472-8715-2097782eb4c1",
+		"dc9aa56a-9e4b-4a46-b063-c747337739d0",
+		"763be829-6ab2-4293-82ec-59826c07e4d7",
+		"cf33c073-8230-4510-97ba-942381e52fc0",
+		"8053b6a2-66b3-42ea-a1fd-13640a8198ff",
+		"bc98f153-05cd-42b2-a4ee-b2835759ff78",
+		"15f63014-7cb6-4fa7-8182-ed7a09074710",
+		"311eb595-5d3e-4935-866b-3e086009648e",
+		"1d674bed-4e9e-4822-a7e0-a9ce547d1d65",
+		"6c26bfaa-2f92-4fb5-9710-c58d6dcead34",
+		"b155f995-7406-4ec7-aafe-281d4827660b",
+		"913104d0-ec2e-4c8e-9126-6b4291bdd4c5",
+		"df787e33-9e74-4e03-af9c-432e74409d56",
+		"87d7baa2-0442-46a8-b9ed-f8c822d953fe",
+		"8f05edda-c561-4774-958c-dba48b7717c5",
+		"4809c597-16e6-4884-a80e-046ac22e012b",
+		"f2b43da7-c529-492b-92b6-0cabdd6704fd",
+		"28595162-719b-4659-b42d-e90d1a387c65",
+		"0f37fa0f-75ff-44cb-80d4-4e87054cb1fa",
+		"85567f73-b4ec-4a6f-8d8b-7c2d4676ab7a",
+		"75b834c3-1631-4ef3-ba3c-01fb22d2e54b",
+		"3585c650-5ce3-4e44-a044-d68c9e9ec3b9",
+		"737066cf-629e-4d81-b02c-c4665c8343c1",
+		"ecccd72b-6a3c-4e70-968d-7f25f18a0e54",
+		"6d6e4c48-c588-4dca-96cb-9a65ca8fac3f",
+		"d445dc18-4a2b-48dd-8a9e-47ac9bb09ed5",
+		"2b40c92c-e860-4b05-a7ca-a2987a52ec0f",
+		"880f8ed3-0b5d-4cf1-83a2-ff148eaba4f7",
+		"f0c2e483-89fe-40c5-bb4a-beacf9a07feb",
+		"7466e706-3e9e-440f-8a6c-ecf490dabb08",
+		"c249c05d-1346-4a48-ae10-3bebe2964c23",
+		"15d519c6-a42c-42bd-8b32-5085a028c741",
+		"009f003a-46bf-42ae-91f9-73b6daf32cef",
+		"086451c9-214f-46e8-80f4-f6614ed9f7ad",
+		"99fe7009-f02c-4c7d-9eeb-5f153edb8611",
+		"0104073a-b394-41e4-a2f1-bb92fbcec1d1",
+		"d3a39873-f0da-4716-aaeb-3cdad45d7c0e",
+		"c3aa7f0a-9294-4db7-a660-4fc38df90259",
+		"87fda089-265b-4b41-baf0-9614b1de2b88",
+		"45c0cc1c-283d-49c4-9629-a85ed5b0d743",
+		"b8231a71-cbcb-465f-92e8-16f868ed4081",
+		"289f3ce5-82e7-45ec-bb7a-ddd84439e9b5",
+		"0033731a-32cf-4823-8d08-ac4661f86179",
+		"047da159-7e95-4328-9741-a58df5bdcf6a",
+		"cf6b40eb-abab-4922-843d-d30573f94c2e",
+		"a1e1ddc4-1fde-46ac-b2fd-d5bc577d58ab",
+		"efddcf4b-30f9-4073-95e3-b011fa7e9a6f",
+		"5fda72e7-34d8-4449-89eb-79ab705091ae",
+		"a2c085ec-01c6-418e-b56d-8de08d41729a",
+		"7433853d-2251-4267-9593-1a0c15902003",
+		"1354ce0d-9352-42c9-92b0-f51f7a6bee9e",
+		"4de33861-4aaa-42ec-816f-f23ff9ce6463",
+		"f6b5c891-c4eb-429c-8e75-cfd1d37fa858",
+		"1d40dcd4-cc97-40a2-83fc-920897586e29",
+		"8f89ad16-860f-4884-9422-63ff0824fd07",
+		"a2793d17-cecf-4f62-81ae-d330dc718f6d",
+		"5cd2c4ad-7fa0-400b-9b43-81d72a5bd416",
+		"118c2896-69d9-4cc3-935c-403cb82d6492",
+		"e5cbaaef-5ad0-4e8c-a23c-609fa6b35fc9",
+		"674a0e53-dafc-4e56-aaef-caa5c1e0f407",
+		"4fb33be3-304b-4062-9cc7-d1e9eff087bc",
+		"d6d54d9c-f792-4fa5-a813-331c5ac0aa19",
+		"b21517fa-a016-4c3f-8a16-3bd35d742d94",
+		"4f7e03b8-8734-426e-b7e0-c1b4f867783a",
+		"d900bb70-e3b7-410d-bac6-74064d810e34",
+		"07780e52-6b02-425e-8be5-fb8e24e98c2c",
+		"2c67a440-6909-4533-95ee-4996cb331ca9",
+		"5562b1ba-d12e-428d-886e-bc9f2c80c2f2",
+		"0307ad19-1ed3-4a9c-93e8-2fb0231c0616",
+		"aaaea528-b943-452c-9af9-0e1c7377e1e3",
+		"ee277dd3-825d-46bb-ac6f-95f25c94676f",
+		"e95c1a8d-0c58-4c4c-b869-39e0a7df1513",
+		"0e183a8e-dbcc-4d1d-bb02-550aac4c0726",
+		"278a82f9-32ff-49c0-acbf-bc66ae230107",
+		"f0909ffe-7f88-4ef2-a81f-1bea188c3bce",
+		"bb02f7a7-2e87-4898-8129-d24be83b1cbe",
+		"5d0df6d3-e9c9-48a0-bd96-3a1a418d0de1",
+		"d758f3f5-9a66-4fea-b3cc-4a14b2b90305",
+		"68be2dae-1542-4bb2-b619-c3edc6252832",
+		"67e54e25-033c-47d9-8e69-cabee116d704",
+		"e71990e2-8603-4cb2-8150-31c0fca6ce15",
+		"d6038d3b-7087-426f-b21e-81a1562e1202",
+		"e27fc6b7-db26-4c1c-bc85-950ec91c3654",
+		"7963e061-3efe-4820-9083-d6d6e26e1551",
+		"1d126df9-1e7a-44a3-85d7-5e08ac1d9767",
+		"5976f2d9-4427-413f-a1ed-4c7b85e542fa",
+		"7dee2992-ae30-4186-a4ec-e46760931101",
+		"eb2f88e6-8f6f-425c-ba47-676128fc9704",
+		"3f3ae35f-c879-4ee9-b80b-bdb5b649fabe",
+		"27e8297f-3477-4c4c-b9f0-0f03cf39c0f4",
+		"4181399f-3042-4c72-afc4-76df4b1b9fe7",
+		"3336fc0e-5dbc-4314-b580-5d4f2596b3e1",
+		"d2c9c8e3-ba38-4bda-8ba0-b37a723eb157",
+		"9ab9bb43-1378-42fd-9896-46f9c1166960",
+		"79d13740-8f54-4486-a486-feceb1342f51",
+		"98a0df23-42b6-47ae-a491-4aa86e0c6bbf",
+		"f844cc6d-f8a3-4482-a232-2d7accf20410",
+		"b86a90a0-5209-4d59-b981-7f7bc6aac0be",
+		"8a2e9a22-fbca-46af-88f9-88d71ae7b6af",
+		"ceeca6de-9879-4aeb-a0d6-93017a2687b5",
+		"234b6faa-fee4-492c-9d63-588e9d8c940a",
+		"0e509c0a-d5a9-48fc-b007-f82de035c2ba",
+		"60e45cb3-49b4-4cc8-99e6-00d6e4d4a0cd",
+		"4a6ee916-a9c6-4bc4-8d2b-85502fc9147c",
+		"01d41efc-7bfe-4bb6-bd26-9ec05479ce26",
+		"d7a9d6e3-751e-4525-ac60-4138b5a20992",
+		"abd5d45c-e7a5-4d51-b6b3-31b783a553f2",
+		"47f1a1ed-7d94-45c9-b548-4e3d4f8236cd",
+		"a3183f85-05f4-4a8d-b0e8-9cafa530ba62",
+		"6cf1f98e-237e-4191-8ad5-6e529ebb5af4",
+		"bebde4ed-9ec3-44cc-8b7d-5182e41947d1",
+		"2b2d16cb-b6e7-4ee4-8cae-268482470f2e",
+		"528812c1-ae44-4534-b584-8c2ba8013576",
+		"84357e37-a22f-49c9-b5a8-462a4c10af7d",
+		"d815e86a-bf87-419f-9edc-beee3483d434",
+		"d053cd33-fc36-4812-a4ca-98062be4748e",
+		"1ac3b84f-7f54-4a72-8663-933a467a85c6",
+		"2118a3a3-829d-43cc-818e-e0472a43e8f6",
+		"73a7e3e0-d167-4334-a75d-0fd098f4b95c",
+		"946c75a9-8acc-4bfb-8039-9804f4f83b77",
+		"43dbebbd-e021-4f45-8d26-412462e651c5",
+		"d9dbd3ff-27f6-4aba-9e0f-ac3b2fcd3326",
+		"62ea6772-7e8f-40a4-b0ab-6c3fad8cfd98",
+		"58bcbc79-8da4-4fbd-a61b-c23d3dcd8db8",
+		"9ee3e96d-827e-44c0-ab69-3724d50724e9",
+		"bb65a2f4-b7a3-4211-b556-5eb9c69532ae",
+		"f8f4ddd1-90f0-4002-8f15-bf7c74e10a36",
+		"21ca4349-8f2b-484e-91e9-ddc5f289fd53",
+		"f00024bd-b0c7-4e98-8bce-d3f1a113655f",
+		"d10dc5b2-328d-4f58-88f8-49dbf82e5983",
+		"60bce805-f389-4f97-8780-a7fe563d17bf",
+		"c298eace-4043-4c06-a8e2-e5e3b4da054c",
+		"d0d94f70-5a59-4641-877b-99db1d79a44c",
+		"d1b36ba7-7bc6-41d8-baaa-a19b662ac770",
+		"10735d1e-1784-41a5-a89f-05966703fad2",
+		"1c98abd2-f633-4b17-87f9-2dd4a066c647",
+		"bafa69bd-0e68-4178-ac71-c9bc5a562288",
+		"22f163e2-2abf-45ed-a40a-1782bf400811",
+		"baebed1b-4606-497b-9ceb-0094ccd609b0",
+		"449d6e97-850f-43b7-b13c-9cc269614abf",
+		"0d94664b-9b43-4a54-96ad-be970ff7875a",
+		"ffbf6ebb-edee-4313-9fcf-3b60bc85c31b",
+		"63a9d3dc-ff4c-41e7-888a-6c794b8adffd",
+		"66600ef9-4b11-4f84-acdd-50656da325c2",
+		"671746f4-eecd-417d-b0cd-1ad49e88f0c2",
+		"ebb3e78e-e1f4-4895-9e0c-cd46f21bbb2b",
+		"73708aee-f3dd-4a6e-ac55-4bc88c57b92e",
+		"3c8f9af4-5b1d-4903-8503-cc06696699b9",
+		"0b5ed53f-157b-45c4-8478-c52c168bc006",
+		"344dba76-64ad-4a43-bf31-5a46fd806175",
+		"14229660-026e-4a6b-bf15-c718832f5d74",
+		"df184e14-636d-4969-b5f7-4dd8fa1b2e3d",
+		"ed5b8e2f-7963-4286-b3ac-d2ee993abbb5",
+		"d7b1d56d-9d8e-41ee-b929-8db7b444c0c6",
+		"a0617b49-e0bf-4802-927c-ba7728303dc6",
+		"b990eb30-3905-44e2-8423-2ee86dd55c48",
+		"66abcfa4-935c-4925-832b-efbd1deb0992",
+		"35ae8b3f-741f-4186-bd9a-b678f9e5b920",
+		"bb79b7e3-98b9-454a-97a2-4d228518e4fc",
+		"318ea9b7-3005-4070-b3d6-53b78becaa20",
+		"041c0b49-db2d-45fc-8659-3dbf1a629d4d",
+		"ed7edc10-3c7d-499c-9df3-0770e4169dcc",
+		"fa140a32-57ca-42c7-bc5c-d2a367e08683",
+		"253e842c-0600-4822-918c-f45e785127a0",
+		"45256234-08fe-4286-b4f0-b680fe1f39d8",
+		"b5f83481-cafe-41f0-b6ee-a8d0ca7c58ec",
+		"a8fa9f5e-0513-41c7-bf41-ef16bab177cd",
+		"8a6172db-7432-40e8-a63b-3f48fc4f9d15",
+		"1e6175a8-491b-4751-ade2-21c488dc6f33",
+		"c28fa222-ee4c-4505-950c-7f7191626169",
+		"e9ba3d54-59b1-47fe-9002-ec0d5bac6336",
+		"11f4c01b-6c09-464a-b679-80923043fa20",
+		"3f4d0600-e6d7-4390-9053-042b1858c0d2",
+		"3e1315a6-074b-40a4-85e7-3196353888c4",
+		"767753b7-fffb-46b8-bb45-69037f61f59e",
+		"b73c470d-de5a-43c1-8be5-7741be195d0a"
+	],
+	"00000000-0000-0000-0000-000000000600": [ // Sapienza
+		"94ab740b-b30f-4086-9aea-5c9c0de28456",
+		"0dfaea51-3c36-4722-9eff-f1e7ef139878",
+		"1bcf2954-178d-4647-906b-1920d0de6d03",
+		"ea257094-50c5-43dd-927f-ab3d6b1e37ff",
+		"d5955e23-e6f8-4a4c-8146-5cb1f8d0dfe5",
+		"8bbaa268-508e-4db8-b1d9-961309c5037c",
+		"8d97995d-2f76-483a-bec3-a925ca38c210",
+		"e246cb7f-783d-484a-8865-1aba8920ccd9",
+		"76d21419-5f8a-4fe6-b3a5-7be58a87ffc8",
+		"6e5c017a-a08f-4dbb-97d4-a384c9057475",
+		"2ad3908c-6545-483c-ba13-162f767ff444",
+		"4ab6fe63-353a-40da-944d-8b42faa422cf",
+		"babacf9b-5539-464c-b884-439a31f4ea46",
+		"885abce1-e07b-41f7-9bf1-492865c1c3e8",
+		"8403e84e-0a30-40a1-952f-1c925368c3d8",
+		"62e160fb-2f3f-422c-825d-5220467429ac",
+		"9af85eca-09f5-4402-b829-a4799b4b6f45",
+		"a77e1d9f-424f-478e-a00d-1bdac10b0f6d",
+		"09e567eb-db00-473c-bac2-3e9f143dd755",
+		"e055c221-f048-4fd4-8af8-2ac1c2d977d7",
+		"36f8c939-c6d0-49aa-8f29-d62f5d9b17b4",
+		"d133637c-6157-4dca-a0ab-7a376b3c381e",
+		"cc8f77ce-d158-41fa-be89-daefab9a4054",
+		"3f317e87-deee-4178-880b-4d1db9806137",
+		"d88d063d-f0ac-416c-863c-82e67cdfc514",
+		"8005ae5b-638b-4a67-bf7f-782095250a5b",
+		"39071561-139e-4cbf-8af9-2b57ea0a32c7",
+		"91bae2d1-46a4-4dcf-9674-e8e5ddff63dc",
+		"15c2e082-0093-4b27-804c-f24880e1097f",
+		"8aa9a7fb-a18c-4b39-91a5-55f08e47f306",
+		"c51ec223-6041-43fa-94d1-686e7991b30d",
+		"296e87ca-3637-420e-b223-e5ade23fee10",
+		"ad75c445-13e3-45bd-a0d2-6fcac6d6d818",
+		"8cab3cdd-476e-42a9-a7c7-fbd87cc42819",
+		"2e0f92c1-42be-4676-bea3-10f159b92ac1",
+		"a8e4bff0-e14c-41c2-a99d-016f7bf99f82",
+		"e5baa2bb-809d-4ec0-aa04-c686c1bebc50",
+		"1ebd263a-e537-4b05-a7f1-dea0248dd82d",
+		"bafa32e1-5740-437d-a144-51e2d3bbc297",
+		"73349b54-9b7a-47a8-906e-e04ad44ae174",
+		"0db5253e-ef6e-4b54-adfb-5f2ff75f7ed3",
+		"4901a831-f743-487e-a6d6-af061c95bbf0",
+		"47e4607e-6e4b-4779-ae4b-ac630484b127",
+		"d51c4cc7-ea7e-4672-8f5a-968f98a97fab",
+		"82302da5-caea-4d8f-b82b-c43c2e4f1897",
+		"7a77a85c-80fa-4d6a-b0f8-daea155132c6",
+		"1d16a6df-9490-4c0c-87f7-0c9ec3b6b331",
+		"7a714602-2103-4271-9766-233b9e2154db",
+		"bc6ee1e7-e07e-4883-8c78-eddf6e337b15",
+		"2bf8c4ca-c73b-4bad-b338-0cd1b797f305",
+		"8d5f03f0-f817-4f07-8c37-5faa032cf98c",
+		"3cbab11e-8657-40eb-b190-4ddb3bea625d",
+		"56704777-c0f4-4a46-b0e5-c5c0a79692b4",
+		"036b5b7f-7d2d-4514-bbe9-6f7c84a56f0e",
+		"b0c6e7eb-df44-4552-bd5a-91acc48e6564",
+		"7f34a5e3-6dc0-40c2-9d1f-3516de7183e8",
+		"6bd487f6-24fc-4a2d-9534-ff06afdf0539",
+		"6279192f-4d77-4da7-b192-484d493414fb",
+		"db561f06-e728-47d9-be35-ef4fc43205eb",
+		"71b36713-f763-4a2b-844c-6e10d251df40",
+		"e69a3f4d-01d7-49b1-8fe0-a99eb5c00e18",
+		"efe9dff0-5ff0-4742-bb9e-df8e40cb37ec",
+		"648b91ba-2479-4f95-ab20-ee9bf48bd434",
+		"12927ca1-1792-43bf-b698-9954c3f28172",
+		"f8ef7688-ee9c-4753-b10d-099de9c76025",
+		"1ca6f8ee-d4f7-4fd7-9916-e1f0a5cd1a3d",
+		"5ce6b5a7-c6e0-455a-8bb3-548019868bbc",
+		"2d61cb5c-b4ac-464d-b9bb-b0859271918a",
+		"f01a1ec3-b038-401f-9248-98fb171ab4d0",
+		"4adc1eee-47f2-4d71-a28a-9d46287f2e4f",
+		"2f95faf2-7eaa-49fc-917b-2911754e491e",
+		"fbad1c6b-1319-4fba-acc9-96c7ba87d0c8",
+		"9f164b8d-3f49-4fe6-b27f-c74f607f3c08",
+		"d3e75ec0-08e5-4f01-a4a6-2fe1d72882aa",
+		"9cff47b0-c5b5-479f-a10a-aa5fcc7b4ed2",
+		"47c20717-ab6b-4d34-97b4-bba797650379",
+		"47e0984c-3933-443c-af0e-ce2311337a1d",
+		"b966bf5a-1039-4883-bf2f-06cc96297b0a",
+		"cd6f234f-8eb6-4955-9f8e-81abfaad99be",
+		"bd991e95-15d2-46d2-b3ca-1d31111f03f4",
+		"24ea2145-cd9a-4339-a837-26d482bf356d",
+		"bb15423f-bc60-4c49-ae0b-ee0a8843cbcc",
+		"95e93ad0-d671-41bb-905e-9e6d074ab6e9",
+		"f7788342-8af3-48a0-8136-fd81aa5bcdf5",
+		"9ba668f0-842c-457f-a999-20d3fb414fd0",
+		"5a9f9760-3587-4abc-bc5d-1b6d08023d5c",
+		"d6bb15bf-f4a4-4c96-ab65-8a3560a9dc45",
+		"157c13d7-c296-45cc-bf71-85c1a7f50a97",
+		"a4d14708-bf1f-4e11-b5f2-3c17011aee2d",
+		"13cff299-faf1-41da-a2a1-7d8112b82f88",
+		"045c0890-76eb-435e-9b87-90ca481646e6",
+		"3771d346-452c-4fe6-a71f-d129b9216f63",
+		"cc5dd93f-8c93-4112-983d-54756395166f",
+		"a1df1adf-9fe1-4122-b95f-d6e3b367fca5",
+		"5c2853b6-e4b2-412f-a244-eebcca13cdcc",
+		"f0051abe-690b-40d7-8406-c9650f534557",
+		"dd77bf34-3c45-4d17-9090-d7239fcc9e69",
+		"c69d9281-28cd-4aeb-a4f4-ab1e8b25c823",
+		"729aa28f-5856-449a-9e41-3e4fedc5c38f",
+		"2e3a9f67-1a0e-4daf-a320-83c92a38a199",
+		"ec1672fe-cf9e-4522-8f60-18182d3110b8",
+		"9d52cb3b-c1d3-4ca8-9b79-48a737ec8df0",
+		"ad5cafa1-9008-4ceb-9324-8c5b7212506e",
+		"0d7839cd-5b58-4fb7-9739-70547810512e",
+		"6f14321a-1b42-4af2-b3f0-3acd487bd1ad",
+		"38f1b3c3-c4f9-4dea-adef-cc4bb9828132",
+		"b624bd85-96f7-45b9-93ff-92a05e77accc",
+		"10052571-1792-4246-adf2-65a6ef79e4f3",
+		"36123e25-93fc-4e33-b099-067d5c9eaf13",
+		"68a957ea-36c3-4233-bdbd-c892bd032e05",
+		"4ac25e0a-370a-428d-9019-391d8c316309",
+		"47ed2591-9a9d-456e-ba2b-f8d8f6ed98ba",
+		"53403633-94e2-4822-8faa-abd87564180d",
+		"fd18f676-2584-437e-9f5a-bdeb35af0423",
+		"841ee310-e45d-4f57-b5bf-c44f0e5d9040",
+		"0bb5554e-a34c-4a87-9014-cfac43cf6c81",
+		"e2189464-3194-4478-8e6d-ccd334f9fbab",
+		"77cba320-b43b-4264-a431-e0344c028982",
+		"4600e742-9c2a-402b-a84b-90f7a408eb74",
+		"8b0a081a-170a-4a62-a35a-8434279e1509",
+		"8f6a403f-51da-49ab-939e-34aa98f1d934",
+		"6e87b667-82a2-4fb0-bd68-cbb2432c3fbd",
+		"31e98812-bb24-498f-a1d4-a041e046574b",
+		"4b83cf74-a44e-4923-ac31-a1fccb92342f",
+		"6cd3b6fd-8964-49a0-805f-150eba247655",
+		"f98f3bfd-6449-465f-80f7-ed15ed04c942",
+		"373a6d15-a9ce-419d-bd04-c4ab18dc5e6d",
+		"1289b7a5-4639-45b4-a889-fa4f66078414",
+		"441795b6-6d49-405a-9577-dfac9a23eede",
+		"8ceaba03-05dd-494e-9032-1936cffcdfd0",
+		"bef00e7e-3ff4-4a93-b711-8baf29cdde25",
+		"6e8d9322-3f82-41ca-92db-ede215925a50",
+		"df5c1078-aa9e-4649-b5a4-e49ec984cc89",
+		"5b5c9cd5-4f21-422b-828c-b41e8c777c2c",
+		"3da55f86-d94c-4ff7-9eee-06d7fdf11829",
+		"08c7ad0a-e276-4d2d-8abe-1961d84e7a18",
+		"9a179346-f61f-4239-b46e-0e540ee34082",
+		"aaf3d76b-c7d1-4987-882e-cedb8be96e35",
+		"59c487c1-e830-45df-832d-227887580b08",
+		"ad583017-64e9-47e3-9734-0c4124d8e4c1",
+		"5b2557f2-2a47-458c-81ae-c23656321b6b",
+		"45c2230a-3bda-4779-aedf-c713fc7ad87b",
+		"baa64fab-06e3-4995-9ffa-77b5a624d83c",
+		"31f14986-58f0-4292-ba42-cedf4b51b615",
+		"fe693912-46cd-44db-82c8-020f95dd4fb3",
+		"83133b2e-82f4-4201-957b-22c31c8d0c4c",
+		"c5fce074-d989-4a60-b80b-68d9343778b5",
+		"d24cd656-3632-478a-9133-7f703574f090",
+		"719b7083-58ed-498a-b5ab-824985d9ac5e",
+		"116e9bfa-b712-4d7a-9495-239d9a45b882",
+		"dfe0199e-821c-49fb-afdb-2d96390f9a8c",
+		"79a171e2-4cbb-4a6e-9d20-807b44465c3e",
+		"f5a89a5e-afc3-437d-8635-a4a8f272ce52",
+		"103ea50a-6d9c-4c51-bf9f-0935d2c27b58",
+		"1132f96d-fc0e-48ce-bc8f-17baf112b6f8",
+		"ed1705c8-6297-4310-a61e-610d48c3eada",
+		"d4afe9b1-8e6d-4e2d-83a7-58b78312ccbd",
+		"c0194374-3f9b-452f-afc4-6102d1ee219d",
+		"e4580748-1b5e-416c-ab7c-28f7786a2203",
+		"9fadad50-adf2-49c3-9531-77c20713fc9c",
+		"7e243aad-5b1e-48e4-b9cf-aad764256784",
+		"a023e9ed-fdd5-4e0b-ac00-b010c876f29b",
+		"c16ff07c-03d8-447c-a7c8-a8b0db890c46",
+		"2b64e6b0-8192-4815-9bd9-f3dbc599ac11",
+		"f4eddacb-fbbf-4a8c-9b76-19bef19c8ba3",
+		"0c3e148c-cb82-4b0b-8f70-22fb68228fbe",
+		"49734643-a334-4260-a885-6d41b7a87fc5",
+		"0665e3c6-d6aa-4a71-b3ff-4ea46c5828ca",
+		"9281bc50-0779-4191-b78a-a8fced196c6e",
+		"08c3b5e8-8aff-4306-a9f9-eaeb076b22a9",
+		"9ee7b5bc-2a0a-4303-bcaf-4fcce64022cb",
+		"26f8a614-8435-4cf1-bf07-885f9a627a32",
+		"842f7152-ad39-4f5d-935c-33ce4e589919",
+		"1cfb627b-3450-416f-97c7-5035c483fc0f",
+		"af934116-44f4-47aa-9b78-933798137a32",
+		"d378f69e-b821-4ef8-b64f-5559038183e3",
+		"402f45f3-4c2f-4c15-a029-90555ead33a6",
+		"2af0e3d2-86d6-421a-95d8-5dacb67cae60",
+		"399ee382-353e-4050-b4cf-af54a92cb42e",
+		"34da3df4-0d3d-4f61-91da-2a97ca739648",
+		"9787c2fd-84d9-4b35-949b-af719cd80554",
+		"a5afa510-2b87-4326-bf8d-3e29458af319",
+		"64f38b33-df14-4672-93d8-6e2d996f8111",
+		"72b52ae7-6975-4baa-b5ce-815c361b7b14",
+		"43805311-fc7d-407e-ba81-b17565a671b2",
+		"9047da86-e90f-4a2b-b38a-b634f8c7868c",
+		"1d794be5-922f-4d84-8be2-4fac6010a4e1",
+		"2e40c345-d806-4777-98ab-78542895aad6",
+		"259159e0-297a-4a82-98b7-99c65c9b56a4",
+		"86b4c6c0-c225-4040-87d6-97819e1baa5e",
+		"6efb74d8-08a7-4fab-ab39-f42abda772a7",
+		"e903a027-8c73-434d-978e-579c804480b4",
+		"71ce9f8a-c6b3-4711-9d1d-f92ccd93f918",
+		"bf0e72f7-5173-4c55-87a9-0766fe09db36",
+		"38240acf-c15a-4831-83fe-39a425eaa0c9",
+		"e471ebfa-bdd8-4890-9084-e014da5c3a8c",
+		"268b7d0a-6d6b-4199-b651-c7602b2f97f6",
+		"08012316-077d-4ce3-b2e2-299b84cb4828",
+		"a4a2e646-b45e-427a-9cb6-0a297f5293a3",
+		"bc756f41-8d8c-4252-aed9-176e9e1f26bc",
+		"db0a78c2-145f-48b2-8579-4cdf5ae1cdbb",
+		"3afc1e92-477a-4cc6-8e00-af6147980927",
+		"07de22e8-7b6d-4db9-a2f5-f9e88e41af8f",
+		"cec6e3f4-41af-4e56-b3e9-730cd8d4b706",
+		"833bd456-5edb-4533-b0f8-b66c23335e47",
+		"e545ce3e-e808-4ab2-bd26-b4cd715c9658",
+		"4a84e93a-34cd-4d4e-a8fb-1062db673c90",
+		"b68a6555-4ecd-4164-9a48-ad2066d23f23",
+		"5f31147f-ccfd-4f34-9fa6-4c7630f5279e",
+		"5e819e30-4d38-4918-ba14-27042730e932",
+		"e9f92e53-1c80-4e29-8d48-5ae34250c28a",
+		"56ca1df6-5ac2-4b8f-9765-31bdbab57e9f",
+		"4c27a4ea-c04e-4228-971a-92a1cc101f02",
+		"33efcee0-725e-4877-80f4-5563aca9d162",
+		"f4ed1788-e418-446a-869a-4dbe5a9b36d2",
+		"88b9d066-e0a3-4e75-848e-8a5781ec2b3e",
+		"d53fceae-db17-427d-ba45-5c2dc0faa31f",
+		"fa723ad1-395e-4b98-8031-cf8e2698956a",
+		"cd244eb6-2de0-45a6-a270-db75d23af575",
+		"e1f00534-a94b-4add-9be2-0f59889075a3",
+		"e085ec9f-3830-45cf-a8af-581be15f0d94",
+		"5d12526f-ff52-4bf0-b411-a4afab6db9ea",
+		"127d5965-c739-4068-a69a-a70169e107e1",
+		"77154a7c-89d0-49df-82ae-6810e27ec9ca",
+		"b4146c5c-582e-4c78-bcdf-e23b4ca18bf0",
+		"e0d69527-5adf-43d8-a5ad-dc9f7e037e90",
+		"21793a5d-a2c8-4bac-8dbb-064dd9cc6ccf",
+		"1d502a79-aa2b-44ee-8fdc-15e25d4a2b28",
+		"14a2717b-e183-4626-acf8-ce7a866d00c1",
+		"fdb20afd-1a6e-4b94-8023-c263c5f7b3b6",
+		"d9f0d4fa-f2c7-4a7b-a47e-42109454a85a",
+		"1f6cbfc3-06d5-49b2-9eca-ca22bde2bbf3",
+		"c1f3f39a-49e1-4a17-840a-e3c4c7231277",
+		"263fe5c6-9897-4b2d-a339-f1a54d8c8b27",
+		"b925c25c-3d88-4b14-b01c-05079667518e",
+		"aa93bf2b-558d-4418-b54c-2d1858e301ad",
+		"074921be-13d3-404e-88ed-ab6e8e82d4ce",
+		"8f003394-2eac-4514-bac0-a28a419cb39c",
+		"3eb328a7-3d46-4349-b44a-2282619ed622",
+		"147f30f5-eb1e-4a93-9179-0bc7a483dc67",
+		"81bab592-a5e0-4665-abac-4e75b93e9f5d",
+		"15b0e8f6-044e-41f6-aa64-790f84219959",
+		"4f6a8b4e-a30c-4c83-aa87-e16b4478a6c1",
+		"c823beec-3d73-47b6-87d9-076c384c4662",
+		"c8d0d95a-b247-422e-a9d3-5259eda0047c",
+		"800bbd0f-9e2b-41f4-b68d-7e63eb7cf640",
+		"7c5cf6a4-31f5-433f-8922-104e45c083c8",
+		"0c2732c3-8c2b-4100-9560-4e6f94f623d1",
+		"21caf3a9-1a30-4a62-834e-9cea571966c6",
+		"0314f8d3-3b07-428f-ac47-67a7582b3a6d",
+		"e3db9074-6b09-4105-8953-4884d88bc039",
+		"c14d2a0d-0931-4254-99ce-dfddb7077fa7",
+		"2f24ce33-97cc-4313-930c-de7134afdba0",
+		"b398fa39-9d51-4df4-9ccc-e34519d4505e",
+		"db356dbb-4a28-4c11-851e-ca53d49747f8",
+		"8de9aa5e-6d61-442f-a4c0-e5bba91cd3cd",
+		"dec2e051-cd0d-4b07-a883-ac28c0795c45",
+		"42351832-bb81-48e6-ac04-47a5f4268df8",
+		"d2783fc8-ce1e-4d44-b244-75761077908e",
+		"685a140b-79c3-41d1-a6b0-78d085f1bcc7",
+		"a90d5ee1-29bb-464e-bb46-49ca84377f69",
+		"ec3be3d9-5fd7-446b-b3b1-8024a8cafc71",
+		"36fb4a56-caba-455d-9c52-43b1dddb9792",
+		"71be5ed8-0e38-4b26-816c-528eaf0473b9",
+		"739b0044-c2c1-4487-8222-675bf8eaf9cd",
+		"5670fc1a-a808-4a6e-9e41-c915d2fdcad3",
+		"02461f93-44a0-4e90-845e-58d3ab36938f",
+		"874b61e0-a145-4a70-8db7-1055b8563760",
+		"3ed1c7e6-7707-48b4-a0f0-b933bc851fdb",
+		"50481272-516e-4cef-a1e8-0843b059b0d2",
+		"62a56aa2-3963-4c19-b803-74562041c872",
+		"8631128c-580e-4c34-b0cd-ea69b2bb5baf",
+		"14dbe0e9-d707-4f86-b817-442636d2ce14",
+		"5c3bcae4-d2ad-4715-943c-732ab298a756",
+		"f25f91ed-007b-44de-a323-68d8a320bf64",
+		"b9ad09d2-9555-4f6c-8210-114173410725",
+		"2b267072-5fd7-4ba9-adfa-dd2222b15065",
+		"763f5cf5-97b6-4377-80bc-29db91c54b7a",
+		"805ba790-e7c3-4c25-9d60-0fe9f5c49fc1",
+		"0de15579-59b7-44a3-ac92-dab5f62da377",
+		"380dd837-ac23-4ede-8ff3-8cd45d0f5673",
+		"2268ab0d-df81-4f9e-a813-c72732a9b526",
+		"9dd5564a-6887-4263-b582-16538c0386dc",
+		"93541e27-d4ed-429b-b618-7a9fe4d33554",
+		"28450743-2507-48bf-9b30-e3a47e942faa",
+		"5e9fb80f-634c-4743-9ece-b189f826a5d9",
+		"241054ef-325f-4c66-94f6-442d78f591a6",
+		"776a74a2-1f2e-472c-bb5e-9a0700dbedab",
+		"25d93a2c-5053-42f7-89ba-88d7b3b747e3",
+		"a6fc98b7-629f-4e29-9ce1-6b5b39d55fc9",
+		"2abaa06e-af75-4322-9669-8c19476d9c55",
+		"c2f6c0f9-5ddc-4379-86a9-07216adf5569",
+		"6f55f52c-104a-44e8-b3dd-4e60d1438469",
+		"6daa0e9b-ae02-4f07-b0ec-50360e91ec17",
+		"818edace-fefe-410c-b5f7-747a677c618d",
+		"11aea082-debe-4119-ba6a-967c6efb51e3",
+		"060f7dcd-6b5f-4676-9b62-2c6fea92bd7d",
+		"6aeab464-6e6e-4a37-a858-a3e134db672f",
+		"b6527741-a551-4d91-a423-fb8325801994"
+	],
+	"82f55837-e26c-41bf-bc6e-fa97b7981fbc": [ // Whittleton Creek
+		"672a7a52-a08a-45cd-a061-ced6a7b8d8c4",
+		"b8f0bf6c-4826-4de2-a785-2d139967e09c",
+		"47af2c26-e605-4d45-b5b5-d6fe5a53df8f",
+		"97e31849-2137-4138-94ef-f7e417b38dd5",
+		"e461b60a-e060-4ae2-b1fc-deca39d39358",
+		"68c0eb1c-46c3-4b85-b000-205eb3839330",
+		"79359280-26f8-4dc3-8dc5-f3ff918fbeaa",
+		"3b58ba90-ed18-4138-86af-b111c9e0b88f",
+		"53406e7a-83d4-4dfd-a5f9-839d6f5e3baa",
+		"38749daf-9da9-469b-bdcc-5e7a5e711263",
+		"53c1bee8-289a-498b-8b09-1167a981fd5c",
+		"a07921d5-b47e-4f0a-b8a7-3a5f0d6f0f5a",
+		"7271eae1-6bdd-4936-b763-b2390fb07fe7",
+		"e6b3d44e-f2aa-4234-b79e-6cfe438deef6",
+		"7af86858-df9d-478b-b5d8-803379cd165f",
+		"a352b5a8-a74b-46bc-b879-46ffba6614a2",
+		"73cdfd30-3e5d-46f0-bbca-a94180939d1a",
+		"7edbb420-0ea6-4b42-a110-2f65b356dc0d",
+		"55d381d5-deff-4423-93bf-9c2e0a2946a0",
+		"06e02d89-e7ae-4dc2-a8b9-727dc94a98f9",
+		"f63d8f4a-103a-4364-a542-9c4cc53c0773",
+		"ce496422-f567-4a62-b2b0-d803ee249de4",
+		"ea6f6e8e-e9ef-4046-9204-5f5c0b27543e",
+		"f56172a2-69c1-40d1-8885-8843655ea35e",
+		"cafb2bda-485c-4c11-9df0-c1e6971dbbbb",
+		"a72ad3c8-89aa-4661-bc46-8b04c244a2a0",
+		"146a124d-1bc5-46d3-8f6a-c2abd1926dd7",
+		"92166f6e-6a8f-4ac1-b2b1-7e0d6962b319",
+		"56b016aa-c8e6-4301-9c12-aa4a1121225d",
+		"a5be536f-8cc1-444a-abe1-a3f0d7cf8ecd",
+		"3227d425-45cc-4144-a5f2-c4b3dd05ef12",
+		"95fc9e66-0251-42db-a6ce-23dbcabc760d",
+		"04099e27-3441-4488-b005-94e651dd4878",
+		"54207b47-c289-49a0-944f-b52201baa429",
+		"02828100-12b3-4b32-94f3-61a52b43908e",
+		"996d4dfd-a4ac-4c82-b4e6-c446a2db7edb",
+		"9df75d8e-7ed3-4972-a51e-cf18078ad58c",
+		"a3e5c2f6-3d0e-468f-b9c6-529c726d6bf8",
+		"5299d8d1-0677-40f1-b771-405fec566212",
+		"732e1679-daaf-4f0e-8eab-e3b87108488a",
+		"f312ef26-6d88-4057-babb-30a969d428cf",
+		"a29b0ead-5a35-48cd-bef2-76bf1ba3a344",
+		"384b9a37-d2ed-4f5d-a94a-79fa8793cd54",
+		"5f307b57-55e8-4f56-97f3-397df9e3dd96",
+		"0b6fef16-3641-414e-9bb4-26b7beeda602",
+		"7cc5baa5-087d-473e-9bc9-ae7b3e354cf5",
+		"ee27bfd3-e0a1-405e-a4f8-eb5f58ebfee3",
+		"856b2aa2-e224-48c3-b890-01fdf4dba6de",
+		"47f288cb-1203-4e60-bdaa-0ffba6a51671",
+		"92d10c94-9f65-4e84-8280-f79d07e120cf",
+		"f4185a13-7929-4311-861e-a8b760fbb3c1",
+		"eceef7f6-d43d-4435-a088-0c686cf202dc",
+		"dff26cc7-ac07-4a50-a30d-b8917b7c4649",
+		"db1c983c-d39c-4a8a-b7de-bfa673cccb2e",
+		"1ad1f2bf-825a-4d61-9a49-cb5db334d380",
+		"164fecf8-80bb-4f04-a749-a7dff1966f9d",
+		"233503c3-d3bd-4900-b501-90d4c95b03d4",
+		"390e6975-5299-49c8-9ff6-f98212585ae5",
+		"a6aa8b8f-24d3-44b7-ba89-063c251d4881",
+		"182a97da-9f67-427f-a6df-148a5ac84564",
+		"88e277b3-9bf8-4032-9985-113dec131436",
+		"de0134aa-bf8f-44c3-997e-193e136c3b0a",
+		"98b36d47-42d1-4050-ab16-13e549153024",
+		"5ac234a2-223f-4a1b-83ba-278ed2b78ca5",
+		"87ab7e2c-cdae-4566-b32e-75bc9cea84fd",
+		"8fedab08-8319-49f9-94c6-981581f73adf",
+		"50cdd4c6-8154-40a9-9ef2-1fb3ff95ad74",
+		"b89e5053-5bc1-4b6b-ab76-5c37f2994138",
+		"c4413f02-12d4-4967-bce5-4229c07c3f68",
+		"20dd41af-863a-4b4d-9c1a-4810c71108c0",
+		"f8dc2a26-342e-471f-a683-f36b43485f23",
+		"3880a7bb-7b59-4a0c-87f2-590e87ccb1ce",
+		"4d7e8295-fb05-4763-af5d-e2fc2228c586",
+		"56e854bc-f006-4cc6-99d9-85fc6898901d",
+		"22c1f3b9-6008-40d3-8003-9fc0a148ad97",
+		"77c78674-d54b-4c77-ad84-3454ba6fad9e",
+		"0a6fce5e-4eec-4794-965a-1f29b340e550",
+		"ba03bf42-41a4-4907-956c-6066d485f72d",
+		"61385660-3dc2-4560-a62a-5212e0560b18",
+		"172ad969-2f84-47c5-a072-2587ebf92b55",
+		"04ac5176-d36b-43b7-95a5-e6dc6572ff79",
+		"f2cdae94-9505-4d57-a70f-515ddc234878",
+		"18ad5745-3c25-4d18-97c7-1fcc1c4667ef",
+		"e0632a9e-a9db-40d3-98b1-03b729f9b139",
+		"f3739a05-6393-4fd9-b108-5d1dac8b7709",
+		"ff44c8ce-c100-4c37-b3dc-271b41634724",
+		"27f42632-7c82-45b3-adbd-070db4289de3",
+		"3d3ab3c8-687b-4e42-8527-14e1bbb9b881",
+		"73541af7-4aed-4c3a-9eef-a78a0e181223",
+		"0bf31415-1578-4c15-8a76-39ca2f7933d3",
+		"13c12a1b-5675-4461-88bf-8f104a8a6a7f",
+		"6519de7c-fe96-4d32-9423-3e8ff0af15a1",
+		"a019184f-34b1-4e41-9acc-733b1f479687",
+		"26577e51-52b4-4493-90ff-5868b1cff127",
+		"f162d97b-fce4-4b4e-a8bd-ee92583f5300",
+		"4d88eb0c-e034-43d2-a5b1-0bd021dbbad2",
+		"73f4d95e-3148-4281-bd16-a246a52d70c4",
+		"77b2757e-dc71-4bf7-8070-f0367a0457c3",
+		"a9a97339-ba83-414e-8602-b72123f94766",
+		"fa8dba2d-400b-4ef4-bf25-2b7a94b1a876",
+		"b78acbe0-1666-4098-8b13-ce445f37e9b3",
+		"b463286f-9cc6-4df1-859f-fb11d0d56246",
+		"70244617-fd54-4b9f-8412-fcdea02d91eb",
+		"90505cde-9b68-488f-827b-ff81498264aa",
+		"4694ae61-e3aa-4e00-988f-be878ad29490",
+		"9def0cca-23ff-46bb-a4c2-c5a56f84a7b7"
+	]
+}
+const unlockablesToKeep:Record<string,Unlockable> = {} // TODO: use less destructive code
+
+const logTag = "Archipelago Plugin"
+const logArchipelago = (msg: string) => {
+    log(LogLevel.INFO, msg, logTag)
+}
+const errArchipelago = (msg: string) => {
+    log(LogLevel.ERROR, msg, logTag)
+}
+
+const getContractFromName = (contractName:string) =>{
+    for(const contractId in modifiedContractMap){
+        if(modifiedContractMap[contractId] === contractName){
+            return contractId
+        }
+    }
+    
+    // if nothing was found, try snakecase
+    for(const contractId in modifiedContractMap){
+        if(modifiedContractMap[contractId].toLowerCase().replaceAll(" ","_") === contractName){
+            return contractId
+        }
+    }
+
+    return "ERROR but cant return undefined otherwise typescript will murder my family"
+}
+
+
+let latestUnlockedLevel = ""
+
+const listOfUnsentChecks:number[] = []
+const checkLocation = (id:number) =>{
+    if(id != undefined){
+        id = id + baseId
+        if(!listOfUnsentChecks.includes(id)){
+            logArchipelago("Saving id: "+id+" to send")
+            listOfUnsentChecks.push(id)
+        }else{
+            logArchipelago("Id: "+id+" already in list to send-")
+        }
+    }else{
+        errArchipelago("Invalid Archipelago Id found, either this Completed Level was not from AP or this item isn't a check.")
+    }
+}
+
+const removeUnusedUnlocks = (controller: Controller)=> {
+    // ================ DISABLE DEFAULT UNLOCKS ===============
+    setFlag("enableMasteryProgression", false)
+
+    const unlockables = controller.configManager.configs.allunlockables
+
+    while(unlockables.length !== 0){
+        const lockable = unlockables[unlockables.length-1]
+
+        if(lockable.Type !== "loadoutunlock"&&lockable.Type !== "location"&& lockable.Type !== "package" && lockable.Type !== "evergreenmastery"&&lockable.Subtype!=="hit"&&lockable.Subtype!=="disguise") {
+            unlockablesToKeep[lockable.Id]=lockable
+        }
+
+        unlockables.pop();
+    }
+
+    //H2 compliance test:
+    const h2unlockables = controller.configManager.configs.H2allunlockables
+    while(h2unlockables.length !== 0){
+        h2unlockables.pop()
+    }
+}
+const addModifiedMissions = (controller: Controller, difficulty: string, seed: string, targets: string) => {
+    // add copy of contracts to the game  
+    const eightDigitSeed = seed.slice(0,8).padEnd(8,"0")
+    const splitTargets = targets.split("-")
+    let targetsIndex = 0
+
+    for (const contractId in contractMap){
+		let contract = controller.resolveContract(contractId, "h3")
+		if(contract === undefined){
+        	errArchipelago("No contract fetched for level "+contractMap[contractId])
+        	continue;
+        }
+
+		if(targets != "vanilla" && possibleTargetsMap[contractId] != undefined && splitTargets[targetsIndex] != ""){
+			// get contractcreation contract instead of main mission
+			let bareContract = controller.resolveContract(contractCreationContractsMap[contractId], "h3")
+			if(bareContract === undefined){
+        		errArchipelago("No contract creation contract fetched for level "+contractMap[contractId])
+        		continue;
+        	}
+			bareContract.Metadata.Type = "mission"
+			bareContract.Data.GameChangers = [] //TODO: this can be enabled later with an option(hide all bodies, dont miss etc.)
+
+			bareContract.Data.GameDifficulties = contract.Data.GameDifficulties
+			bareContract.Metadata.Title = contract.Metadata.Title
+			bareContract.Metadata.Description = contract.Metadata.Description
+			bareContract.Metadata.BriefingVideo = contract.Metadata.BriefingVideo
+			bareContract.Metadata.TileImage = contract.Metadata.TileImage
+			//TODO: Data.VR?
+
+			contract = bareContract
+			
+			const targets = splitTargets[targetsIndex].split("_")
+            for(const id in targets){
+                if(targets[id]!=""){
+                    const newTarget = possibleTargetsMap[contractId][Number(targets[id])]
+                    let targetObjective = JSON.parse(JSON.stringify(targetTemplate));
+                        
+                    targetObjective.Id = newTarget
+                    targetObjective.Definition.Context.Targets = [newTarget]
+                    targetObjective.Definition.States.Start.Kill.Condition.$eq[1]=newTarget
+                    targetObjective.HUDTemplate.display.$loc.data = "$($repository "+newTarget+").Name"
+                    targetObjective.BriefingText.$loc.data = targetObjective.HUDTemplate.display.$loc.data
+                        
+                    contract.Data.Objectives.push(targetObjective)
+				}
+            }
+		}
+
+        // remove difficulties not set by archipelago
+        let savedDifficulty
+                
+        if(contract.Data.GameDifficulties !== undefined){
+            for (const i in contract.Data.GameDifficulties){
+                if(contract.Data.GameDifficulties[i].Difficulty === difficulty){
+                    savedDifficulty = contract.Data.GameDifficulties[i]
+                    break
+                }
+            }
+                    
+            if(savedDifficulty !== undefined){
+                contract.Data.GameDifficulties = [savedDifficulty]
+            }else{
+                errArchipelago("No difficulty was saved for level "+contractMap[contractId])
+            }
+        }    
+
+        let newContractId = eightDigitSeed+"-0000-0000-0000-"+contractId.split("-")[4]
+        modifiedContractMap[newContractId] = contractMap[contractId]  
+        contract.Metadata.Id = newContractId
+		
+		if(contractId == "ada5f2b1-8529-48bb-a596-717f75f5eacb"){
+			contract.Data.MandatoryLoadout = undefined
+			contract.Metadata.Type = "mission" //was "tutorial"
+		}
+
+		targetsIndex++;
+        controller.addMission(contract); 
+    }
+}
+let collectedContractPieces = 0
+let contractGoalAmount = ""
+const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
+    let errorOccured = false
+    for(const i in itemIds){
+        const id = itemIds[i] - baseId
+        
+        if (apItemMap[id] === undefined){
+            if(id === 1000){ // exception for Contract Pieces
+                collectedContractPieces++;
+
+				//H3
+				configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+                configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+				//H2
+				configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+                configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+                continue;
+            }
+			if(id === 1001){ // exception for Nothing
+				continue
+			}
+            errArchipelago("Recived ItemId "+id+" is not in ItemMap!")
+            errorOccured = true
+            continue
+        }
+        const itemName = apItemMap[id].apItemName
+    
+        if(itemName.startsWith("Level -")){
+            logArchipelago("Setting Flag: " + itemName)
+    
+            setFlag(itemName, true)
+    
+            latestUnlockedLevel = getContractFromName(itemName.split("Level - ")[1])
+                // TODO: somehow force update the menu and campaign
+        }else{
+            logArchipelago("Awarded Unlockable: "+apItemMap[id].unlockableId)
+            controller.configManager.configs.allunlockables.push(unlockablesToKeep[apItemMap[id].unlockableId])
+
+            controller.configManager.configs.H2allunlockables.push(unlockablesToKeep[apItemMap[id].unlockableId])
+            clearInventoryCache()
+        }
+    }
+    return !errorOccured
+}
+
+function printApIcon(){
+    // Generated with Charc0al's cowsay file converter http://charc0al.github.io/cowsay-files/converter
+    // Inspired by Pixel 47 Plugin by charc0al https://discord.com/channels/826809653181808651/1386531733222195291/
+    const x = "\x1b[49m  ";
+    const r = "\x1b[48;5;174m  ";
+    const y = "\x1b[48;5;222m  ";
+    const g = "\x1b[48;5;108m  ";
+    const b = "\x1b[48;5;103m  ";
+    const p = "\x1b[48;5;175m  ";
+    const o = "\x1b[48;5;180m  ";
+
+    logArchipelago(`\n
+                     ${r}        ${x}
+                   ${r}            ${x}
+                 ${r}                ${x}
+                 ${r}                ${x}
+       ${y}        ${x}  ${r}        ${x}  ${g}        ${x}
+     ${y}            ${x}  ${r}    ${x}  ${g}            ${x}
+   ${y}                ${x}${r}    ${x}${g}                ${x}
+   ${y}                ${x}${r}    ${x}${g}                ${x}
+ ${y}                  ${x}  ${r}${x}  ${g}                  ${x}
+ ${y}                  ${x}  ${r}${x}  ${g}                  ${x}
+   ${y}${x}          ${y}  ${x}        ${g}  ${x}          ${g}${x}
+       ${b}        ${x}                ${p}        ${x}
+     ${b}            ${x}            ${p}            ${x}
+   ${b}                ${x}        ${p}                ${x}
+   ${b}                ${x}        ${p}                ${x}
+ ${b}              ${x}    ${o}    ${x}    ${p}              ${x}
+ ${b}            ${x}  ${o}            ${x}  ${p}            ${x}
+   ${b}          ${x}${o}                ${x}${p}          ${x}
+   ${b}        ${x}  ${o}                ${x}  ${p}        ${x}
+     ${b}      ${x}  ${o}                ${x}  ${p}      ${x}
+       ${b}    ${x}  ${o}                ${x}  ${p}    ${x}
+                 ${o}                ${x}
+                 ${o}                ${x}
+                   ${o}            ${x}
+                     ${o}        ${x}`) 
+}
+
+module.exports = function archipelagoCampaign(controller: Controller) {
+    logArchipelago("Loading plugin")
+    printApIcon()
+
+    removeUnusedUnlocks(controller)
+
+    // ================ SETUP LEVEL FLAGS ================
+    for (const contractId in contractMap){
+        setFlag("Level - "+contractMap[contractId], false)
+    }
+    // =============== SETUP CLIENT ENDPOINTS ============
+    webFeaturesRouter.get("/archipelago",(req,res)=>{
+        res.contentType("text").send("OK")
+    })
+    webFeaturesRouter.post("/archipelago/sendItems", (req,res)=>{
+        const itemIds: number[] = JSON.parse(req.query.items) 
+        const worked = handleRecivedItems(controller, itemIds)
+
+        if(worked) {
+            res.status(200).send()
+        }else{
+            res.status(500).contentType("text").send("Error while recieving item, see console for details")
+        }
+    })
+    webFeaturesRouter.get("/archipelago/setData/:difficulty/:seed/:targets", (req,res)=>{
+        const difficulty = req.params.difficulty
+        const seed = req.params.seed
+        const targets = req.params.targets
+
+        collectedContractPieces = 0
+        controller.configManager.configs.allunlockables.splice(0, controller.configManager.configs.allunlockables.length)
+
+		controller.configManager.configs.H2allunlockables.splice(0, controller.configManager.configs.H2allunlockables.length)
+
+        clearInventoryCache()
+        for (const contractId in contractMap){
+            setFlag("Level - "+contractMap[contractId], false)
+        }   
+        modifiedContractMap = {}
+         
+        addModifiedMissions(controller, difficulty, seed, targets)
+        res.status(200).send()
+    })
+    webFeaturesRouter.get("/archipelago/checks", (req,res) =>{
+        res.status(200).contentType("json").send(listOfUnsentChecks)
+
+        while(listOfUnsentChecks.length != 0){
+            listOfUnsentChecks.pop()
+        }
+    })
+    webFeaturesRouter.get("/archipelago/setGoal/:goalMode/:goalDetails/:moreGoalDetails",(req,res)=>{
+        if(req.params.goalMode === "contract_collection"){
+            contractGoalAmount = req.params.goalDetails
+
+			//H3
+            configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+            configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+            configs.EiderDashboard.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
+
+			//H2
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
+
+            res.status(200).send()
+        }else if(req.params.goalMode === "level_completion"){
+
+			//H3
+            configs.EiderDashboard.children.$mergearrays[5].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+
+            configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+
+            configs.EiderDashboard.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.goalDetails), "h3")!.Metadata.TileImage;
+
+			//H2
+			configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.goalDetails), "h3")!.Metadata.TileImage;
+
+            res.status(200).send()
+        }else{
+            errArchipelago("Archipelago Client tried to set unknown goal Mode: "+req.params.goalMode)
+            res.status(200).send("Invalid goal mode")
+        }
+    })
+
+    // =============== COSMETICS ==================
+    // TODO: everything here assumes constant order in the jsons, which I am unsure how consistent it is
+    
+    // replace Freelancer with goal (H3)
+    configs.EiderDashboard.children.$mergearrays[5].data = {
+        "title": "NO GOAL LOADED",
+        "header": "Current Goal Progress",
+        "icon": "54",
+        "image": "$res images/challenges/hokkaido/snowcrane_opp_sabotage_mainframe.jpg"
+    }
+    configs.EiderDashboard.children.$mergearrays[5].actions!.select = {
+        "replace-children": {
+            "target": "headline_container",
+            "children": [
+                {
+                    "view": "menu3.basic.HeadlineElement",
+                    "selectable": false,
+                    "pressable": false,
+                    "data": {
+                        "header": "Current Goal Progress",
+                        "title": "NO GOAL LOADED",
+                        "typeicon": "54"
+                    }
+                }
+            ]
+        }
+    }
+    configs.EiderDashboard.children.$mergearrays[5].actions!.accept = {}
+    configs.EiderDashboard.children.$mergearrays[5].actions!.actiony = {}
+
+	// replace Elisive Targets with goal (H2)
+	configs.H2DashboardTemplate.children.$mergearrays[5].data = {
+        "title": "NO GOAL LOADED",
+        "header": "Current Goal Progress",
+        "icon": "54",
+        "image": "$res images/challenges/hokkaido/snowcrane_opp_sabotage_mainframe.jpg"
+    }
+    configs.H2DashboardTemplate.children.$mergearrays[5].actions!.select = {
+        "replace-children": {
+            "target": "headline_container",
+            "children": [
+                {
+                    "view": "menu3.basic.HeadlineElement",
+                    "selectable": false,
+                    "pressable": false,
+                    "data": {
+                        "header": "Current Goal Progress",
+                        "title": "NO GOAL LOADED",
+                        "typeicon": "54"
+                    }
+                }
+            ]
+        }
+    }
+    configs.H2DashboardTemplate.children.$mergearrays[5].actions!.accept = {}
+    configs.H2DashboardTemplate.children.$mergearrays[5].actions!.actiony = {}
+
+    // Replace escalations with HITMAPS attribution
+    configs.EiderDashboard.children.$mergearrays[4].data = {
+        "title": "HITMAPS",
+        "header": "Item information provided by",
+        "icon": "story",
+        "image": "$res images/challenges/marrakech/story_evacuation_spider.jpg"
+    }
+    configs.EiderDashboard.children.$mergearrays[4].actions!.accept = {
+		"open-url": {
+			"url": "https://www.hitmaps.com/"
+        }
+    }
+    configs.EiderDashboard.children.$mergearrays[4].actions!.select = {
+		"replace-children": {
+			"target": "headline_container",
+            "children": [
+				{
+					"view": "menu3.basic.HeadlineElement",
+                    "selectable": false,
+                    "pressable": false,
+                    "data": {
+						"header": "Item information provided by",
+                        "title": "HITMAPS",
+                        "typeicon": "story"
+                    }
+                }
+            ]
+        }
+    }
+	configs.H2DashboardTemplate.children.$mergearrays[4].data = {
+		"title": "HITMAPS",
+		"header": "Item information provided by",
+		"icon": "story",
+		"image": "$res images/challenges/marrakech/story_evacuation_spider.jpg"
+	}
+	configs.H2DashboardTemplate.children.$mergearrays[4].actions!.accept = {
+		"open-url": {
+			"url": "https://www.hitmaps.com/"
+        }
+    }
+    configs.H2DashboardTemplate.children.$mergearrays[4].actions!.select = {
+        "replace-children": {
+            "target": "headline_container",
+            "children": [
+                {
+                    "view": "menu3.basic.HeadlineElement",
+                    "selectable": false,
+                    "pressable": false,
+                    "data": {
+                        "header": "Item information provided by",
+                        "title": "HITMAPS",
+                        "typeicon": "story"
+                    }
+                }
+            ]
+        }
+    }
+
+    // =============== CAMPAIGN SETUP ==================
+    controller.hooks.contributeCampaigns.tap("addArchipelagoCampaign",
+        (
+            campaigns: Campaign[],
+            genSingleMissionFunc: GenSingleMissionFunc,
+            genSingleVideoFunc: GenSingleVideoFunc,
+            gameVersion: GameVersion,
+        ) => {
+            const myStoryData = []
+            
+            for (const contractId in modifiedContractMap) {
+                if (getFlag("Level - "+modifiedContractMap[contractId])){
+                    myStoryData.push(
+                        genSingleMissionFunc(contractId, gameVersion)
+                    )
+                }
+            }
+
+            const campaignTemplate = {
+                BackgroundImage: "images/challenges/profile_challenges/escalation_s2_tier_10.jpg",
+                Image: "images/challenges/profile_challenges/escalation_s2_tier_10.jpg",
+                Name: "Archipelago",
+                Type: "campaign",
+                Properties: {
+                    BackgroundImage: "images/challenges/profile_challenges/escalation_s2_tier_10.jpg",
+                },
+                StoryData: myStoryData, // Only add unlocked missions
+            }
+            if(gameVersion == "h2"){
+                campaignTemplate.BackgroundImage = "Images/Challenges/profile_challenges/classics_location_normal.jpg"
+            }
+
+            campaigns.unshift(campaignTemplate)
+        }
+    )
+    controller.hooks.getNextCampaignMission.tap("setNextCampaignToLatestUnlocked",
+        (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            _contractId: string,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            _gameVersion: GameVersion,
+        ): PlayNextGetCampaignsHookReturn | undefined => {
+            return {
+                nextContractId: latestUnlockedLevel,
+                campaignDetails: {
+                    CampaignName: "Archipelago",
+                    ParentCampaignName: undefined,
+                },
+                overrideIndex:0
+            }
+        }
+    )
+    controller.hooks.newEvent.tap("awardCheckOnItemPickup",(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        event: ClientToServerEvent<any>
+        , details: {
+            gameVersion: GameVersion;
+            userId: string;
+        }, session: ContractSession
+        )=>{
+            if(event.Name === "ItemPickedUp"){
+                if(modifiedContractMap[session.contractId]!=undefined){
+                    logArchipelago("Sending check for "+event.Value.ItemName +";"+event.Value.RepositoryId+";"+itemDepotToApIdMap[event.Value.RepositoryId])
+                    checkLocation(itemDepotToApIdMap[event.Value.RepositoryId])
+
+					logArchipelago("Sending Map specific check for "+event.Value.ItemName +";"+event.Value.RepositoryId+";"+itempDepotAndLevelToApIdMap[event.Value.RepositoryId+"|"+modifiedContractMap[session.contractId]])
+                    checkLocation(itempDepotAndLevelToApIdMap[event.Value.RepositoryId+"|"+modifiedContractMap[session.contractId]])
+                }else{
+                    errArchipelago("Save from diffrent Archipelago Seed was loaded, not sending check \"Itempickup - "+event.Value.ItemName+"\"")
+                }
+            }      
+        }
+    )
+
+
+    // send completed mission checks
+    controller.hooks.onMissionEnd.tap("awardCheckOnCompletedMission", (contractSession) => {
+
+        const levelName = modifiedContractMap[contractSession.contractId]
+        logArchipelago("Completed "+levelName)
+        checkLocation(locationNameToApIdMap[levelName + " Completed"])
+       
+        if(contractSession.silentAssassinLost===false){
+            logArchipelago("Completed "+levelName+" as SA")
+            checkLocation(locationNameToApIdMap[levelName + " Completed - Silent Assassin"])
+        }
+
+        // disgusesUsed returns {} no matter the contents, so I assume default suit is included
+        if(contractSession.disguisesUsed.size === 1){
+            logArchipelago("Completed "+levelName+" as SO")
+            checkLocation(locationNameToApIdMap[levelName + " Completed - Suit Only"])
+        }
+
+        if(contractSession.silentAssassinLost===false && contractSession.disguisesUsed.size === 1 && true){ 
+            logArchipelago("Completed "+levelName+" as SASO")
+            checkLocation(locationNameToApIdMap[levelName + " Completed - Silent Assassin, Suit Only"])
+        }
+
+    })
+
+    logArchipelago("Plugin Loaded.")
+}
