@@ -67,9 +67,9 @@ class HitmanWeb(WebWorld):
         ])
     ]
 
-def launch_client():
+def launch_client(*args):
     from .client import launch
-    launch_component(launch, name="HitmanClient",)
+    launch_component(launch, name="HitmanClient", args=args)
 
 
 components.append(Component("HITMAN World of Assasination Client", "HitmanClient", func=launch_client, component_type=Type.CLIENT,icon=__name__))
