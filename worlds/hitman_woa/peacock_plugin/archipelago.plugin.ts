@@ -16,6 +16,7 @@ import {
 
 import { configs } from "@peacockproject/core/configSwizzleManager"
 import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
+import { calculateScore } from "./scoreHandler"
 
 const contractMap: Record<string,string> = {
     "ada5f2b1-8529-48bb-a596-717f75f5eacb":"ICA Facility",
@@ -7341,15 +7342,16 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         }
     )
 
-
     // send completed mission checks
     controller.hooks.onMissionEnd.tap("awardCheckOnCompletedMission", (contractSession) => {
+
+		const score = calculateScore("h3", contractSession, controller.resolveContract(contractSession.contractId, "h3")!, 10)
 
         const levelName = modifiedContractMap[contractSession.contractId]
         logArchipelago("Completed "+levelName)
         checkLocation(locationNameToApIdMap[levelName + " Completed"])
        
-        if(contractSession.silentAssassinLost===false){
+        if(score.silentAssassin){
             logArchipelago("Completed "+levelName+" as SA")
             checkLocation(locationNameToApIdMap[levelName + " Completed - Silent Assassin"])
         }
@@ -7360,7 +7362,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             checkLocation(locationNameToApIdMap[levelName + " Completed - Suit Only"])
         }
 
-        if(contractSession.silentAssassinLost===false && contractSession.disguisesUsed.size === 1 && true){ 
+        if(score.silentAssassin && contractSession.disguisesUsed.size === 1 && true){ 
             logArchipelago("Completed "+levelName+" as SASO")
             checkLocation(locationNameToApIdMap[levelName + " Completed - Silent Assassin, Suit Only"])
         }
