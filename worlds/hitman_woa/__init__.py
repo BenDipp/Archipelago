@@ -8,7 +8,7 @@ from worlds.LauncherComponents import Component, Type, components, launch as lau
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, goal_table, target_table
+from .locations import HitmanLocation, location_table, goal_table, target_table_ranges, vanilla_target_table
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -255,6 +255,51 @@ class HitmanWorld(World):
             map_region.add_locations({location :self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
             set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
                         lambda state, required_items = "Contract Piece": state.has(required_items,self.player,self.options.goal_required_contract_pieces.value))
+            
+        if self.options.random_targets.value:
+            target_slot_data = ""
+            already_used_targets = []
+            for map in target_table_ranges:
+                if (map in self.enabled_entitlements[self.player] or\
+                    map+"_sa" in self.enabled_entitlements[self.player] or\
+                    map+"_so" in self.enabled_entitlements[self.player] or\
+                    map+"_saso" in self.enabled_entitlements[self.player]):
+
+                    num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets)
+                    for i in range(0, num_of_targets):
+                        if(target_table_ranges[map][1]-target_table_ranges[map][0]+1 <= len(already_used_targets)):
+                            break
+                        chosen_target = self.random.randint(target_table_ranges[map][0],target_table_ranges[map][1])
+                        while chosen_target in already_used_targets:
+                            chosen_target = self.random.randint(target_table_ranges[map][0],target_table_ranges[map][1])
+                        target_slot_data += str(chosen_target)+"_"
+                        already_used_targets.append(chosen_target)
+
+                        location = self.location_id_to_name[chosen_target+base_id]
+                        map_region.add_locations({location: chosen_target+base_id},HitmanLocation)
+
+                        set_rule(self.multiworld.get_location(location, self.player),
+                            lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
+
+                target_slot_data+="-"
+                already_used_targets = []
+
+            self.target_slotdata = target_slot_data
+        else:
+            for map in vanilla_target_table:
+                if  map in self.enabled_entitlements[self.player] or\
+                    map+"_sa" in self.enabled_entitlements[self.player] or\
+                    map+"_so" in self.enabled_entitlements[self.player] or\
+                    map+"_saso" in self.enabled_entitlements[self.player]:
+
+                    for i in vanilla_target_table[map]:
+                        location = self.location_id_to_name[i+base_id]
+                        map_region.add_locations({location: i+base_id}, HitmanLocation)
+
+                        set_rule(self.multiworld.get_location(location, self.player),
+                        lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
+
+            self.target_slotdata = "vanilla"
 
     def create_item(self, item:str) -> HitmanItem:
         return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)
@@ -366,25 +411,6 @@ class HitmanWorld(World):
                 slotdata["goal_rating"] = self.options.goal_rating.current_key
                 slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
 
-
-        if self.options.random_targets.value:
-            targets = ""
-            already_used_targets = []
-            for map in target_table:
-                if target_table[map] != -1:
-                    num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets)
-                    for i in range(0, num_of_targets):
-                        chosen_target = self.random.randint(0,target_table[map]-1)
-                        while chosen_target in already_used_targets:
-                            chosen_target = self.random.randint(0,target_table[map]-1)
-
-                        targets += str(chosen_target)+"_"
-                        already_used_targets.append(chosen_target)
-                targets+="-"
-                already_used_targets = []
-
-            slotdata["targets"] = targets
-        else:
-            slotdata["targets"] = "vanilla"
+        slotdata["targets"] = self.target_slotdata
 
         return slotdata
