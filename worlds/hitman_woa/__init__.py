@@ -2,6 +2,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Dict, List
 from BaseClasses import Item, ItemClassification, Region, Tutorial
 from Fill import FillError
+from Options import OptionError
 from worlds.generic.Rules import set_rule
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch as launch_component, icon_paths
@@ -69,6 +70,19 @@ class HitmanWorld(World):
     ut_can_gen_without_yaml = True
 
     def generate_early(self):
+        if self.options.random_targets.value and self.options.min_number_of_targets.value > self.options.max_number_of_targets.value:
+            print("WARNING "+self.player_name+": Minimum number of targets cannot exceed Maximum number of targets, Swapping values to avoid generation Failure.")
+            min = self.options.min_number_of_targets.value
+            self.options.min_number_of_targets.value = self.options.max_number_of_targets.value
+            self.options.max_number_of_targets.value = min
+
+        if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion and\
+        self.options.goal_level.value == self.options.starting_location.value:
+            raise OptionError("Goal Level cannot be the same as Starting Level with \"Contract Collection-Level Completion\" Goal Mode.")
+
+        if any(x.startswith("Level - ") for x in self.options.excluded_items.value):
+            raise OptionError("Cannot exclude Level-Items. If you want to exclude a Level, use the \"included_x_locations\" options.")
+
         self.enabled_entitlements[self.player] = []
 
         # Universal Tracker support:
@@ -260,11 +274,7 @@ class HitmanWorld(World):
             target_slot_data = ""
             already_used_targets = []
             for map in target_table_ranges:
-                if (map in self.enabled_entitlements[self.player] or\
-                    map+"_sa" in self.enabled_entitlements[self.player] or\
-                    map+"_so" in self.enabled_entitlements[self.player] or\
-                    map+"_saso" in self.enabled_entitlements[self.player]):
-
+                if map in self.enabled_entitlements[self.player]:
                     num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets)
                     for i in range(0, num_of_targets):
                         if(target_table_ranges[map][1]-target_table_ranges[map][0]+1 <= len(already_used_targets)):
@@ -287,11 +297,7 @@ class HitmanWorld(World):
             self.target_slotdata = target_slot_data
         else:
             for map in vanilla_target_table:
-                if  map in self.enabled_entitlements[self.player] or\
-                    map+"_sa" in self.enabled_entitlements[self.player] or\
-                    map+"_so" in self.enabled_entitlements[self.player] or\
-                    map+"_saso" in self.enabled_entitlements[self.player]:
-
+                if  map in self.enabled_entitlements[self.player]:
                     for i in vanilla_target_table[map]:
                         location = self.location_id_to_name[i+base_id]
                         map_region.add_locations({location: i+base_id}, HitmanLocation)
