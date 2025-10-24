@@ -285,25 +285,27 @@ class HitmanWorld(World):
                         target_slot_data += str(chosen_target)+"_"
                         already_used_targets.append(chosen_target)
 
-                        location = self.location_id_to_name[chosen_target+base_id]
-                        map_region.add_locations({location: chosen_target+base_id},HitmanLocation)
+                        if self.options.enable_target_checks.value:
+                            location = self.location_id_to_name[chosen_target+base_id]
+                            map_region.add_locations({location: chosen_target+base_id},HitmanLocation)
 
-                        set_rule(self.multiworld.get_location(location, self.player),
-                            lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
+                            set_rule(self.multiworld.get_location(location, self.player),
+                                lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
 
                 target_slot_data+="-"
                 already_used_targets = []
 
             self.target_slotdata = target_slot_data
         else:
-            for map in vanilla_target_table:
-                if  map in self.enabled_entitlements[self.player]:
-                    for i in vanilla_target_table[map]:
-                        location = self.location_id_to_name[i+base_id]
-                        map_region.add_locations({location: i+base_id}, HitmanLocation)
+            if self.options.enable_target_checks.value:            
+                for map in vanilla_target_table:
+                    if  map in self.enabled_entitlements[self.player]:
+                        for i in vanilla_target_table[map]:
+                            location = self.location_id_to_name[i+base_id]
+                            map_region.add_locations({location: i+base_id}, HitmanLocation)
 
-                        set_rule(self.multiworld.get_location(location, self.player),
-                        lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
+                            set_rule(self.multiworld.get_location(location, self.player),
+                            lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
 
             self.target_slotdata = "vanilla"
 

@@ -158,6 +158,10 @@ class CheckForSASO(OptionSet):
     display_name = "Levels with Silent Assassin, Suit Only checks"
     valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
 
+class CheckForTarget(DefaultOnToggle):
+    """Add a check for each Target to be eliminated"""
+    display_name = "Enable Target Checks"
+
 class Itemsanity(Toggle):
     """Add a check for each unique item that can be picked up"""
     display_name = "Enable Itemsanity"
@@ -288,6 +292,7 @@ class HitmanOptions(PerGameCommonOptions):
     game_difficulty: GameDifficulty
     enable_itemsanity: Itemsanity
     split_itemsanity: SplitItemsanity
+    enable_target_checks : CheckForTarget
 
     included_s1_locations: IncludedH1Levels
     included_s2_locations: IncludedH2Levels
@@ -349,6 +354,7 @@ option_groups = [
             StartingLevel
         ]),
         OptionGroup("Enabled Checks",[
+            CheckForTarget,
             Itemsanity,
             SplitItemsanity,
             CheckForCompletion,
