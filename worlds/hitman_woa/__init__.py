@@ -339,10 +339,10 @@ class HitmanWorld(World):
 
         for item in item_table:
             if len(item_table[item][1]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1]):
-                if item in self.options.excluded_items.value:
-                    continue
                 if item in self.options.excluded_starting_items.value:
                     self.multiworld.push_precollected(self.create_item(item))
+                    continue
+                if item in self.options.excluded_items.value:
                     continue
                 if item_table[item][2] == ItemClassification.progression and item != starting_locaiton and item != "Contract Piece":
                     item_pool.append(self.create_item(item))
