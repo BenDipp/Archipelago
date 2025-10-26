@@ -111,6 +111,11 @@ class HitmanWorld(World):
                     self.options.levels_with_check_for_saso.value = slot_data["levels_with_check_for_saso"]
                     self.options.starting_location.value = slot_data["starting_location"]
                     self.options.goal_level.value = slot_data["goal_level"]
+                    self.options.random_targets.value = slot_data["random_targets"]
+                    self.options.min_number_of_targets.value = slot_data["min_number_of_targets"]
+                    self.options.max_number_of_targets.value = slot_data[ "max_number_of_targets"]
+                    self.options.enable_target_checks.value = slot_data["enable_target_checks"]
+
         
         # make sure the goal Level is added as location
         if self.options.goal_mode.value == self.options.goal_mode.option_level_completion or \
@@ -398,7 +403,8 @@ class HitmanWorld(World):
             "enable_itemsanity", "split_itemsanity",
             "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations", 
             "levels_with_check_for_completion", "levels_with_check_for_sa", "levels_with_check_for_so", "levels_with_check_for_saso",
-            "starting_location", "goal_level"
+            "starting_location", "goal_level",
+            "random_targets", "min_number_of_targets", "max_number_of_targets", "enable_target_checks"
         )
         slotdata["starting_location_name"] = self.options.starting_location.current_key
 
