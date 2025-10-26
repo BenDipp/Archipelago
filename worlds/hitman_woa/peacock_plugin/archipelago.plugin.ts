@@ -16,7 +16,7 @@ import {
 
 import { configs } from "@peacockproject/core/configSwizzleManager"
 import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
-import { calculateScore } from "./scoreHandler"
+import { calculateScore } from "@peacockproject/core/scoreHandler"
 
 const contractMap: Record<string,string> = {
     "ada5f2b1-8529-48bb-a596-717f75f5eacb":"ICA Facility",
