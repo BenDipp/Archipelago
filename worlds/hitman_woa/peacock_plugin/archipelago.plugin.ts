@@ -15733,6 +15733,30 @@ const apIdToTargetIdMap: Record<number,string> = {
     9500: "17c40b70-506a-494e-89ef-31360cdead47", // Arthur Edwards
     9501: "Soders" // Erich Soders
 }
+const gameChangerApIdToRepoIdMap: Record<number,string> = {
+	1: "113ba9e8-4fa5-4ab0-b613-05b97e39e600",
+	2: "63055f1a-bcd2-4e0f-8caf-b446f01d02f3",
+	3: "c2da52c5-ff3e-41cd-a175-4ed9267f6c95",
+	4: "9f409781-0a06-4748-b08d-784e78c6d481",
+	5: "03ca23e8-7daf-4346-8719-29970bc50d17",
+	6: "f41f18fe-0fe5-416a-a793-50727e594655",
+	7: "576b385f-2213-4f72-a17c-c346338d3d9f",
+	8: "3a8d4421-096e-4a1b-853a-c12886a51d1f",
+	9: "1f1f3c9e-1490-4fcc-aee6-5fde7c6c48ca",
+	10: "fd37b209-4e11-461e-a11f-394c92fbbe80",
+	11: "3fea3aea-0233-46bb-8bc1-08757a2f6a74",
+	12: "25760ea6-958b-4aab-97d4-b539c5b025c8",
+	13: "5fef7df0-94ef-47ef-b91e-d67578f81d76",
+	14: "95b8fdcf-9879-4e16-978f-c220ee6adac1",
+	15: "5b368c64-ed49-4907-9075-d4a31953374a",
+	16: "fdc7a60b-aa7f-4628-bd03-00c93393967f",
+	17: "f123cf4d-25c9-4eab-ad29-1b7d5294c74f",
+	18: "351ce43a-9f8f-4645-8e3a-4adf2ff08fc7",
+	19: "ce154566-a4ba-43c5-be4e-79240ce0f3f9",
+	20: "e06e5d9c-36ac-4ba4-a97b-d439c900d81b",
+	21: "61b1203e-84a0-4b77-bf88-8ba956ebd2bd",
+	22: "bb0c22b7-f5e4-4a91-bc7a-9070177a87e4"
+}
 const unlockablesToKeep:Record<string,Unlockable> = {} // TODO: use less destructive code
 
 const logTag = "Archipelago Plugin"
@@ -15800,11 +15824,12 @@ const removeUnusedUnlocks = (controller: Controller)=> {
         h2unlockables.pop()
     }
 }
-const addModifiedMissions = (controller: Controller, difficulty: string, seed: string, targets: string) => {
+const addModifiedMissions = (controller: Controller, difficulty: string, seed: string, targets: string, gameChangers: string) => {
     // add copy of contracts to the game  
     const eightDigitSeed = seed.slice(0,8).padEnd(8,"0")
     const splitTargets = targets.split("-")
-    let targetsIndex = 0
+    const splitGameChangers = gameChangers.split("-")
+    let contractIndex = 0
 
     for (const contractId in contractMap){
 		let contract = controller.resolveContract(contractId, "h3")
@@ -15813,7 +15838,7 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
         	continue;
         }
 
-		if(targets != "vanilla" && possibleTargetsMap[contractId] != undefined && splitTargets[targetsIndex] != ""){
+		if(targets != "vanilla" && possibleTargetsMap[contractId] != undefined && splitTargets[contractIndex] != ""){
 			// get contractcreation contract instead of main mission
 			let bareContract = controller.resolveContract(contractCreationContractsMap[contractId], "h3")
 			if(bareContract === undefined){
@@ -15821,7 +15846,8 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
         		continue;
         	}
 			bareContract.Metadata.Type = "mission"
-			bareContract.Data.GameChangers = [] //TODO: this can be enabled later with an option(hide all bodies, dont miss etc.)
+
+			bareContract.Data.GameChangers = []
 
 			bareContract.Data.GameDifficulties = contract.Data.GameDifficulties
 			bareContract.Metadata.Title = contract.Metadata.Title
@@ -15832,7 +15858,7 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 
 			contract = bareContract
 			
-			const targets = splitTargets[targetsIndex].split("_")
+			const targets = splitTargets[contractIndex].split("_")
             for(const id in targets){
                 if(targets[id]!=""){
 
@@ -15848,6 +15874,15 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
                     contract.Data.Objectives.push(targetObjective)
 				}
             }
+		}
+
+		if(gameChangers != "vanilla" && splitGameChangers[contractIndex] != ""){
+			const gameChangers = splitGameChangers[contractIndex].split("_")
+            for(const id in gameChangers){
+                if(gameChangers[id]!=""){
+					contract.Data.GameChangers?.push(gameChangerApIdToRepoIdMap[Number(gameChangers[id])])
+				}
+			}
 		}
 
         // remove difficulties not set by archipelago
@@ -15877,7 +15912,7 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 			contract.Metadata.Type = "mission" //was "tutorial"
 		}
 
-		targetsIndex++;
+		contractIndex++;
         controller.addMission(contract); 
     }
 }
@@ -16018,10 +16053,11 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             res.status(500).contentType("text").send("Error while recieving item, see console for details")
         }
     })
-    webFeaturesRouter.get("/archipelago/setData/:difficulty/:seed/:targets", (req,res)=>{
+    webFeaturesRouter.get("/archipelago/setData/:difficulty/:seed/:targets/:gameChangers", (req,res)=>{
         const difficulty = req.params.difficulty
         const seed = req.params.seed
         const targets = req.params.targets
+        const gameChangers = req.params.gameChangers
 
         collectedContractPieces = 0
         controller.configManager.configs.allunlockables.splice(0, controller.configManager.configs.allunlockables.length)
@@ -16034,7 +16070,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         }   
         modifiedContractMap = {}
          
-        addModifiedMissions(controller, difficulty, seed, targets)
+        addModifiedMissions(controller, difficulty, seed, targets, gameChangers)
         res.status(200).send()
     })
     webFeaturesRouter.get("/archipelago/checks", (req,res) =>{

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from Options import Choice, ItemSet, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
+
+from schema import Schema
+from Options import Choice, ItemSet, OptionCounter, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
 
 class Goal(Choice):
     """The goal condition for your Archipelago run.
@@ -183,7 +185,7 @@ class GameDifficulty(Choice):
     default = 1
 
 class RandomTargets(Toggle):
-    """Should random Targets be assigend to each Level. For each level, a random number of targets between min_number_of_targets and min_number_of_targets is choosen. If off, the vanilla targets will be chosen (Note: Carpathian Mountains will always remain vanilla.)"""
+    """Should random Targets be assigend to each Level. For each level, a random number of targets between min_number_of_targets and max_number_of_targets is choosen. If off, the vanilla targets will be chosen (Note: Carpathian Mountains will always remain vanilla.)"""
     display_name = "Random Targets"
 
 class MaxRandomTargets(Range):
@@ -199,6 +201,54 @@ class MinRandomTargets(Range):
     range_end = 5
     range_start = 1
     default = 2
+
+class RandomComplications(Toggle):
+    """Should random Complications be assigend to each Level. For each level, a random number of complications between min_number_of_complications and max_number_of_complications is choosen (Note: Carpathian Mountains will always remain vanilla.)"""
+    display_name = "Random Complications"
+
+class MaxComplications(Range):
+    """The maximum number of Complications to be assigned to a Level if Random Complications is active""" 
+    display_name = "Max Number of Complications"
+    range_end = 5
+    range_start = 1
+    default = 2
+
+class MinComplications(Range):
+    """The minimum number of Complications to be assigned to a Level if Random Complications is active""" 
+    display_name = "Min Number of Complications"
+    range_end = 5
+    range_start = 1
+    default = 1
+
+class ComplicationWeights(OptionCounter):
+    """When Random Complications is active, these weights determine the odds for each complication to be selected.
+    If you don't want a specific complication, set its weight to 0."""
+    display_name = "Complication Weights"
+    min = 0
+    default = {
+        "No Agility": 1,
+        "No Disguises": 1,
+        "All Bodies Hidden": 1,
+        "Do Not get Spotted": 1,
+        "No Non-Target Civilian Kills or Pacifications": 1,
+        "Target Only": 1,
+        "5 min Timer": 0,
+        "Hide all Bodies within 90 sec": 0,
+        "No Surveillance Recordings": 1,
+        "No Bodies Found": 1,
+        "Headshots Only": 1,
+        "Perfect Shooter": 0,
+        "One Disguise Change": 1,
+        "One Pacification": 1,
+        "If Recorded by Camera, finish in 2 min": 0,
+        "No Civilian Casualties": 0,
+        "No Balistic Kills": 0,
+        "3 min Timer": 0,
+        "No Pacifications": 1,
+        "Defuse Combat Situations": 0,
+        "Accident Kills Only": 0,
+        "No Lethal Poision Kills": 1,
+    }
 
 class ExcludedItems(ItemSet):
     """List of Items to not be shuffled the multiworld. 
@@ -294,6 +344,11 @@ class HitmanOptions(PerGameCommonOptions):
     split_itemsanity: SplitItemsanity
     enable_target_checks : CheckForTarget
 
+    random_complications : RandomComplications
+    min_number_of_complications: MinComplications
+    max_number_of_complications: MaxComplications
+    complications_weights : ComplicationWeights
+
     included_s1_locations: IncludedH1Levels
     included_s2_locations: IncludedH2Levels
     included_s2_dlc_locations: IncludedH2DLCLevels
@@ -344,7 +399,11 @@ option_groups = [
             GameDifficulty,
             RandomTargets,
             MinRandomTargets,
-            MaxRandomTargets
+            MaxRandomTargets,
+            RandomComplications,
+            MinComplications,
+            MaxComplications,
+            ComplicationWeights
         ]),
         OptionGroup("Level Settings",[
             IncludedH1Levels,

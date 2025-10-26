@@ -5784,3 +5784,28 @@ vanilla_target_table = {
     "carpathian_mountains": [9500],
     "ambrose_island": [9294,9295]
 }
+
+game_changers_table = {
+    "No Agility":1,
+    "No Disguises":2,
+    "All Bodies Hidden":3,
+    "Do Not get Spotted":4,
+    "No Non-Target Civilian Kills or Pacifications":5,
+    "Target Only":6,
+    "5 min Timer":7,
+    "Hide all Bodies within 90 sec":8,
+    "No Surveillance Recordings":9,
+    "No Bodies Found":10,
+    "Headshots Only":11,
+    "Perfect Shooter":12,
+    "One Disguise Change":13,
+    "One Pacification":14,
+    "If Recorded by Camera, finish in 2 min":15,
+    "No Civilian Casualties":16,
+    "No Balistic Kills":17,
+    "3 min Timer":18,
+    "No Pacifications":19,
+    "Defuse Combat Situations":20,
+    "Accident Kills Only":21,
+    "No Lethal Poision Kills":22
+}

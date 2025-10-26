@@ -9,7 +9,7 @@ from worlds.LauncherComponents import Component, Type, components, launch as lau
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, goal_table, target_table_ranges, vanilla_target_table
+from .locations import HitmanLocation, location_table, goal_table, target_table_ranges, vanilla_target_table, game_changers_table
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -75,6 +75,15 @@ class HitmanWorld(World):
             min = self.options.min_number_of_targets.value
             self.options.min_number_of_targets.value = self.options.max_number_of_targets.value
             self.options.max_number_of_targets.value = min
+
+        if self.options.random_complications.value and self.options.min_number_of_complications.value > self.options.max_number_of_complications.value:
+            print("WARNING "+self.player_name+": Minimum number of complications cannot exceed Maximum number of complications, Swapping values to avoid generation Failure.")
+            min = self.options.min_number_of_complications.value
+            self.options.min_number_of_complications.value = self.options.max_number_of_complications.value
+            self.options.max_number_of_complications.value = min
+
+        if self.options.random_complications and sum(self.options.complications_weights.value[x] != 0 for x in self.options.complications_weights.value) < self.options.max_number_of_complications:
+            raise OptionError("Not enough non-zero Complications for selected number of Complications.")
 
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion and\
         self.options.goal_level.value == self.options.starting_location.value:
@@ -420,5 +429,30 @@ class HitmanWorld(World):
                 slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
 
         slotdata["targets"] = self.target_slotdata
+
+        if self.options.random_complications.value:
+            complication_slot_data = ""
+            complication_weights = self.options.complications_weights.value
+
+            for map in goal_table:
+                if map in self.enabled_entitlements[self.player] and map != "carpathian_mountains":
+                    num_of_complications = self.random.randint(self.options.min_number_of_complications.value,self.options.max_number_of_complications)
+
+                    alread_used_complications = []
+                    for _ in range(0, num_of_complications):
+                        chosen_complications = self.random.choice(
+                            [x for x, w in complication_weights.items() 
+                             for _ in range(w) 
+                             if w != 0 and x not in alread_used_complications]
+                            )
+                        
+                        alread_used_complications.append(chosen_complications)
+                    
+                        complication_slot_data += str(game_changers_table[chosen_complications])+"_"
+
+                complication_slot_data+="-"
+            slotdata["complications"] = complication_slot_data
+        else:
+            slotdata["complications"] = "vanilla"
 
         return slotdata
