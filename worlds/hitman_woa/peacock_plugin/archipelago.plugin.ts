@@ -15860,11 +15860,12 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 			
 			const targets = splitTargets[contractIndex].split("_")
             for(const id in targets){
-                if(targets[id]!=""){
-					if(!possibleTargetsMap[contractId].includes(targets[id])){
-						errArchipelago("Selected target "+targets[id]+" is not available in level "+contractId+"! Skipping Target addition.")
-					}
+				if(targets[id]!=""){
 					const newTarget = apIdToTargetIdMap[Number(targets[id])]
+					if(!possibleTargetsMap[contractId].includes(newTarget)){
+						errArchipelago("Selected target "+newTarget+" is not available in level "+contractId+"! Skipping Target addition.")
+						continue
+					}
                     let targetObjective = JSON.parse(JSON.stringify(targetTemplate));
                         
                     targetObjective.Id = newTarget
