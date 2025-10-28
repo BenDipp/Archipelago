@@ -323,6 +323,14 @@ class HitmanWorld(World):
 
             self.target_slotdata = "vanilla"
 
+        enabled_levels_count = sum(entitlement in goal_table.keys() for entitlement in set(self.enabled_entitlements[self.player]))
+        contract_piece_count = self.options.goal_required_contract_pieces.value + self.options.goal_additional_contract_pieces.value
+
+        progression_item_count = enabled_levels_count + (contract_piece_count if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or self.options.goal_mode.value ==self.options.goal_mode.option_contract_collection_level_completion else 0)
+
+        if progression_item_count-1 > len(self.multiworld.get_locations(self.player)): 
+            raise OptionError("Not enough locations for progression items. Consider adding more locations or remove some Contract Pieces.")
+
     def create_item(self, item:str) -> HitmanItem:
         return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)
 
