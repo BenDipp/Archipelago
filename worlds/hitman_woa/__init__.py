@@ -361,6 +361,9 @@ class HitmanWorld(World):
                 if item_table[item][3]: #is allowed to be duplicated
                      valid_duplicats.append(item)
 
+        second_sphere_item = self.random.choice(item_pool).name
+        self.multiworld.early_items[self.player][second_sphere_item] = 1
+
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or \
         self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
             for i in range(0, self.options.goal_required_contract_pieces.value+self.options.goal_additional_contract_pieces.value):

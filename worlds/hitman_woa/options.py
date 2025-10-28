@@ -68,7 +68,7 @@ class RequiredContractPieceAmount(Range):
 class AdditionalContractPieces(Range):
     """When the goal is set to contract_colleciton, number of additional contract pieces in the item pool."""
     display_name = "Number of Additional Contract Pieces"
-    range_end = 20
+    range_end = 10
     range_start = 0
     default = 5
 
