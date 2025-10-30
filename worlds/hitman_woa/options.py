@@ -250,6 +250,10 @@ class ComplicationWeights(OptionCounter):
         "No Lethal Poision Kills": 1,
     }
 
+class EnableEverythingItem(Toggle):
+    """Adds the \"Photo of a Flamingo\" to your inventory. When starting a mission with it equipped, all unlocked and concealable items will be added to 47's pocket."""
+    display_name = "Enable Flamingo Photo"
+
 class ExcludedItems(ItemSet):
     """List of Items to not be shuffled the multiworld. 
     Selected Items cannot be obtained ingame. 
@@ -356,6 +360,7 @@ class HitmanOptions(PerGameCommonOptions):
 
     excluded_items: ExcludedItems
     excluded_starting_items: ExcludedStartingItems
+    enable_flamingo_photo: EnableEverythingItem
 
     starting_location: StartingLevel
     goal_mode: Goal
@@ -428,7 +433,8 @@ option_groups = [
             RequiredContractPieceAmount,
             AdditionalContractPieces
         ]),
-        OptionGroup("Excluded Items",[
+        OptionGroup("Item Settings",[
+            EnableEverythingItem,
             ExcludedItems,
             ExcludedStartingItems
         ]),

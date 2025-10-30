@@ -472,4 +472,6 @@ class HitmanWorld(World):
         else:
             slotdata["complications"] = "vanilla"
 
+        slotdata["everything_item"] = self.options.enable_flamingo_photo.value == 1
+
         return slotdata

@@ -82,7 +82,13 @@ class HitmanContext(CommonContext):
     def set_slot_data(self):
         logger.info("Sending Slot Data to Peacock...")
         try:
-            r = requests.get(self.peacock_url+"/setData/"+self.slot_data["difficulty"]+"/"+str(self.current_seed)+"/"+self.slot_data["targets"]+"/"+self.slot_data["complications"])
+            r = requests.get(
+                self.peacock_url+"/setData/"+
+                self.slot_data["difficulty"]+"/"+
+                str(self.current_seed)+"/"+
+                self.slot_data["targets"]+"/"+
+                self.slot_data["complications"]+"/"+
+                str(self.slot_data["everything_item"]))
             r.raise_for_status()
             logger.info("Slot Data sent.")
         except Exception as e:
