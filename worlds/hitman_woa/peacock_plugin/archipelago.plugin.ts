@@ -18,6 +18,7 @@ import { configs } from "@peacockproject/core/configSwizzleManager"
 import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
 import { calculateScore } from "@peacockproject/core/scoreHandler"
 import { randomUUID } from "crypto"
+import { MasteryPackage } from "./types/mastery"
 
 const contractMap: Record<string,string> = {
     "ada5f2b1-8529-48bb-a596-717f75f5eacb":"ICA Facility",
@@ -15788,11 +15789,12 @@ const everythingUlocked = {
 			Kitchenware Crate cf8de9fe-dbcb-48c2-8064-beadf8738dce
 			Photo of Flammingo 78adb05a-9593-4575-ac39-e4defb78d4ce
             */
-			"RepositoryAssets": ["78adb05a-9593-4575-ac39-e4defb78d4ce"],
+            "RepositoryAssets": ["78adb05a-9593-4575-ac39-e4defb78d4ce"],
             "ItemSize": "ITEMSIZE_SMALL"
         },
         "Rarity": "common"
     }
+const masteryLocations = ["LOCATION_PARENT_PARIS", "LOCATION_PARENT_EDGY", "LOCATION_PARENT_BANGKOK", "LOCATION_PARENT_ROCKY", "LOCATION_PARENT_TRAPPED", "LOCATION_PARENT_WET", "LOCATION_PARENT_COLORADO", "LOCATION_PARENT_ANCESTRAL", "LOCATION_PARENT_GOLDEN", "LOCATION_PARENT_OPULENT", "LOCATION_PARENT_NEWZEALAND", "LOCATION_PARENT_HOKKAIDO", "LOCATION_PARENT_MARRAKECH", "LOCATION_PARENT_ELEGANT", "LOCATION_PARENT_MIAMI", "LOCATION_PARENT_MUMBAI", "LOCATION_PARENT_GREEDY", "LOCATION_PARENT_COLOMBIA", "LOCATION_PARENT_COASTALTOWN",  "LOCATION_PARENT_NORTHSEA", "LOCATION_PARENT_NORTHAMERICA", "LOCATION_PARENT_SNUG"]
 const logTag = "Archipelago Plugin"
 const logArchipelago = (msg: string) => {
     log(LogLevel.INFO, msg, logTag)
@@ -15857,6 +15859,22 @@ const removeUnusedUnlocks = (controller: Controller)=> {
     while(h2unlockables.length !== 0){
         h2unlockables.pop()
     }
+
+	//Remove references to Unlockables to avoid log-erros complaining that they are missing
+	const masterydata: MasteryPackage = {LocationId : "", GameVersions : ["h2","h3"], SubPackages: undefined, Drops: []}
+
+	for(const locationId in masteryLocations){
+		masterydata.LocationId = masteryLocations[locationId]
+		controller.masteryService.registerMasteryData(masterydata)
+	}
+	
+	const challangeIds = controller.challengeService.getChallengeIds("h3")
+	for(const challangeId in challangeIds){
+		const challange = controller.challengeService.getChallengeById(challangeIds[challangeId], "h3")!
+		challange.Drops = []
+		controller.challengeService.registerChallenge(challange,challange.inGroup!,challange.LocationId,"h3") //TODO: challange.inGroup specifically asked me not to do this
+	}
+	
 }
 const addModifiedMissions = (controller: Controller, difficulty: string, seed: string, targets: string, gameChangers: string) => {
     // add copy of contracts to the game  
