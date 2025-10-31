@@ -15867,7 +15867,7 @@ const removeUnusedUnlocks = (controller: Controller)=> {
 		masterydata.LocationId = masteryLocations[locationId]
 		controller.masteryService.registerMasteryData(masterydata)
 	}
-	
+
 	const challangeIds = controller.challengeService.getChallengeIds("h3")
 	for(const challangeId in challangeIds){
 		const challange = controller.challengeService.getChallengeById(challangeIds[challangeId], "h3")!
@@ -15926,7 +15926,7 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
                     targetObjective.HUDTemplate.display.$loc.data = "$($repository "+newTarget+").Name"
                     targetObjective.BriefingText.$loc.data = targetObjective.HUDTemplate.display.$loc.data
                         
-                    contract.Data.Objectives.push(targetObjective)
+                    contract.Data.Objectives!.push(targetObjective)
 				}
             }
 		}
@@ -16107,7 +16107,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         res.contentType("text").send("OK")
     })
     webFeaturesRouter.post("/archipelago/sendItems", (req,res)=>{
-        const itemIds: number[] = JSON.parse(req.query.items) 
+        const itemIds: number[] = JSON.parse(String(req.query.items)) 
         const worked = handleRecivedItems(controller, itemIds)
 
         if(worked) {
@@ -16168,18 +16168,18 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             res.status(200).send()
         }else if(req.params.goalMode === "contract_collection_level_completion"){
 			contractGoalAmount = req.params.goalDetails
-			goalLevelString = req.params.moreGoalDetails+" ("+req.params.evenMoreGoalDetails.replaceAll("_"," ")+")"
+			goalLevelString = req.params.moreGoalDetails+" ("+req.params.evenMoreGoalDetails!.replaceAll("_"," ")+")"
 
 			//H3
             configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
 
             configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
 
-            configs.EiderDashboard.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.moreGoalDetails), "h3")!.Metadata.TileImage;
+            configs.EiderDashboard.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.moreGoalDetails!), "h3")!.Metadata.TileImage;
             
 			res.status(200).send()
 		}else if(req.params.goalMode === "level_completion"){
-			goalLevelString = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails.replaceAll("_"," ")+")"
+			goalLevelString = "Goal Level: "+req.params.goalDetails+" ("+req.params.moreGoalDetails!.replaceAll("_"," ")+")"
 
 			//H3
             configs.EiderDashboard.children.$mergearrays[5].data.title = goalLevelString
@@ -16390,7 +16390,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             }      
         }
     )
-	controller.hooks.newEvent.tap("awardCheckOnKill",(event, gamestuff: {gameVersion, userId}, session,) =>{
+	controller.hooks.newEvent.tap("awardCheckOnKill",(event, gamestuff: {gameVersion: GameVersion, userId: string}, session) =>{
 		if(event.Name == "Kill"){
 			checkLocation(targetIdToApIdMap[event.Value.RepositoryId]) //Trust the CommonClinet to figure out if this target was a check
 		}else if(event.Name == "POISON_CONSTANT_EVENT"){
