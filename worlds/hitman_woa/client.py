@@ -94,7 +94,7 @@ class HitmanContext(CommonContext):
         except Exception as e:
                 logger.error("Error occured while attempting to set slot data, disconnecting!")
                 print("Error sending slot data:", e)
-                asyncio.run(self.disconnect(False))
+                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
 
     def set_goal(self):
         try:
@@ -119,7 +119,7 @@ class HitmanContext(CommonContext):
         except Exception as e:
                 logger.error("Error occured while attempting to set goal, disconnecting!")
                 print("Error sending goal info:", e)
-                asyncio.run(self.disconnect(False))
+                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
 
     def recieve_items(self, items:list[NetworkItem]):
         itemIds = []
@@ -132,8 +132,7 @@ class HitmanContext(CommonContext):
             r.raise_for_status()
         except Exception as e:
                 logger.error("No response when sending Items to Peacock, disconnecting!")
-                asyncio.run(self.disconnect(False))
-                return
+                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
 
     def periodically_get_checks(self):
         self.sse_running = True
