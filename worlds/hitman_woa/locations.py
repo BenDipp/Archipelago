@@ -5807,5 +5807,5 @@ game_changers_table = {
     "No Pacifications":19,
     "Defuse Combat Situations":20,
     "Accident Kills Only":21,
-    "No Lethal Poision Kills":22
+    "No Lethal Poison Kills":22
 }

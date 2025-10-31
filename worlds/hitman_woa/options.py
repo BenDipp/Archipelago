@@ -247,7 +247,7 @@ class ComplicationWeights(OptionCounter):
         "No Pacifications": 1,
         "Defuse Combat Situations": 0,
         "Accident Kills Only": 0,
-        "No Lethal Poision Kills": 1,
+        "No Lethal Poison Kills": 1,
     }
 
 class EnableEverythingItem(Toggle):
