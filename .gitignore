@@ -197,3 +197,6 @@ Thumbs.db
 [Dd]esktop.ini
 
 *.xlsx
+
+fuzz.py
+/fuzz_output
