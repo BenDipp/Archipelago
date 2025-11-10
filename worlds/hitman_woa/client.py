@@ -8,6 +8,7 @@ from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg
 from NetUtils import ClientStatus, NetworkItem
 from settings import get_settings
 from .items import item_table, base_id
+from .locations import goal_table
 
 class HitmanCommandProcessor(ClientCommandProcessor):
     def __init__(self, ctx: CommonContext):
@@ -53,11 +54,14 @@ class HitmanContext(CommonContext):
                 self.slot_data = args["slot_data"]
                 self.set_slot_data()
                 self.set_goal()
+                self.send_checked_locations(args["checked_locations"])
                 self.sse_thread = threading.Thread(name="SSE-Thread",target=self.periodically_get_checks, daemon=True)
                 self.sse_thread.start() 
             case "ReceivedItems":
                 self.recieve_items(args["items"])
-            case "PrintJSON"| "Retrieved" |  "Bounced" | "RoomUpdate" | "SetReply" | "DataPackage":
+            case "RoomUpdate":
+                self.send_checked_locations(args["checked_locations"])
+            case "PrintJSON"| "Retrieved" |  "Bounced" | "SetReply" | "DataPackage":
                 pass
             case "RoomInfo":
                 self.current_seed = args["seed_name"]
@@ -82,12 +86,61 @@ class HitmanContext(CommonContext):
     def set_slot_data(self):
         logger.info("Sending Slot Data to Peacock...")
         try:
+            enabled_levels = self.slot_data["included_s1_locations"]+\
+            self.slot_data["included_s2_locations"]+\
+            self.slot_data["included_s2_dlc_locations"]+\
+            self.slot_data["included_s3_locations"]+\
+            [self.slot_data["starting_location"]]
+
+            if(self.slot_data["goal_mode"] == "level_completion" or\
+               self.slot_data["goal_mode"] == "contract_collection_level_completion"):
+                enabled_levels.append(self.slot_data["goal_location_name"])
+
+            enabled_string = ""
+            completion_string = ""
+
+            for location in goal_table.keys():
+                if location in enabled_levels:
+                    enabled_string += "t-"
+
+                    if location in self.slot_data["levels_with_check_for_completion"] or\
+                    "all" in self.slot_data["levels_with_check_for_completion"]:
+                        completion_string+="completed_"
+            
+                    if location in self.slot_data["levels_with_check_for_sa"] or\
+                    "all" in self.slot_data["levels_with_check_for_sa"]:
+                        completion_string+="sa_"
+
+                    if location in self.slot_data["levels_with_check_for_so"] or\
+                    "all" in self.slot_data["levels_with_check_for_so"]:
+                        completion_string+="so_" 
+
+                    if location in self.slot_data["levels_with_check_for_saso"] or\
+                    "all" in self.slot_data["levels_with_check_for_saso"]:
+                        completion_string+="saso_"
+
+                    completion_string+="-"
+                else:
+                    enabled_string += "-"
+                    completion_string += "-"
+
+            itemsanity_string = "off"
+            if self.slot_data["enable_itemsanity"]:
+                if self.slot_data["split_itemsanity"]:
+                    itemsanity_string = "split"
+                else:
+                    itemsanity_string = "combined"
+
             r = requests.get(
                 self.peacock_url+"/setData/"+
                 self.slot_data["difficulty"]+"/"+
                 str(self.current_seed)+"/"+
+                enabled_string+"/"+
+                completion_string+"/"+
                 self.slot_data["targets"]+"/"+
+                str(self.slot_data["enable_target_checks"]==1)+"/"+
                 self.slot_data["complications"]+"/"+
+                itemsanity_string+"/"+
                 str(self.slot_data["everything_item"]))
             r.raise_for_status()
             logger.info("Slot Data sent.")
@@ -132,6 +185,14 @@ class HitmanContext(CommonContext):
             r.raise_for_status()
         except Exception as e:
                 logger.error("No response when sending Items to Peacock, disconnecting!")
+                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
+    
+    def send_checked_locations(self, locations:list[int]):
+        try:
+            r = requests.post(self.peacock_url+"/sendCheckedLocations?items="+str(locations)) 
+            r.raise_for_status()
+        except Exception as e:
+                logger.error("No response when sending checked Locations to Peacock, disconnecting!")
                 asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
 
     def periodically_get_checks(self):
