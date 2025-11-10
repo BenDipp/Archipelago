@@ -141,7 +141,7 @@ class HitmanContext(CommonContext):
                 str(self.slot_data["enable_target_checks"]==1)+"/"+
                 self.slot_data["complications"]+"/"+
                 itemsanity_string+"/"+
-                str(self.slot_data["everything_item"]))
+                str(self.slot_data.get("everything_item",False)))
             r.raise_for_status()
             logger.info("Slot Data sent.")
         except Exception as e:
