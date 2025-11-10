@@ -54,13 +54,13 @@ class HitmanContext(CommonContext):
                 self.slot_data = args["slot_data"]
                 self.set_slot_data()
                 self.set_goal()
-                self.send_checked_locations(args["checked_locations"])
+                self.process_checked_locations(args["checked_locations"])
                 self.sse_thread = threading.Thread(name="SSE-Thread",target=self.periodically_get_checks, daemon=True)
                 self.sse_thread.start() 
             case "ReceivedItems":
-                self.recieve_items(args["items"])
+                self.process_recieved_items(args["items"])
             case "RoomUpdate":
-                self.send_checked_locations(args["checked_locations"])
+                self.process_checked_locations(args["checked_locations"])
             case "PrintJSON"| "Retrieved" |  "Bounced" | "SetReply" | "DataPackage":
                 pass
             case "RoomInfo":
@@ -174,26 +174,45 @@ class HitmanContext(CommonContext):
                 print("Error sending goal info:", e)
                 asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
 
-    def recieve_items(self, items:list[NetworkItem]):
+    def process_recieved_items(self, items:list[NetworkItem]):
         itemIds = []
         for item in items:
-            itemIds.append(item.item)
+            itemIds.append(item.item - base_id)
             if item.item == base_id + item_table["Contract Piece"][0]:
                 self.collected_contract_pieces += 1
+
+            if len(itemIds) > 500:
+                self.send_items(itemIds)
+                itemIds = []
+        
+        self.send_items(itemIds)
+          
+    def send_items(self, itemIds:list[int]):
         try:
             r = requests.post(self.peacock_url+"/sendItems?items="+str(itemIds)) 
             r.raise_for_status()
         except Exception as e:
-                logger.error("No response when sending Items to Peacock, disconnecting!")
-                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
-    
-    def send_checked_locations(self, locations:list[int]):
+            logger.error("No response when sending Items to Peacock, disconnecting!")
+            asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
+ 
+    def process_checked_locations(self, locations:list[int]):
+        locationIds = []
+        for locationId in locations:
+            locationIds.append(locationId-base_id)
+
+            if len(locationIds) > 500:
+                self.send_checked_locations(locationIds)
+                locationIds = []
+        
+        self.send_checked_locations(locationIds)
+
+    def send_checked_locations(self, locationIds:list[int]):
         try:
-            r = requests.post(self.peacock_url+"/sendCheckedLocations?items="+str(locations)) 
+            r = requests.post(self.peacock_url+"/sendCheckedLocations?items="+str(locationIds)) 
             r.raise_for_status()
         except Exception as e:
-                logger.error("No response when sending checked Locations to Peacock, disconnecting!")
-                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
+            logger.error("No response when sending checked Locations to Peacock, disconnecting!")
+            asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
 
     def periodically_get_checks(self):
         self.sse_running = True

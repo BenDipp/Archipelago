@@ -5799,7 +5799,7 @@ const checkLocation = (id:number) =>{
 const listOfUncheckedChallanges:string[]=[]
 function handleCheckedLocations(controller:Controller, locations:number[]):boolean{
 	for(const id in locations){
-		const locationApId = locations[id] - baseId
+		const locationApId = locations[id] //- baseId
 		let foundMatch = false
 		for(const challangeId in challangeIdToApIdMap){
 			if(challangeIdToApIdMap[challangeId] === locationApId){
@@ -6272,7 +6272,7 @@ let goalLevelString = ""
 const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
     let errorOccured = false
     for(const i in itemIds){
-        const id = itemIds[i] - baseId
+        const id = itemIds[i] // - baseId
         
         if (apItemMap[id] === undefined){
             if(id === 1000){ // exception for Contract Pieces
