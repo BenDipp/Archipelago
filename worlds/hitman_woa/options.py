@@ -168,6 +168,10 @@ class Itemsanity(Toggle):
     """Add a check for each unique item that can be picked up"""
     display_name = "Enable Itemsanity"
 
+class DisguiseSanity(Toggle):
+    """Add a check for each unique disguise that can be found in each level"""
+    display_name = "Enable Disguisesanity"
+
 class SplitItemsanity(Toggle):
     """Split the checks from itemsanity by map (\"Itempickup - Crowbar\" becomes \"Itempickup - ICA Facility - Crowbar\", \"Itempickup - Paris - Crowbar\", \"Itempickup - Sapienza - Crowbar\" etc.)"""
     display_name = "Split Itemsanity"
@@ -346,6 +350,7 @@ class HitmanOptions(PerGameCommonOptions):
     game_difficulty: GameDifficulty
     enable_itemsanity: Itemsanity
     split_itemsanity: SplitItemsanity
+    enable_disguisesanity: DisguiseSanity
     enable_target_checks : CheckForTarget
 
     random_complications : RandomComplications
@@ -421,6 +426,7 @@ option_groups = [
             CheckForTarget,
             Itemsanity,
             SplitItemsanity,
+            DisguiseSanity,
             CheckForCompletion,
             CheckForSA,
             CheckForSO,

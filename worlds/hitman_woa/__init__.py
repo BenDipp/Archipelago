@@ -115,6 +115,7 @@ class HitmanWorld(World):
                     self.options.min_number_of_targets.value = slot_data["min_number_of_targets"]
                     self.options.max_number_of_targets.value = slot_data[ "max_number_of_targets"]
                     self.options.enable_target_checks.value = slot_data["enable_target_checks"]
+                    self.options.enable_disguisesanity.value = slot_data["enable_disguisesanity"]
 
         
         # make sure the goal Level is added as location
@@ -173,6 +174,9 @@ class HitmanWorld(World):
                 self.enabled_entitlements[self.player].append("split_itemsanity")
             else:
                 self.enabled_entitlements[self.player].append("itemsanity")
+        
+        if self.options.enable_disguisesanity:
+            self.enabled_entitlements[self.player].append("disguisesanity")
 
         self.enabled_entitlements[self.player].append("H3_SIGNITURE_PACK")#Swtich 2 Pre-order Items
         self.enabled_entitlements[self.player].append("H3_QUACK_PACK")#Switch 2 Physical Pre-order Items
@@ -411,7 +415,7 @@ class HitmanWorld(World):
     
     def fill_slot_data(self):
         slotdata = self.options.as_dict( # copy options for yaml-less Universal Tracker
-            "enable_itemsanity", "split_itemsanity",
+            "enable_itemsanity", "split_itemsanity", "enable_disguisesanity",
             "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations", 
             "levels_with_check_for_completion", "levels_with_check_for_sa", "levels_with_check_for_so", "levels_with_check_for_saso",
             "starting_location", "goal_level",
