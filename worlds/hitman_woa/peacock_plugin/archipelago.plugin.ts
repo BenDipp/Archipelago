@@ -6396,13 +6396,16 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 			const completionType = completionChecks[id]
 			if(completionType == "")
 				continue
-
+			let stateMachine = JSON.parse(JSON.stringify(completionTemplates[completionType].stateMachine));
+			if(contractId == "0e81a82e-b409-41e9-9e3b-5f82e57f7a12" && targets == "vanilla" && (completionType == "sa" || completionType == "saso")){
+				stateMachine.States.Start.CrowdNPC_Died = undefined
+			}
 			addChallange(controller, 
 				contractMap[contractId].name+completionTemplates[completionType].suffix,
 				completionTemplates[completionType].imagePath,
 				completionTemplates[completionType].description,
 				"profile",
-				completionTemplates[completionType].stateMachine,
+				stateMachine,
 				"AP_COMPLETION_CHECKS",
 				contractMap[contractId].locationParent,
 				[newContractId],
