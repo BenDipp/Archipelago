@@ -6804,7 +6804,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         if(req.params.itemsanity != "off"){
 			addItemsanityChallanges(controller,difficulty,req.params.itemsanity=="split")
 		}
-		if(req.params.disguisesanity == "1"){
+		if(req.params.disguisesanity == "True"){
 			addDisguisesanityChallanges(controller)
 		}
 		if(completionChecks != "----------------------"){

@@ -137,11 +137,11 @@ class HitmanContext(CommonContext):
                 str(self.current_seed)+"/"+
                 enabled_string+"/"+
                 completion_string+"/"+
-                self.slot_data["targets"]+"/"+
-                str(self.slot_data["enable_target_checks"]==1)+"/"+
-                self.slot_data["complications"]+"/"+
+                self.slot_data.get("targets","vanilla")+"/"+
+                str(self.slot_data.get("enable_target_checks",0)==1)+"/"+
+                self.slot_data.get("complications","vanilla")+"/"+
                 itemsanity_string+"/"+
-                str(self.slot_data["enable_disguisesanity"])+"/"+
+                str(self.slot_data.get("enable_disguisesanity",0)==1)+"/"+
                 str(self.slot_data.get("everything_item",False)))
             r.raise_for_status()
             logger.info("Slot Data sent.")
