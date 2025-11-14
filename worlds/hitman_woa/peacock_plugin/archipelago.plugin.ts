@@ -19,7 +19,7 @@ import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
 import { randomUUID } from "crypto"
 import { MasteryPackage } from "@peacockproject/core/types/mastery"
 import { ChallengePack } from "@peacockproject/core/candle/challengeService"
-import { getUserData } from "@peacockproject/core/databaseHandler"
+import { getUserData, writeUserData } from "@peacockproject/core/databaseHandler"
 
 const contractMap: Record<string,{name:string, contractCreationId:string, locationParent:string, completionApIds:Record<string,number>, vanillaTargets:string[] }>= {
     "ada5f2b1-8529-48bb-a596-717f75f5eacb": {name:"ICA Facility", contractCreationId:"535615f2-f8b2-492a-a9c7-150f954dd078", locationParent:"LOCATION_PARENT_ICA_FACILITY", completionApIds:{"completed":1000,"sa":1022,"so":1044,"saso":1066}, vanillaTargets:["579f2544-1970-4865-afa3-ad4566e5f98d"]},
@@ -6360,27 +6360,14 @@ const addDisguisesanityChallanges = (controller:Controller) => {
 		}
 	}
 }
-const addModifiedMissions = (controller: Controller, difficulty: string, seed: string, targets: string, gameChangers: string, enabledLevels:string, completionChecks:string, targetChecks:boolean) => {
-    // add copy of contracts to the game  
-    const eightDigitSeed = seed.slice(0,8).padEnd(8,"0")
-    const splitTargets = targets.split("-")
-    const splitEnabledLevels = enabledLevels.split("-")
-    const splitCompletionChecks = completionChecks.split("-")
-    const splitGameChangers = gameChangers.split("-")
-    let contractIndex = -1
+const addCompletionChallanges = (controller:Controller, completionChecks:string, allowedToKillSoders:boolean)=>{
 	addChallangePack(controller, "AP_COMPLETION_CHECKS", "AP Completion Checks")
-	addChallangePack(controller, "AP_KILL_CHECKS", "AP Elimination Checks")
-    for (const contractId in contractMap){
+    const splitCompletionChecks = completionChecks.split("-")
+	
+	let contractIndex = -1
+	for(const modifiedId in modifiedContractMap){
 		contractIndex++;
-		if(splitEnabledLevels[contractIndex]==""){
-			continue
-		}
-		let contract = controller.resolveContract(contractId, "h3")
-		if(contract === undefined){
-        	errArchipelago("No contract fetched for level "+contractMap[contractId].name)
-        	continue;
-        }
-		let newContractId = eightDigitSeed+"-0000-0000-0000-"+contractId.split("-")[4]
+		const contractId = modifiedContractMap[modifiedId].id
 		controller.challengeService.registerGroup({
 			Name: "AP Completions",
     		Image: "images/evergreen/challenges/Evergreen_Challenge_Assassination.jpg",
@@ -6397,7 +6384,7 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 			if(completionType == "")
 				continue
 			let stateMachine = JSON.parse(JSON.stringify(completionTemplates[completionType].stateMachine));
-			if(contractId == "0e81a82e-b409-41e9-9e3b-5f82e57f7a12" && targets == "vanilla" && (completionType == "sa" || completionType == "saso")){
+			if(allowedToKillSoders && contractId == "0e81a82e-b409-41e9-9e3b-5f82e57f7a12" && (completionType == "sa" || completionType == "saso")){
 				stateMachine.States.Start.CrowdNPC_Died = undefined
 			}
 			addChallange(controller, 
@@ -6408,10 +6395,31 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 				stateMachine,
 				"AP_COMPLETION_CHECKS",
 				contractMap[contractId].locationParent,
-				[newContractId],
+				[modifiedId],
 				contractMap[contractId].completionApIds[completionType]
 			)
 		}
+	}
+}
+const addModifiedMissions = (controller: Controller, difficulty: string, seed: string, targets: string, gameChangers: string, enabledLevels:string, targetChecks:boolean) => {
+    // add copy of contracts to the game  
+    const eightDigitSeed = seed.slice(0,8).padEnd(8,"0")
+    const splitTargets = targets.split("-")
+    const splitEnabledLevels = enabledLevels.split("-")
+    const splitGameChangers = gameChangers.split("-")
+    let contractIndex = -1
+	addChallangePack(controller, "AP_KILL_CHECKS", "AP Elimination Checks")
+    for (const contractId in contractMap){
+		contractIndex++;
+		if(splitEnabledLevels[contractIndex]==""){
+			continue
+		}
+		let contract = controller.resolveContract(contractId, "h3")
+		if(contract === undefined){
+        	errArchipelago("No contract fetched for level "+contractMap[contractId].name)
+        	continue;
+        }
+		let newContractId = eightDigitSeed+"-0000-0000-0000-"+contractId.split("-")[4]
 
 		if(targets != "vanilla" && contractId != "a3e19d55-64a6-4282-bb3c-d18c3f3e6e29") {
 			if(splitTargets[contractIndex] == ""){
@@ -6768,6 +6776,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         const seed = req.params.seed
         const targets = req.params.targets
         const gameChangers = req.params.gameChangers
+		const completionChecks = req.params.completionChecks
 
         collectedContractPieces = 0
         controller.configManager.configs.allunlockables.splice(0, controller.configManager.configs.allunlockables.length)
@@ -6791,12 +6800,15 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         }   
         modifiedContractMap = {}
          
-        addModifiedMissions(controller, difficulty, seed, targets, gameChangers, req.params.enabledLevels, req.params.completionChecks, req.params.checksForEliminations == "True")
+        addModifiedMissions(controller, difficulty, seed, targets, gameChangers, req.params.enabledLevels, req.params.checksForEliminations == "True")
         if(req.params.itemsanity != "off"){
 			addItemsanityChallanges(controller,difficulty,req.params.itemsanity=="split")
 		}
 		if(req.params.disguisesanity == "1"){
 			addDisguisesanityChallanges(controller)
+		}
+		if(completionChecks != "----------------------"){
+			addCompletionChallanges(controller, completionChecks, targets == "vanilla")
 		}
 		res.status(200).send()
     })
@@ -7053,6 +7065,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 						}
 					}
 				}
+				writeUserData(userId,gameVersion)
 				challangesNeedToBeUnset = false;
 			}
 			//TODO: find better place for this, don't require re-login
