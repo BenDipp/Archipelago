@@ -61,14 +61,14 @@ class GoalLevel(Choice):
 class RequiredContractPieceAmount(Range):
     """When the goal is set to contract_colleciton, how many contract pieces are required to award the goal."""
     display_name = "Required Contract Pieces"
-    range_end = 20
+    range_end = 100
     range_start = 1
     default = 5
 
 class AdditionalContractPieces(Range):
     """When the goal is set to contract_colleciton, number of additional contract pieces in the item pool."""
     display_name = "Number of Additional Contract Pieces"
-    range_end = 10
+    range_end = 100
     range_start = 0
     default = 5
 
