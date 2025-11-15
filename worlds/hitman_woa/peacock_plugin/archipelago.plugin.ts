@@ -6365,9 +6365,19 @@ const addCompletionChallanges = (controller:Controller, completionChecks:string,
     const splitCompletionChecks = completionChecks.split("-")
 	
 	let contractIndex = -1
-	for(const modifiedId in modifiedContractMap){
+	for(const contractId in contractMap){
 		contractIndex++;
-		const contractId = modifiedContractMap[modifiedId].id
+		let modifiedContractId = undefined
+		for(const modifiedId in modifiedContractMap){
+			if(modifiedContractMap[modifiedId].id == contractId){
+				modifiedContractId = modifiedId
+				break
+			}
+		}
+		if(modifiedContractId == undefined){
+			continue
+		}
+		
 		controller.challengeService.registerGroup({
 			Name: "AP Completions",
     		Image: "images/evergreen/challenges/Evergreen_Challenge_Assassination.jpg",
@@ -6395,7 +6405,7 @@ const addCompletionChallanges = (controller:Controller, completionChecks:string,
 				stateMachine,
 				"AP_COMPLETION_CHECKS",
 				contractMap[contractId].locationParent,
-				[modifiedId],
+				[modifiedContractId],
 				contractMap[contractId].completionApIds[completionType]
 			)
 		}
