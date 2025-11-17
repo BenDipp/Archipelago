@@ -6092,6 +6092,8 @@ const listOfUncheckedChallanges:string[]=[]
 function handleCheckedLocations(controller:Controller, locations:number[]):boolean{
 	for(const id in locations){
 		const locationApId = locations[id] //- baseId
+		if(locationApId == 10000) // "All Contract Pieces Collected has intentionalla no challange"
+			continue
 		let foundMatch = false
 		for(const challangeId in challangeIdToApIdMap){
 			if(challangeIdToApIdMap[challangeId] === locationApId){
