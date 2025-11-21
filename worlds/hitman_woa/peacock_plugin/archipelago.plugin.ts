@@ -6092,7 +6092,7 @@ const listOfUncheckedChallanges:string[]=[]
 function handleCheckedLocations(controller:Controller, locations:number[]):boolean{
 	for(const id in locations){
 		const locationApId = locations[id] //- baseId
-		if(locationApId == 10000) // "All Contract Pieces Collected has intentionalla no challange"
+		if(locationApId == 10000) // "All Contract Pieces Collected has intentionally no challange"
 			continue
 		let foundMatch = false
 		for(const challangeId in challangeIdToApIdMap){
@@ -6751,7 +6751,7 @@ function printApIcon(){
 }
 
 module.exports = function archipelagoCampaign(controller: Controller) {
-    logArchipelago("Loading plugin")
+    logArchipelago("Loading Archipelago Plugin (v0.6.2)")
 
     removeUnusedUnlocks(controller)
 
@@ -7120,5 +7120,5 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 	)
 
 	printApIcon()
-    logArchipelago("Plugin Loaded.")
+    logArchipelago("Archipelago Plugin Loaded.")
 }
