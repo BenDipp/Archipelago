@@ -1,4 +1,4 @@
-# Setup Guide for HITMAN World of Assasination
+# Setup Guide for HITMAN World of Assassination
 
 ## Required Software
 

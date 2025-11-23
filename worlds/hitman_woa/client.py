@@ -16,7 +16,7 @@ class HitmanCommandProcessor(ClientCommandProcessor):
 
 class HitmanContext(CommonContext):
     command_processor = HitmanCommandProcessor
-    game = "HITMAN World of Assasination"
+    game = "HITMAN World of Assassination"
     tags = {"AP"}
     items_handling = 0b111
     want_slot_data = True

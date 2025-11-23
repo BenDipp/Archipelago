@@ -1,7 +1,7 @@
 from BaseClasses import Location
 
 class HitmanLocation(Location):
-    game: str = "HITMAN World of Assasination"
+    game: str = "HITMAN World of Assassination"
     # location ids ranges:
     # 	1-209      Itempickup Checks
 	# 	1000-1087  Completion Checks

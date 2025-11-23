@@ -1,7 +1,7 @@
 from BaseClasses import Item, ItemClassification
 
 class HitmanItem(Item):
-    game: str = "HITMAN World of Assasination"
+    game: str = "HITMAN World of Assassination"
 
 base_id = 2023011800
 

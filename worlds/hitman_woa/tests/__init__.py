@@ -2,4 +2,4 @@ from test.bases import WorldTestBase
 
 
 class HitmanTestBase(WorldTestBase):
-    game = "HITMAN World of Assasination"
+    game = "HITMAN World of Assassination"

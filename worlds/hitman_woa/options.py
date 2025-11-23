@@ -143,7 +143,7 @@ class CheckForCompletion(OptionSet):
     default = ["all"]
 
 class CheckForSA(OptionSet):
-    """Add a check for beating each of the listed levels with a Silent Assasin Rating
+    """Add a check for beating each of the listed levels with a Silent Assassin Rating
     valid options: all, ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido, hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail, new_york, haven_island, dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island"""
     display_name = "Levels with Silent Assassin checks"
     valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]

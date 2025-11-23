@@ -27,7 +27,7 @@ def launch_client(*args):
     launch_component(launch, name="HitmanClient", args=args)
 
 
-components.append(Component("HITMAN World of Assasination Client", "HitmanClient", func=launch_client, component_type=Type.CLIENT,icon=__name__))
+components.append(Component("HITMAN World of Assassination Client", "HitmanClient", func=launch_client, component_type=Type.CLIENT,icon=__name__))
 icon_paths[__name__] = f"ap:{__name__}/assets/icon.png"
 
 class HitmanWorld(World):
@@ -36,7 +36,7 @@ class HitmanWorld(World):
     Play as Agent 47, a genetically engineered assassin, and travel the globe to eliminate high-profile targets with creativity and precision.
     """
 
-    game = "HITMAN World of Assasination"
+    game = "HITMAN World of Assassination"
     web = HitmanWeb()
     settings: HitmanSettings
     options_dataclass = HitmanOptions
