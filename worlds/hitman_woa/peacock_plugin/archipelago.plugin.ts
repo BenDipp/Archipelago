@@ -6589,6 +6589,9 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 					targetMap[newTarget].apId
 				)
 			}
+			if(contractId == "42bac555-bbb9-429d-a8ce-f1ffdf94211c"){ //exception to remove bunker-objective from vanilla Colorado
+				contract.Data.EnableExits?.$eq?.shift() //remove requirement for "TargetsDead_EnableExits" and always enable exits when targets are dead
+			}
 		}
 
 		if(gameChangers != "vanilla" && splitGameChangers[contractIndex] != ""){
