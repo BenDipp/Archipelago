@@ -60,7 +60,7 @@ class HitmanContext(CommonContext):
             case "ReceivedItems":
                 self.process_recieved_items(args["items"])
             case "RoomUpdate":
-                self.process_checked_locations(args["checked_locations"])
+                self.process_checked_locations(args.get("checked_locations",[]))
             case "PrintJSON"| "Retrieved" |  "Bounced" | "SetReply" | "DataPackage":
                 pass
             case "RoomInfo":
