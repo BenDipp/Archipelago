@@ -52,11 +52,14 @@ class HitmanContext(CommonContext):
 
                 self.game = self.slot_info[self.slot].game
                 self.slot_data = args["slot_data"]
-                self.set_slot_data()
-                self.set_goal()
-                self.process_checked_locations(args["checked_locations"])
-                self.sse_thread = threading.Thread(name="SSE-Thread",target=self.periodically_get_checks, daemon=True)
-                self.sse_thread.start() 
+                try:
+                    self.set_slot_data()
+                    self.set_goal()
+                    self.process_checked_locations(args["checked_locations"])
+                    self.sse_thread = threading.Thread(name="SSE-Thread",target=self.periodically_get_checks, daemon=True)
+                    self.sse_thread.start()
+                except RuntimeError as e:
+                    asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
             case "ReceivedItems":
                 self.process_recieved_items(args["items"])
             case "RoomUpdate":
@@ -148,8 +151,8 @@ class HitmanContext(CommonContext):
         except Exception as e:
                 logger.error("Error occured while attempting to set slot data, disconnecting!")
                 print("Error sending slot data:", e)
-                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
-
+                raise RuntimeError()
+        
     def set_goal(self):
         try:
             match self.slot_data["goal_mode"]:
@@ -173,7 +176,7 @@ class HitmanContext(CommonContext):
         except Exception as e:
                 logger.error("Error occured while attempting to set goal, disconnecting!")
                 print("Error sending goal info:", e)
-                asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
+                raise RuntimeError()
 
     def process_recieved_items(self, items:list[NetworkItem]):
         itemIds = []
