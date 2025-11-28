@@ -149,9 +149,9 @@ class HitmanContext(CommonContext):
             r.raise_for_status()
             logger.info("Slot Data sent.")
         except Exception as e:
-                logger.error("Error occured while attempting to set slot data, disconnecting!")
-                print("Error sending slot data:", e)
-                raise RuntimeError()
+            self.print_error("No response when sending slot data to Peacock, disconnecting")
+            print("Error sending slot data:", e)
+            raise RuntimeError()
         
     def set_goal(self):
         try:
@@ -174,9 +174,9 @@ class HitmanContext(CommonContext):
             r.raise_for_status()
             logger.info("Goal information sent.")
         except Exception as e:
-                logger.error("Error occured while attempting to set goal, disconnecting!")
-                print("Error sending goal info:", e)
-                raise RuntimeError()
+            self.print_error("No response when sending Goal Data to Peacock, disconnecting!")
+            print("Error sending goal info:", e)
+            raise RuntimeError()
 
     def process_recieved_items(self, items:list[NetworkItem]):
         itemIds = []
@@ -196,7 +196,7 @@ class HitmanContext(CommonContext):
             r = requests.post(self.peacock_url+"/sendItems?items="+str(itemIds)) 
             r.raise_for_status()
         except Exception as e:
-            logger.error("No response when sending Items to Peacock, disconnecting!")
+            self.print_error("No response when sending Items to Peacock, disconnecting!")
             asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
  
     def process_checked_locations(self, locations:list[int]):
@@ -215,7 +215,7 @@ class HitmanContext(CommonContext):
             r = requests.post(self.peacock_url+"/sendCheckedLocations?items="+str(locationIds)) 
             r.raise_for_status()
         except Exception as e:
-            logger.error("No response when sending checked Locations to Peacock, disconnecting!")
+            self.print_error("No response when sending checked Locations to Peacock, disconnecting")
             asyncio.run_coroutine_threadsafe(self.disconnect(False), asyncio.get_running_loop())
 
     def periodically_get_checks(self):
@@ -232,11 +232,13 @@ class HitmanContext(CommonContext):
                     asyncio.run(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]))
             except requests.RequestException as e:
                 print("Error fetching checks:", e)
-                logger.error("Error while trying to get Checks, disconnecting")
+                self.print_error("No response when trying to get Checks from Peacock, disconnecting")
                 asyncio.run(self.disconnect(False))
                 self.sse_running = False
             if self.sse_running:
                 time.sleep(3)
+    def print_error(self, text:str):
+        self.ui.print_json([{"text":text,"type":"color","color":"red"}])
 
 async def main(args):
     ctx = HitmanContext(args.connect, args.password)
