@@ -89,14 +89,16 @@ class HitmanContext(CommonContext):
     def set_slot_data(self):
         logger.info("Sending Slot Data to Peacock...")
         try:
+            cares_about_goal_rating = self.slot_data["goal_mode"] == "level_completion" or\
+                    self.slot_data["goal_mode"] == "contract_collection_level_completion"
+
             enabled_levels = self.slot_data["included_s1_locations"]+\
             self.slot_data["included_s2_locations"]+\
             self.slot_data["included_s2_dlc_locations"]+\
             self.slot_data["included_s3_locations"]+\
             [self.slot_data["starting_location"]]
 
-            if(self.slot_data["goal_mode"] == "level_completion" or\
-               self.slot_data["goal_mode"] == "contract_collection_level_completion"):
+            if(cares_about_goal_rating):
                 enabled_levels.append(self.slot_data["goal_location_name"])
 
             enabled_string = ""
@@ -107,19 +109,27 @@ class HitmanContext(CommonContext):
                     enabled_string += "t-"
 
                     if location in self.slot_data["levels_with_check_for_completion"] or\
-                    "all" in self.slot_data["levels_with_check_for_completion"]:
+                    "all" in self.slot_data["levels_with_check_for_completion"] or\
+                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
+                     self.slot_data["goal_rating"] == "any"):
                         completion_string+="completed_"
             
                     if location in self.slot_data["levels_with_check_for_sa"] or\
-                    "all" in self.slot_data["levels_with_check_for_sa"]:
+                    "all" in self.slot_data["levels_with_check_for_sa"] or\
+                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
+                     self.slot_data["goal_rating"] == "silent_assassin"):
                         completion_string+="sa_"
 
                     if location in self.slot_data["levels_with_check_for_so"] or\
-                    "all" in self.slot_data["levels_with_check_for_so"]:
+                    "all" in self.slot_data["levels_with_check_for_so"] or\
+                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
+                     self.slot_data["goal_rating"] == "suit_only"):
                         completion_string+="so_" 
 
                     if location in self.slot_data["levels_with_check_for_saso"] or\
-                    "all" in self.slot_data["levels_with_check_for_saso"]:
+                    "all" in self.slot_data["levels_with_check_for_saso"] or\
+                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
+                     self.slot_data["goal_rating"] == "silent_assassin_suit_only"):
                         completion_string+="saso_"
 
                     completion_string+="-"
