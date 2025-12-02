@@ -224,6 +224,9 @@ class HitmanWorld(World):
         if self.options.include_bruce_lee_items:
             self.enabled_entitlements[self.player].append("H3_ET_BAIJU")
 
+        if self.options.include_eminem_items:
+            self.enabled_entitlements[self.player].append("H3_ET_BELLINI")
+
         # Check for H3 DLC
         if self.options.include_trinity_items:
             self.enabled_entitlements[self.player].append("H3_TRINITY")

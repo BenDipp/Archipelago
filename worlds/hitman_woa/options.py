@@ -311,6 +311,10 @@ class IncludeBruceLeeItems(Toggle):
     """Include Items from the Bruce Lee Pack"""
     display_name = "Include Bruce Lee Pack Items"
 
+class IncludeEminemItems(Toggle):
+    """Include Items from the Eminem vs. Slim Shady Pack"""
+    display_name = "Include Eminem vs. Slim Shady Pack Items"
+
 class IncludeTrinityItems(Toggle):
     """Include Items from the Trinity Pack"""
     display_name = "Include Trinity Pack Items"
@@ -394,6 +398,7 @@ class HitmanOptions(PerGameCommonOptions):
     include_drop_items: IncludeTomorrowlandItems
     include_banker_items: IncludeBankerItems
     include_bruce_lee_items: IncludeBruceLeeItems
+    include_eminem_items: IncludeEminemItems
 
     include_trinity_items: IncludeTrinityItems
     include_street_art_items: IncludeConcreteArtItems
@@ -454,6 +459,7 @@ option_groups = [
             IncludeTomorrowlandItems,
             IncludeBankerItems,
             IncludeBruceLeeItems,
+            IncludeEminemItems,
             IncludeTrinityItems,
             IncludeConcreteArtItems,
             IncludeMakeshiftItems,
