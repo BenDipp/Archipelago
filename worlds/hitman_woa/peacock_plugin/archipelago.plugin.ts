@@ -34,7 +34,7 @@ const contractMap: Record<string,{name:string, contractCreationId:string, locati
     "422519be-ed2e-44df-9dac-18f739d44fd9": {name:"Santa Fortuna", contractCreationId:"df1b1e23-9d50-43a4-86c8-6d917a4f1899", locationParent:"LOCATION_PARENT_COLOMBIA", completionApIds:{"completed":1009,"sa":1031,"so":1053,"saso":1075}, vanillaTargets:["db21a429-add2-46fa-8176-540f846d89e0","00df867e-f27f-4904-8bc7-9504443ccb5a","b87b242e-4ef4-42d8-94ed-17cbfc9009bf"]},
     "0fad48d7-3d0f-4c66-8605-6cbe9c3a46d7": {name:"Mumbai", contractCreationId:"e00ea75e-2596-4a78-b0fd-12e583db5bde", locationParent:"LOCATION_PARENT_MUMBAI", completionApIds:{"completed":1010,"sa":1032,"so":1054,"saso":1076}, vanillaTargets:["076f23cc-09d8-423f-b890-74020f53b1d6","78f98c70-b7be-4578-9b6a-1c96a3e1ff1a","c7c9e213-16f9-4215-bf07-dd8f801ce3e0"]},
     "82f55837-e26c-41bf-bc6e-fa97b7981fbc": {name:"Whittleton Creek", contractCreationId:"26977adc-17b5-489d-a9b7-f276d5cfd9e6", locationParent:"LOCATION_PARENT_NORTHAMERICA", completionApIds:{"completed":1011,"sa":1033,"so":1055,"saso":1077}, vanillaTargets:["672a7a52-a08a-45cd-a061-ced6a7b8d8c4","b8f0bf6c-4826-4de2-a785-2d139967e09c"]},
-    "0d225edf-40cd-4f20-a30f-b62a373801d3": {name:"Isle of Sgail", contractCreationId:"fa162cbe-c9be-4e28-b28a-83f235c0ab86", locationParent:"LOCATION_PARENT_NORTHSEA", completionApIds:{"completed":1012,"sa":1034,"so":1056,"saso":1078}, vanillaTargets:["7eb39f2d-1030-44d2-be82-6df608085ec0","67f39ab8-c25f-48c3-84be-0ec495a553ec"]},
+    "0d225edf-40cd-4f20-a30f-b62a373801d3": {name:"Isle of Sgail", contractCreationId:"fa162cbe-c9be-4e28-b28a-83f235c0ab86", locationParent:"LOCATION_PARENT_NORTHSEA", completionApIds:{"completed":1012,"sa":1034,"so":1056,"saso":1078}, vanillaTargets:["67f39ab8-c25f-48c3-84be-0ec495a553ec","7eb39f2d-1030-44d2-be82-6df608085ec0"]},
     "7a03a97d-238c-48bd-bda0-e5f279569cce": {name:"New York", contractCreationId:"aa8f57ec-792f-4ab4-8de9-0b65637bd177", locationParent:"LOCATION_PARENT_GREEDY", completionApIds:{"completed":1013,"sa":1035,"so":1057,"saso":1079}, vanillaTargets:["ad93e268-3d6e-4aba-bec0-607cb5451ac7"]},
     "095261b5-e15b-4ca1-9bb7-001fb85c5aaa": {name:"Haven Island", contractCreationId:"b565439d-784b-47db-a946-bf2b91b8a16f", locationParent:"LOCATION_PARENT_OPULENT", completionApIds:{"completed":1014,"sa":1036,"so":1058,"saso":1080}, vanillaTargets:["5bc06fb1-bfb3-48ef-94ae-6f18c16c1eee","0afcc59e-6d6e-433f-8404-7699df872c9d","7504b78e-e766-42fe-930c-c5640f5f507b"]},
     "7d85f2b0-80ca-49be-a2b7-d56f67faf252": {name:"Dubai", contractCreationId:"cc91b5a2-aa39-4dbd-b117-c972b5fc266b", locationParent:"LOCATION_PARENT_GOLDEN", completionApIds:{"completed":1015,"sa":1037,"so":1059,"saso":1081}, vanillaTargets:["bd0689d6-07b4-4757-b8ee-cac19f1c9e16","9571d196-8d67-4d94-8dad-6e2d970d7a91"]},
@@ -1231,7 +1231,7 @@ const apItemMap: Record<string, {apItemName: string, unlockableId:string, invent
     "925":{apItemName:"Melee - Fiber Wire Red Tie",unlockableId:"TOKEN_PROP_MELEE_FIBERWIRE_RED_TIE_A", inventorySlot: "pocket"}
 }
 const targetMap: Record<string, {apId:number, contractId:string, name:string, imagePath:string}> = {
-	"579f2544-1970-4865-afa3-ad4566e5f98d": {apId:5000, contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb", name:"Jasper Knight", imagePath:"images/actors/polarbear5.jpg"},
+    "579f2544-1970-4865-afa3-ad4566e5f98d": {apId:5000, contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb", name:"Jasper Knight", imagePath:"images/actors/polarbear5.jpg"},
     "591d9d6e-bb96-42ff-b3bb-77dfcfe06fed": {apId:5001, contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb", name:"Szymon Woźniak", imagePath:"images/actors/actor_5c419edc-203d-4736-8cd9-bed24e34171c_5_0_0.jpg"},
     "0e4c615e-e05d-492f-9e8a-08233aae000a": {apId:5002, contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb", name:"Kelly R. Edwards", imagePath:"images/actors/actor_f7acaf86-205c-4ac4-98c7-2c418007299c_1_1_0.jpg"},
     "6bc805b4-e7df-46f1-ad37-deb8b3967e08": {apId:5003, contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb", name:"Alex Zhirov", imagePath:"images/actors/actor_5c419edc-203d-4736-8cd9-bed24e34171c_3_0_0.jpg"},
@@ -3883,7 +3883,7 @@ const targetMap: Record<string, {apId:number, contractId:string, name:string, im
     "28e398e6-e758-4a14-9851-a064a082b405": {apId:7649, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"Marcus Schultz", imagePath:"images/actors/actor_b8b1d3c2-cf47-4a44-acc8-d8aa965ec8d8_1_0_0.jpg"},
     "4aefde9f-7528-4f53-b85f-d4ddb204a9d4": {apId:7650, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"Robert Y. Rivet", imagePath:"images/actors/actor_8d2b15f2-1d23-4b5e-b128-d2f47b53faf7_4_0_0.jpg"},
     "8589b46b-911b-4a93-a5a3-b091639e0181": {apId:7651, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"Lucas Bartlett", imagePath:"images/actors/actor_6565bf3a-aa59-44f5-9b89-ef645f99d4fa_3_0_0.jpg"},
-    "5cb87a25-3b0f-4a12-b338-228ea9e7a662": {apId:7652, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"Catherine ?Kiki? Zola", imagePath:"images/actors/actor_411e3ac8-e5c7-4c73-b1f0-067522f2146c_1_0_0.jpg"},
+    "5cb87a25-3b0f-4a12-b338-228ea9e7a662": {apId:7652, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"Catherine \"Kiki\" Zola", imagePath:"images/actors/actor_411e3ac8-e5c7-4c73-b1f0-067522f2146c_1_0_0.jpg"},
     "435c2a04-3512-4b6f-823e-bdbc92f68c05": {apId:7653, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"James F. Fuentes", imagePath:"images/actors/actor_6565bf3a-aa59-44f5-9b89-ef645f99d4fa_0_0_0.jpg"},
     "e570b688-c43f-4af0-aed4-790703f32086": {apId:7654, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"Terri R. Minor", imagePath:"images/actors/actor_5da7e253-c07f-4bdb-bfdf-865e349e8403_2_0_0.jpg"},
     "b0859d4b-33ca-4549-b58f-d21d8e00c427": {apId:7655, contractId:"0d225edf-40cd-4f20-a30f-b62a373801d3", name:"Jeffery D. Alban", imagePath:"images/actors/actor_3e9daec4-801e-4eb0-bf94-c8a8713d1ac0_8_0_0.jpg"},
@@ -5422,7 +5422,7 @@ const targetMap: Record<string, {apId:number, contractId:string, name:string, im
     "be7a87ec-c18e-4d9d-8c82-571ac65fab55": {apId:9188, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Rodolfo Blanco", imagePath:"images/actors/actor_69d4d32b-0fc9-4fde-8817-fafd98c13365_1_0_0.jpg"},
     "5d66981e-2ced-499c-9330-3e0bfd4688b3": {apId:9189, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Leo Collins", imagePath:"images/actors/actor_aa7dc754-702a-401b-8f84-e806e958869c_1_0_0.jpg"},
     "55a665e8-e9cc-4ffb-8939-789e818b7c4e": {apId:9190, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Garcia Martin", imagePath:"images/actors/actor_69d4d32b-0fc9-4fde-8817-fafd98c13365_4_0_0.jpg"},
-    "c523055f-e442-4d07-a19e-466c300956c8": {apId:9191, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Nabeela Neale", imagePath:"images/actors/actor_bfe114ee-e946-4e9e-b049-95d36905585f_6_0_0.jpg"},
+    "221b55a9-7180-4dd2-bb1d-3bf46abdb332": {apId:9191, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Nabeela Neale", imagePath:"images/actors/actor_bfe114ee-e946-4e9e-b049-95d36905585f_6_0_0.jpg"},
     "69533c73-c58f-4f22-94b0-9c4043c180f4": {apId:9192, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Zackary Hensley", imagePath:"images/actors/actor_3cefe0b5-6ad5-4672-9996-b45c9cbcf718_5_0_0.jpg"},
     "47f94031-3b05-47bb-b75d-0948998ca9e2": {apId:9193, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Mateo Roca", imagePath:"images/actors/actor_e887e53a-6b02-455d-88be-284af6d88e94_4_0_0.jpg"},
     "2cc915f1-ccb6-4c89-9cec-5ee875b8e29f": {apId:9194, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"George Baker", imagePath:"images/actors/actor_3cefe0b5-6ad5-4672-9996-b45c9cbcf718_2_0_0.jpg"},
@@ -5703,7 +5703,11 @@ const targetMap: Record<string, {apId:number, contractId:string, name:string, im
     "b0848f7d-adfe-4410-a34c-00d5e9197c31": {apId:9469, contractId:"b2aac100-dfc7-4f85-b9cd-528114436f6c", name:"Kashi Radhakrishnan", imagePath:"images/actors/actor_1cec2601-c1ed-474f-ac70-ff8614799fcc_3_0_0.jpg"},
     "17c40b70-506a-494e-89ef-31360cdead47": {apId:9500, contractId:"a3e19d55-64a6-4282-bb3c-d18c3f3e6e29", name:"Arthur Edwards", imagePath:"images/actors/Trapped_arthur_edwards.jpg"},
     "5651198f-9ef7-4f3c-908b-a570f1cd64e2": {apId:9501, contractId:"0e81a82e-b409-41e9-9e3b-5f82e57f7a12", name:"Erich Soders", imagePath:"Images/Actors/Snowcrane_erich_soders_briefing.jpg"},
-    "f83376a4-6e56-4f2a-8122-151b272108fd": {apId:9502, contractId:"ebcd14b2-0786-4ceb-a2a4-e771f60d0125", name:"Agent Price", imagePath:"images/actors/actor_367524a1-96dc-4268-a674-e81db8f1e48a_0_0_0.jpg"}
+    "f83376a4-6e56-4f2a-8122-151b272108fd": {apId:9502, contractId:"ebcd14b2-0786-4ceb-a2a4-e771f60d0125", name:"Agent Price", imagePath:"images/actors/actor_367524a1-96dc-4268-a674-e81db8f1e48a_0_0_0.jpg"},
+    "0e2111f1-d5ab-4a06-90ce-703abd6d3f91": {apId:9503, contractId:"d42f850f-ca55-4fc9-9766-8c6a2b5c3129", name:"Diana Burnwood", imagePath:"images/actors/actor_d789b32d-496d-4a64-a048-853d93d8adc1_0_0_0.jpg"},
+    "dff56738-57eb-4c29-8d8e-eea6b6312a65": {apId:9504, contractId:"422519be-ed2e-44df-9dac-18f739d44fd9", name:"María Luisa Zamorano", imagePath:"images/actors/actor_636ade8e-a5aa-4499-9475-f8070b2acbd1_0_0_0.jpg"},
+    "2c711497-3923-41b9-ac9a-8eae297bad15": {apId:9505, contractId:"755984a8-fb0b-4673-8637-95cfe7d34e0f", name:"Leonard Gore", imagePath:"images/actors/actor_29389af2-4fe4-4f72-917a-d9747adc0f3d_2_0_0.jpg"},
+    "3d70c3b6-8e40-4cfb-b0b7-f6d955ef68d6": {apId:9506, contractId:"755984a8-fb0b-4673-8637-95cfe7d34e0f", name:"Samantha Hunter", imagePath:"images/actors/actor_d7caaf48-6583-4b18-a268-3704f5020cca_2_0_0.jpg"}
 }
 const disguiseMap: Record<string, {apId:number, name:string, contractId:string}> = {
     "8f6ea4f1-32a8-4e57-a39d-90a2c2ff2bb0": {apId:3000, name:"Airplane Mechanic", contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb"},
@@ -6481,11 +6485,23 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 			//TODO: Data.VR?
 
 			contract = bareContract
-			
-			const targets = splitTargets[contractIndex].split("_")
-            for(const id in targets){
-				if(targets[id]!=""){
-					const newTarget = Object.keys(targetMap)[Number(targets[id])-5000]
+
+			let targetApIds = []
+			if(targets == "everyone"){
+				let targetIds = Object.keys(targetMap).filter(targetId => targetMap[targetId].contractId == contractId)
+				for(const id in targetIds){
+					targetApIds.push(targetMap[targetIds[id]].apId)
+				}
+			}else{
+				targetApIds = splitTargets[contractIndex].split("_")
+			}
+            for(const id in targetApIds){
+				if(targetApIds[id]!=""){
+					const newTarget = Object.keys(targetMap).find(targetId => targetMap[targetId].apId == Number(targetApIds[id]))
+					if(newTarget == undefined){
+						errArchipelago("No Target with apId "+id+" found, skipping target")
+						continue
+					}
 					if(contractId!= targetMap[newTarget].contractId){
 						errArchipelago("Selected target "+newTarget+" is not available in level "+contractId+"! Skipping Target addition.")
 						continue
@@ -6804,7 +6820,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
     webFeaturesRouter.get("/archipelago/setData/:difficulty/:seed/:enabledLevels/:completionChecks/:targets/:checksForEliminations/:gameChangers/:itemsanity/:disguisesanity/:everythingItem", (req,res)=>{
 		const difficulty = req.params.difficulty
         const seed = req.params.seed
-        const targets = req.params.targets
+        const targets = req.params.targets //"everyone" //req.params.targets
         const gameChangers = req.params.gameChangers
 		const completionChecks = req.params.completionChecks
 
@@ -7136,7 +7152,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 			}
 		}
 	)
-    
+
 	printApIcon()
     logArchipelago("Archipelago Plugin Loaded.")
 }

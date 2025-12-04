@@ -9,7 +9,7 @@ from worlds.LauncherComponents import Component, Type, components, launch as lau
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, goal_table, target_table_ranges, vanilla_target_table, game_changers_table
+from .locations import HitmanLocation, location_table, goal_table, valid_targets_table, vanilla_target_table, game_changers_table
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -294,15 +294,13 @@ class HitmanWorld(World):
         if self.options.random_targets.value:
             target_slot_data = ""
             already_used_targets = []
-            for map in target_table_ranges:
+            for map in valid_targets_table:
                 if map in self.enabled_entitlements[self.player]:
                     num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets)
                     for i in range(0, num_of_targets):
-                        if(target_table_ranges[map][1]-target_table_ranges[map][0]+1 <= len(already_used_targets)):
+                        if(len(valid_targets_table[map]) <= len(already_used_targets)):
                             break
-                        chosen_target = self.random.randint(target_table_ranges[map][0],target_table_ranges[map][1])
-                        while chosen_target in already_used_targets:
-                            chosen_target = self.random.randint(target_table_ranges[map][0],target_table_ranges[map][1])
+                        chosen_target = self.random.choice(list(set(valid_targets_table[map])-set(already_used_targets)))
                         target_slot_data += str(chosen_target)+"_"
                         already_used_targets.append(chosen_target)
 
