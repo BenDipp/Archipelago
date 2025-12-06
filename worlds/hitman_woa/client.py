@@ -213,7 +213,9 @@ class HitmanContext(CommonContext):
         locationIds = []
         for locationId in locations:
             locationIds.append(locationId-base_id)
-
+            if self.slot_data["goal_location_id"] == locationId:
+                asyncio.run_coroutine_threadsafe(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]), asyncio.get_running_loop())
+           
             if len(locationIds) > 500:
                 self.send_checked_locations(locationIds)
                 locationIds = []
@@ -238,8 +240,6 @@ class HitmanContext(CommonContext):
                 checks = response.json()
                 asyncio.run(self.check_locations(checks))
 
-                if (self.slot_data["goal_mode"] == "level_completion" or self.slot_data["goal_mode"] == "contract_collection_level_completion" or self.slot_data["goal_mode"] == "contract_collection") and self.slot_data["goal_location_id"] in checks:
-                    asyncio.run(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]))
             except requests.RequestException as e:
                 print("Error fetching checks:", e)
                 self.print_error("No response when trying to get Checks from Peacock, disconnecting")
