@@ -212,10 +212,12 @@ class HitmanContext(CommonContext):
     def process_checked_locations(self, locations:list[int]):
         locationIds = []
         for locationId in locations:
+            if locationId == self.slot_data["goal_location_id"]:
+                continue #If goal was collected or cheated, don't let Peacock know
+                        #so challange remains completeable and thus goalable (don't check for goal here, as a collect could goal you)
+
             locationIds.append(locationId-base_id)
-            if self.slot_data["goal_location_id"] == locationId:
-                asyncio.run_coroutine_threadsafe(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]), asyncio.get_running_loop())
-           
+
             if len(locationIds) > 500:
                 self.send_checked_locations(locationIds)
                 locationIds = []
@@ -240,6 +242,8 @@ class HitmanContext(CommonContext):
                 checks = response.json()
                 asyncio.run(self.check_locations(checks))
 
+                if self.slot_data["goal_location_id"] in checks:
+                    asyncio.run(self.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]))
             except requests.RequestException as e:
                 print("Error fetching checks:", e)
                 self.print_error("No response when trying to get Checks from Peacock, disconnecting")
