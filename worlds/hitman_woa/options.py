@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from schema import Schema
 from Options import Choice, ItemSet, OptionCounter, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
+from .locations import game_changers_table
 
 class Goal(Choice):
     """The goal condition for your Archipelago run.
@@ -232,7 +233,7 @@ class ComplicationWeights(OptionCounter):
     default = {
         "No Agility": 1,
         "No Disguises": 1,
-        "All Bodies Hidden": 1,
+        #"All Bodies Hidden": 1,
         "Do Not get Spotted": 1,
         "No Non-Target Civilian Kills or Pacifications": 1,
         "Target Only": 1,
@@ -253,6 +254,7 @@ class ComplicationWeights(OptionCounter):
         "Accident Kills Only": 0,
         "No Lethal Poison Kills": 1,
     }
+    valid_keys = game_changers_table
 
 class EnableEverythingItem(Choice):
     """Adds multiple Item Packages one for each type of item (Pistol, Poison, Explosive etc.). When starting a mission with a package equipped, all unlocked and concealable items will be added to 47's pocket. 
