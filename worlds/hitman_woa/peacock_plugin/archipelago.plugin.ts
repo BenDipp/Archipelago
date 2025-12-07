@@ -303,7 +303,7 @@ const targetTemplate = {
                 }
             }
 const baseId = 2023011800
-const apItemMap: Record<string, {apItemName: string, unlockableId:string, inventorySlot: string}> = {
+const apItemMap: Record<string, {apItemName: string, unlockableId:string, inventorySlot?: string}> = {
     "1":{apItemName:"Level - ICA Facility",unlockableId:"FACILITY", inventorySlot: "none"},
     "2":{apItemName:"Level - Paris",unlockableId:"PARIS", inventorySlot: "none"},
     "3":{apItemName:"Level - Sapienza",unlockableId:"SAPIENZA", inventorySlot: "none"},
@@ -1228,7 +1228,18 @@ const apItemMap: Record<string, {apItemName: string, unlockableId:string, invent
     "922":{apItemName:"Melee - Jar of Mom's Spaghetti Sauce",unlockableId:"TOKEN_PROP_MELEE_JAR_BELLINI_A", inventorySlot: "pocket"},
     "923":{apItemName:"Pistol - The Prank Pistol",unlockableId:"FIREARMS_HERO_PISTOL_BELLINI_A", inventorySlot: "pocket"},
     "924":{apItemName:"Explosive - Mr. Chainsaw Jr.",unlockableId:"PROP_DEVICE_BELLINI_FIGURE_REMOTE_EXPLOSIVE", inventorySlot: "pocket"},
-    "925":{apItemName:"Melee - Fiber Wire Red Tie",unlockableId:"TOKEN_PROP_MELEE_FIBERWIRE_RED_TIE_A", inventorySlot: "pocket"}
+    "925":{apItemName:"Melee - Fiber Wire Red Tie",unlockableId:"TOKEN_PROP_MELEE_FIBERWIRE_RED_TIE_A", inventorySlot: "pocket"},
+    "1500":{apItemName:"Package - Everythings",unlockableId:"EVERYTHING_PACKAGE"},
+    "1501":{apItemName:"Package - Pistols",unlockableId:"PISTOL_PACKAGE"},
+    "1502":{apItemName:"Package - Assault Rifles",unlockableId:"ASSAULT_RIFLE_PACKAGE"},
+    "1503":{apItemName:"Package - Shotguns",unlockableId:"SHOTGUN_PACKAGE"},
+    "1504":{apItemName:"Package - SMGs",unlockableId:"SMG_PACKAGE"},
+    "1505":{apItemName:"Package - Snipers",unlockableId:"SNIPER_PACKAGE"},
+    "1506":{apItemName:"Package - Melees",unlockableId:"MELEE_PACKAGE"},
+    "1507":{apItemName:"Package - Tools",unlockableId:"TOOL_PACKAGE"},
+    "1508":{apItemName:"Package - Distractions",unlockableId:"DISTRACTION_PACKAGE"},
+    "1509":{apItemName:"Package - Explosives",unlockableId:"EXPLOSIVE_PACKAGE"},
+    "1510":{apItemName:"Package - Poisons",unlockableId:"POISON_PACKAGE"},
 }
 const targetMap: Record<string, {apId:number, contractId:string, name:string, imagePath:string}> = {
     "579f2544-1970-4865-afa3-ad4566e5f98d": {apId:5000, contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb", name:"Jasper Knight", imagePath:"images/actors/polarbear5.jpg"},
@@ -6026,40 +6037,21 @@ const gameChangerApIdToRepoIdMap: Record<number,string> = {
 	22: "bb0c22b7-f5e4-4a91-bc7a-9070177a87e4"
 }
 const unlockablesToKeep:Record<string,Unlockable> = {} // TODO: use less destructive code
-const everythingUlocked = {
-        "Id": "EVERYTHING",
-        "Guid": randomUUID(),
-        "Type": "gear",
-        "Subtype": "Archipealgo",
-        "ImageId": "",
-        "RMTPrice": -1,
-        "GamePrice": -1,
-        "IsPurchasable": false,
-        "IsPublished": true,
-        "IsDroppable": false,
-        "Capabilities": [],
-        "Qualities": {},
-        "Properties": {
-            "Quality": 1,
-            "LoadoutSlot": "gear",
-            "Rarity": "common",
-            "RepositoryId": "78adb05a-9593-4575-ac39-e4defb78d4ce", 
-			/*
-			Other ideas for RepoId:
-			ICA SAFE HOSUE 9bd24d10-938c-467a-844b-e34878f1ba29
-			Arthur Edwards 17c40b70-506a-494e-89ef-31360cdead47
-			Pantry 244e6667-4d99-40d1-a766-6324d133b669
-			Crate Tomatos 1ba12cbc-cd80-4abd-9988-3d72d966b020
-			Manuscript 1eced699-6063-4d3e-b5cb-9ccb244d8cd2
-			Cheeseburger 25bc1a6d-c618-43ee-9c1f-81347ed430a6
-			Kitchenware Crate cf8de9fe-dbcb-48c2-8064-beadf8738dce
-			Photo of Flammingo 78adb05a-9593-4575-ac39-e4defb78d4ce
-            */
-            "RepositoryAssets": ["78adb05a-9593-4575-ac39-e4defb78d4ce"],
-            "ItemSize": "ITEMSIZE_SMALL"
-        },
-        "Rarity": "common"
-    }
+
+const everythingUnlockables: Record<string,Unlockable> = {
+    "EVERYTHING":{"Id": "EVERYTHING_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000000","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "gear", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000000",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"EVERYTHING_PACKAGE","GameAsset":null},
+    "pistol":{"Id": "PISTOL_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000001","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "concealedweapon", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000001",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"PISTOL_PACKAGE","GameAsset":null},
+    "assaultrifle":{"Id": "ASSAULT_RIFLE_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000002","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "carriedweapon", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000002",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_LARGE" },"Rarity": "common","DisplayNameLocKey":"ASSAULT_RIFLE_PACKAGE","GameAsset":null},
+    "shotgun":{"Id": "SHOTGUN_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000003","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "carriedweapon", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000003",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_LARGE" },"Rarity": "common","DisplayNameLocKey":"SHOTGUN_PACKAGE","GameAsset":null},
+    "smg":{"Id": "SMG_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000004","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "carriedweapon", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000004",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_LARGE" },"Rarity": "common","DisplayNameLocKey":"SMG_PACKAGE","GameAsset":null},
+    "sniperrifle":{"Id": "SNIPER_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000005","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "carriedweapon", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000005",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_LARGE" },"Rarity": "common","DisplayNameLocKey":"SNIPER_PACKAGE","GameAsset":null},
+    "melee":{"Id": "MELEE_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000006","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "gear", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000006",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"MELEE_PACKAGE","GameAsset":null},
+    "tool":{"Id": "TOOL_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000007","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "gear", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000007",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"TOOL_PACKAGE","GameAsset":null},
+    "distraction":{"Id": "DISTRACTION_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000008","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "gear", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000008",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"DISTRACTION_PACKAGE","GameAsset":null},
+    "explosive":{"Id": "EXPLOSIVE_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000009","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "gear", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000009",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"EXPLOSIVE_PACKAGE","GameAsset":null},
+    "poison":{"Id": "POISON_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000010","Type": "gear","Subtype": "Archipealgo","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Quality": 1, "LoadoutSlot": "gear", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000010",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"POISON_PACKAGE","GameAsset":null},
+}
+
 let challangeIdToApIdMap:Record<string,number> = {}
 let challangesNeedToBeUnset:boolean = false
 
@@ -6143,6 +6135,11 @@ const removeUnusedUnlocks = (controller: Controller)=> {
 
         unlockables.pop();
     }
+
+	//Setup everything items
+	for(const type in everythingUnlockables){
+		unlockablesToKeep[everythingUnlockables[type].Id] = everythingUnlockables[type]
+	}
 
     //H2 compliance test:
     const h2unlockables = controller.configManager.configs.H2allunlockables
@@ -6663,6 +6660,13 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
         controller.addMission(contract); 
     }
 }
+function addToEverythingItem (everythingItem:Unlockable, lockableToUnlock:Unlockable){
+	if(lockableToUnlock.Properties.RepositoryAssets){
+		everythingItem.Properties.RepositoryAssets!.push(...lockableToUnlock.Properties.RepositoryAssets)
+	}else{
+		everythingItem.Properties.RepositoryAssets!.push(lockableToUnlock.Properties.RepositoryId!)
+	}
+}
 let collectedContractPieces = 0
 let contractGoalAmount = ""
 let goalLevelString = ""
@@ -6727,14 +6731,19 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
 				alreadyUnlockedLockable.Properties.RepositoryAssets.push(...lockableToUnlock.Properties.RepositoryAssets)
 				
 			}else{
-				controller.configManager.configs.allunlockables.push(JSON.parse(JSON.stringify(unlockablesToKeep[apItemMap[id].unlockableId])))
+				if(id > 1500 && id < 1520){ // Do not copy by value everything items, they need to be managed from the other array
+					controller.configManager.configs.allunlockables.push(unlockablesToKeep[apItemMap[id].unlockableId])
+				}else{
+					controller.configManager.configs.allunlockables.push(JSON.parse(JSON.stringify(unlockablesToKeep[apItemMap[id].unlockableId])))
+				}
 			}
 			
-			if(apItemMap[id].inventorySlot == "pocket"){
-				if(lockableToUnlock.Properties.RepositoryAssets){
-					everythingUlocked.Properties.RepositoryAssets.push(...lockableToUnlock.Properties.RepositoryAssets)
-				}else{
-					everythingUlocked.Properties.RepositoryAssets.push(lockableToUnlock.Properties.RepositoryId!)
+			if(lockableToUnlock.Subtype && everythingUnlockables[lockableToUnlock.Subtype]){
+				if(lockableToUnlock.Properties.ItemSize! != "ITEMSIZE_LARGE" || everythingUnlockables[lockableToUnlock.Subtype].Properties.ItemSize! == "ITEMSIZE_LARGE"){
+					addToEverythingItem(everythingUnlockables[lockableToUnlock.Subtype!], lockableToUnlock)
+				}
+				if(lockableToUnlock.Properties.ItemSize != "ITEMSIZE_LARGE"){
+					addToEverythingItem(everythingUnlockables["EVERYTHING"], lockableToUnlock)
 				}
 			}
 
@@ -6836,9 +6845,12 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 		challangeIdToApIdMap = {}
 		challangesNeedToBeUnset = true;
 
-		everythingUlocked.Properties.RepositoryAssets = []
-		if(req.params.everythingItem == "True")
-			controller.configManager.configs.allunlockables.push(everythingUlocked)
+		for(const id in everythingUnlockables){
+			everythingUnlockables[id].Properties.RepositoryAssets = []
+			if(req.params.everythingItem == "in_inventory"){
+				controller.configManager.configs.allunlockables.push(everythingUnlockables[id])
+			}
+		}
 
         clearInventoryCache()
         for (const contractId in contractMap){

@@ -155,7 +155,7 @@ class HitmanContext(CommonContext):
                 self.slot_data.get("complications","vanilla")+"/"+
                 itemsanity_string+"/"+
                 str(self.slot_data.get("enable_disguisesanity",0)==1)+"/"+
-                str(self.slot_data.get("everything_item",False)))
+                str(self.slot_data.get("item_packages","off")))
             r.raise_for_status()
             logger.info("Slot Data sent.")
         except Exception as e:

@@ -254,9 +254,15 @@ class ComplicationWeights(OptionCounter):
         "No Lethal Poison Kills": 1,
     }
 
-class EnableEverythingItem(Toggle):
-    """Adds the \"Photo of a Flamingo\" to your inventory. When starting a mission with it equipped, all unlocked and concealable items will be added to 47's pocket."""
-    display_name = "Enable Flamingo Photo"
+class EnableEverythingItem(Choice):
+    """Adds multiple Item Packages one for each type of item (Pistol, Poison, Explosive etc.). When starting a mission with a package equipped, all unlocked and concealable items will be added to 47's pocket. 
+    
+    The \"in_inventory\" option adds the packages directly to your starting inventory, the \"in_itempool\" options adds the packages to the itempool and shuffles them to to any check in the multiworld."""
+    display_name = "Enable Item Packages"
+    option_off = 0
+    option_in_inventory = 1
+    option_in_itempool = 2
+    default = 0
 
 class ExcludedItems(ItemSet):
     """List of Items to not be shuffled the multiworld. 
@@ -369,7 +375,7 @@ class HitmanOptions(PerGameCommonOptions):
 
     excluded_items: ExcludedItems
     excluded_starting_items: ExcludedStartingItems
-    enable_flamingo_photo: EnableEverythingItem
+    item_packages: EnableEverythingItem
 
     starting_location: StartingLevel
     goal_mode: Goal

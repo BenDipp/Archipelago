@@ -178,6 +178,9 @@ class HitmanWorld(World):
         if self.options.enable_disguisesanity:
             self.enabled_entitlements[self.player].append("disguisesanity")
 
+        if self.options.item_packages.value == self.options.item_packages.option_in_itempool:
+            self.enabled_entitlements[self.player].append("packages_in_pool")
+        
         self.enabled_entitlements[self.player].append("H3_SIGNITURE_PACK")#Swtich 2 Pre-order Items
         self.enabled_entitlements[self.player].append("H3_QUACK_PACK")#Switch 2 Physical Pre-order Items
         self.enabled_entitlements[self.player].append("LOCATION_GOLDEN") #Freelancer Items
@@ -477,6 +480,6 @@ class HitmanWorld(World):
         else:
             slotdata["complications"] = "vanilla"
 
-        slotdata["everything_item"] = self.options.enable_flamingo_photo.value == 1
+        slotdata["item_packages"] = self.options.item_packages.current_key
 
         return slotdata

@@ -935,3 +935,18 @@ item_table= { # id, required entitlement (all), classifier, allowed to be duplic
 
 item_table["Contract Piece"] = (1000,["contract_mode"],ItemClassification.progression, False, [])
 #item_table["Nothing"] = (1001,[],ItemClassification.filler, False, [])
+
+item_package_table = {
+    "Package - Everythings": (1500, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Pistols": (1501, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Assault Rifles": (1502, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Shotguns": (1503, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - SMGs": (1504, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Snipers": (1505, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Melees": (1506, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Tools": (1507, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Distractions": (1508, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Explosives": (1509, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"]),
+    "Package - Poisons": (1510, ["packages_in_pool"], ItemClassification.useful, False, ["Package - Any"])
+}
+item_table = item_table | item_package_table
