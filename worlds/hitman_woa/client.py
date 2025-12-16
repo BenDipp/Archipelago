@@ -2,6 +2,7 @@ import asyncio
 
 import threading
 import time
+import typing
 import requests
 
 from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg, server_loop, gui_enabled, logger, CommonContext
@@ -27,18 +28,20 @@ class HitmanContext(CommonContext):
     peacock_url = "http://"+get_settings().hitman_woa_options.peacock_url+ "/_wf/archipelago"
     current_seed = None
 
-    async def server_auth(self, password_requested: bool = False):
+    async def connect(self, address: typing.Optional[str] = None) -> None:
         # check if Peacock is running
         logger.info("Testing connection to Peacock...")
         try:
             r = requests.get(self.peacock_url)
             r.raise_for_status()
         except Exception as e:
-            logger.error("No respone from Peacock, please make sure the Peacock server is running before connecting.")
-            self.exit_event.set()
+            self.print_error("No respone from Peacock, please make sure the Peacock server is running before connecting.")
             return
         logger.info("Peacock connection established.")            
 
+        await super().connect(address)
+
+    async def server_auth(self, password_requested: bool = False):
         if password_requested and not self.password:
             await super(HitmanContext, self).server_auth(password_requested)
         await self.get_username()
