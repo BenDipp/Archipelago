@@ -6161,6 +6161,10 @@ const removeUnusedUnlocks = (controller: Controller)=> {
 		const challange = controller.challengeService.getChallengeById(challangeIds[challangeId], "h3")!
 		challange.Drops = []
 	}
+
+	//Fix accident-only and no-poison-kill gameChanger not beeing primary
+	configs.GameChangerProperties["61b1203e-84a0-4b77-bf88-8ba956ebd2bd"].Objectives[0].Category = "primary"
+	configs.GameChangerProperties["bb0c22b7-f5e4-4a91-bc7a-9070177a87e4"].Objectives[0].Category = "primary"
 }
 
 function addChallange(controller:Controller, name:string, imagePath:string, description:string, icon:string, statemachine:any, groupId:string, locationParent:string, inclusionDataContractIds:string[], apId:number){
