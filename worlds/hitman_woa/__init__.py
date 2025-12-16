@@ -9,7 +9,7 @@ from worlds.LauncherComponents import Component, Type, components, launch as lau
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, goal_table, valid_targets_table, vanilla_target_table, game_changers_table
+from .locations import HitmanLocation, location_table, level_completion_location_table, goal_table, valid_targets_table, vanilla_target_table, game_changers_table
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -143,6 +143,21 @@ class HitmanWorld(World):
         self.enabled_entitlements[self.player].extend(self.options.included_s2_locations.value)
         self.enabled_entitlements[self.player].extend(self.options.included_s2_dlc_locations.value)
         self.enabled_entitlements[self.player].extend(self.options.included_s3_locations.value)
+
+        if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions and\
+            self.options.goal_amount.value > len(set(self.enabled_entitlements[self.player])):
+            raise OptionError("Not enough levels enabled for chosen Goal Amount.")
+
+        if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions:
+            match(self.options.goal_rating.value):
+                case self.options.goal_rating.option_any:
+                    self.options.levels_with_check_for_completion.value.add("all")
+                case self.options.goal_rating.option_silent_assassin:
+                    self.options.levels_with_check_for_sa.value.add("all")
+                case self.options.goal_rating.option_suit_only:
+                    self.options.levels_with_check_for_so.value.add("all")
+                case self.options.goal_rating.option_silent_assassin_suit_only:
+                    self.options.levels_with_check_for_saso.value.add("all")
 
         # enable completion checks
         if "all" in self.options.levels_with_check_for_completion.value:
@@ -293,6 +308,11 @@ class HitmanWorld(World):
             map_region.add_locations({location :self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
             set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
                         lambda state, required_items = "Contract Piece": state.has(required_items,self.player,self.options.goal_required_contract_pieces.value))
+
+        if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions:
+            map_region.add_locations({location :self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
+            set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
+                        lambda state, required_items = "Contract Piece": state.has(required_items,self.player,self.options.goal_amount.value))
             
         if self.options.random_targets.value:
             target_slot_data = ""
@@ -381,6 +401,19 @@ class HitmanWorld(World):
             item_pool.remove(self.create_item("Level - "+goal_table[self.options.goal_level.current_key]))
             self.multiworld.get_location("All Contract Pieces Collected", self.player).place_locked_item(self.create_item("Level - "+goal_table[self.options.goal_level.current_key]))
 
+        if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions:
+            goal_entitlement = None 
+            match(self.options.goal_rating.value):
+                case self.options.goal_rating.option_any: goal_entitlement = "completed"
+                case self.options.goal_rating.option_silent_assassin: goal_entitlement = "sa"
+                case self.options.goal_rating.option_suit_only: goal_entitlement = "so"
+                case self.options.goal_rating.option_silent_assassin_suit_only: goal_entitlement = "saso"
+
+            for check in level_completion_location_table:
+                if any(x for x in self.get_locations() if str(x) == check) and\
+                goal_entitlement in level_completion_location_table[check][2] :
+                    self.get_location(check).place_locked_item(self.create_item("Contract Piece"))
+
         total_locations = len(self.multiworld.get_unfilled_locations(self.player))
         total_items = len(item_pool)
         
@@ -403,18 +436,9 @@ class HitmanWorld(World):
     def set_rules(self) -> None:
 
         match self.options.goal_mode.value:
-            #case self.options.goal_mode.option_number_of_completions:
-            #    self.multiworld.completion_condition[self.player] = lambda state: state.has_from_list_unique(
-            #        [item for item in item_table if 
-            #            (item_table[item][2]==ItemClassification.progression and 
-            #             item_table[item][1] in self.enabled_entitlements[self.player])
-            #        ],
-            #        self.player,
-            #        self.options.goal_amount.value) 
-                #Assumes that every level-unlock gives 1 check towards the goal
             case self.options.goal_mode.option_level_completion | self.options.goal_mode.option_contract_collection_level_completion:
                 self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location(self.goal_location, self.player)
-            case self.options.goal_mode.option_contract_collection:
+            case self.options.goal_mode.option_contract_collection | self.options.goal_mode.option_number_of_completions:
                 self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location("All Contract Pieces Collected", self.player)
     
     def fill_slot_data(self):
@@ -437,9 +461,10 @@ class HitmanWorld(World):
         
         slotdata["goal_mode"] = self.options.goal_mode.current_key
         match self.options.goal_mode.value:
-            #case self.options.goal_mode.option_number_of_completions: #TODO not working yet
-            #    slotdata["goal_amount"] = self.options.goal_amount.value
-            #    slotdata["goal_rating"] = self.options.goal_rating.current_key
+            case self.options.goal_mode.option_number_of_completions:
+                slotdata["goal_amount"] = self.options.goal_amount.value
+                slotdata["goal_rating"] = self.options.goal_rating.current_key
+                slotdata["goal_location_id"] = self.location_name_to_id["All Contract Pieces Collected"]
             case self.options.goal_mode.option_level_completion:
                 slotdata["goal_location_id"] = self.location_name_to_id[self.goal_location]
                 slotdata["goal_location_name"] = self.options.goal_level.current_key

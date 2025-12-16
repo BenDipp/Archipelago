@@ -7,17 +7,19 @@ from .locations import game_changers_table
 class Goal(Choice):
     """The goal condition for your Archipelago run.
     -level_completion: requires beating a specific level with a specific rating 
-    -contract_collection: requires collection a certain number of Contract Pieces to instantly goal
-    -contract_collection_level_completion: requires beating a specific level with a specific rating, after collecting a certain number of Contract Pieces to unlock that level"""
+    -contract_collection: shuffles a number of \"Contract Piece\" items into the item pool and requires the collection of them to instantly goal
+    -contract_collection_level_completion: requires beating a specific level with a specific rating, after collecting a certain number of Contract Pieces from the item pool to unlock that level
+    -number_of_completions: forces Contract Pieces to only be placed on beating each level with a specific rating and requires the collection of a number of them to instantly goal """
     display_name = "Goal"
-    # TODO: didnt work out right now option_number_of_completions = 1
     option_level_completion = 2
     option_contract_collection = 3
     option_contract_collection_level_completion = 4
+    option_number_of_completions = 5
     default = 2
     
 class GoalDifficulty(Choice):
-    """When goal is set to level_completion or contract_collection_level_completion, which rating the goal level needs to be completed with to win."""
+    """When goal is set to contract_collection_level_completion or level_completion, which rating the goal level needs to be completed with to win.
+    When goal is set to number_of_completions, which rating each level needs to be compledted with to gain a Contract Piece."""
     display_name = "Goal Level Rating"
     option_any = 1
     option_silent_assassin = 2
@@ -52,22 +54,22 @@ class GoalLevel(Choice):
     option_ambrose_island = 21
     default = 20
 
-#class GoalAmount(Range):
-#    """When the goal is set to Number of Completions, how many levels must be beaten in with the selected rating to award the goal."""
-#    display_name = "Goal Amount"
-#    range_end = 22
-#    range_start = 1
-#    default = 5
+class GoalAmount(Range):
+   """When the goal is set to number_of_completions, how many levels must be beaten with the selected rating to award the goal."""
+   display_name = "Goal Amount"
+   range_end = 22
+   range_start = 1
+   default = 5
 
 class RequiredContractPieceAmount(Range):
-    """When the goal is set to contract_colleciton, how many contract pieces are required to award the goal."""
+    """When the goal is set to contract_colleciton or contract_collection_level_completion, how many contract pieces are shuffled into the item pool and are required to be collected to award the goal."""
     display_name = "Required Contract Pieces"
     range_end = 100
     range_start = 1
     default = 5
 
 class AdditionalContractPieces(Range):
-    """When the goal is set to contract_colleciton, number of additional contract pieces in the item pool."""
+    """When the goal is set to contract_colleciton or contract_collection_level_completion, how many additional contract pieces are added in the item pool."""
     display_name = "Number of Additional Contract Pieces"
     range_end = 100
     range_start = 0
@@ -238,7 +240,7 @@ class ComplicationWeights(OptionCounter):
         "No Non-Target Civilian Kills or Pacifications": 1,
         "Target Only": 1,
         "5 min Timer": 0,
-        "Hide all Bodies within 90 sec": 0,
+        #"Hide all Bodies within 90 sec": 0,
         "No Surveillance Recordings": 1,
         "No Bodies Found": 1,
         "Headshots Only": 1,
@@ -383,7 +385,7 @@ class HitmanOptions(PerGameCommonOptions):
     goal_mode: Goal
     goal_rating: GoalDifficulty
     goal_level: GoalLevel
-    #goal_amount: GoalAmount
+    goal_amount: GoalAmount
     goal_required_contract_pieces: RequiredContractPieceAmount
     goal_additional_contract_pieces: AdditionalContractPieces
 
@@ -449,6 +451,7 @@ option_groups = [
             Goal,
             GoalLevel,
             GoalDifficulty,
+            GoalAmount,
             RequiredContractPieceAmount,
             AdditionalContractPieces
         ]),

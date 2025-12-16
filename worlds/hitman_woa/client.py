@@ -178,6 +178,10 @@ class HitmanContext(CommonContext):
                     goalData = self.slot_data["goal_amount"]
                     moreGoalData = self.slot_data["goal_location_name"]
                     evenMoreGoalData = self.slot_data["goal_rating"]
+                case "number_of_completions":
+                    goalData = self.slot_data["goal_amount"]
+                    moreGoalData = self.slot_data["goal_rating"]
+                    evenMoreGoalData = "none"
 
             logger.info("Sending Goal information...")
             r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goalData)+"/"+moreGoalData+"/"+evenMoreGoalData)

@@ -16,7 +16,6 @@ import {
 
 import { configs } from "@peacockproject/core/configSwizzleManager"
 import { webFeaturesRouter } from "@peacockproject/core/webFeatures"
-import { randomUUID } from "crypto"
 import { MasteryPackage } from "@peacockproject/core/types/mastery"
 import { ChallengePack } from "@peacockproject/core/candle/challengeService"
 import { getUserData, writeUserData } from "@peacockproject/core/databaseHandler"
@@ -6925,6 +6924,26 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 
             configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res "+controller.resolveContract(getContractFromName(req.params.goalDetails), "h3")!.Metadata.TileImage;
 
+            res.status(200).send()
+		}else if(req.params.goalMode === "number_of_completions"){
+			contractGoalAmount = req.params.goalDetails
+			goalLevelString = "Goal Rating: "+req.params.moreGoalDetails
+
+			//H3
+            configs.EiderDashboard.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
+
+            configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
+
+            configs.EiderDashboard.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
+
+			//H2
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString
+
+            configs.H2DashboardTemplate.children.$mergearrays[5].data.image = "$res images/challenges/Wet/Rat_KillThePast.jpg"
+
+           
             res.status(200).send()
         }else{
             errArchipelago("Archipelago Client tried to set unknown goal Mode: "+req.params.goalMode)
