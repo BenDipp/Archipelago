@@ -227,6 +227,7 @@ item_pickup_location_table = {
     "Itempickup - Flash Grenade Mk III":(207, ["carpathian_mountains"], ["itemsanity"], ["Level - Carpathian Mountains"], [], [], ["Itempickup - Any"]),
     "Itempickup - Fiber Wire":(208, ["carpathian_mountains"], ["itemsanity"], ["Level - Carpathian Mountains"], [], [], ["Itempickup - Any"]),
     "Itempickup - ICA19 Black Lily":(209, ["carpathian_mountains"], ["itemsanity"], ["Level - Carpathian Mountains"], [], [], ["Itempickup - Any"]),
+    "Itempickup - Small Pumpkin":(210, ["colorado"], ["itemsanity"], ["Level - Colorado"], [], [], ["Itempickup - Any"])
 }
 
 split_item_pickup_location_table = {
@@ -1145,6 +1146,7 @@ split_item_pickup_location_table = {
     "Itempickup - Carpathian Mountains - Fire Extinguisher":(2412, ["carpathian_mountains"], ["split_itemsanity"], ["Level - Carpathian Mountains"],[], [], ["Itempickup - Any"]),
     "Itempickup - Carpathian Mountains - Fiber Wire":(2413, ["carpathian_mountains"], ["split_itemsanity"], ["Level - Carpathian Mountains"],[], [], ["Itempickup - Any"]),
     "Itempickup - Carpathian Mountains - ICA19 Black Lily":(2414, ["carpathian_mountains"], ["split_itemsanity"], ["Level - Carpathian Mountains"],[], [], ["Itempickup - Any"]),
+    "Itempickup - Colorado - Small Pumpkin":(2415, ["colorado"], ["split_itemsanity"], ["Level - Colorado"],[], [], ["Itempickup - Any"])
 }
 
 level_completion_location_table = { #id, location entitlments (one of required), settings requirement (one of required), required items (one of), unused, unused
