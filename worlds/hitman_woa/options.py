@@ -19,7 +19,7 @@ class Goal(Choice):
     
 class GoalDifficulty(Choice):
     """When goal is set to contract_collection_level_completion or level_completion, which rating the goal level needs to be completed with to win.
-    When goal is set to number_of_completions, which rating each level needs to be compledted with to gain a Contract Piece."""
+    When goal is set to number_of_completions, which rating each level needs to be completed with to gain a Contract Piece."""
     display_name = "Goal Level Rating"
     option_any = 1
     option_silent_assassin = 2
@@ -62,7 +62,7 @@ class GoalAmount(Range):
    default = 5
 
 class RequiredContractPieceAmount(Range):
-    """When the goal is set to contract_colleciton or contract_collection_level_completion, how many contract pieces are shuffled into the item pool and are required to be collected to award the goal."""
+    """When the goal is set to contract_collection or contract_collection_level_completion, how many contract pieces are shuffled into the item pool and are required to be collected to award the goal."""
     display_name = "Required Contract Pieces"
     range_end = 100
     range_start = 1
@@ -192,7 +192,7 @@ class GameDifficulty(Choice):
     default = 1
 
 class RandomTargets(Toggle):
-    """Should random Targets be assigend to each Level. For each level, a random number of targets between min_number_of_targets and max_number_of_targets is choosen. If off, the vanilla targets will be chosen (Note: Carpathian Mountains will always remain vanilla.)"""
+    """Should random Targets be assigned to each Level. For each level, a random number of targets between min_number_of_targets and max_number_of_targets is choosen. If off, the vanilla targets will be chosen (Note: Carpathian Mountains will always remain vanilla.)"""
     display_name = "Random Targets"
 
 class MaxRandomTargets(Range):
@@ -210,7 +210,7 @@ class MinRandomTargets(Range):
     default = 2
 
 class RandomComplications(Toggle):
-    """Should random Complications be assigend to each Level. For each level, a random number of complications between min_number_of_complications and max_number_of_complications is choosen (Note: Carpathian Mountains will always remain vanilla.)"""
+    """Should random Complications be assigend to each Level. For each level, a random number of complications between min_number_of_complications and max_number_of_complications is chosen (Note: Carpathian Mountains will always remain vanilla.)"""
     display_name = "Random Complications"
 
 class MaxComplications(Range):
@@ -460,7 +460,7 @@ option_groups = [
             ExcludedItems,
             ExcludedStartingItems
         ]),
-        OptionGroup("Inlcuded Items from DLC",[
+        OptionGroup("Included Items from DLC",[
             IncludeDeluxeItems,
             IncludeExpansionItems,
             IncludeSinsItems,
