@@ -6798,7 +6798,7 @@ function printApIcon(){
 }
 
 module.exports = function archipelagoCampaign(controller: Controller) {
-    logArchipelago("Loading Archipelago Plugin (v0.7.0)")
+    logArchipelago("Loading Archipelago Plugin (v0.7.1)")
 
     removeUnusedUnlocks(controller)
 
