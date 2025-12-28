@@ -410,7 +410,7 @@ class HitmanWorld(World):
                 case self.options.goal_rating.option_silent_assassin_suit_only: goal_entitlement = "saso"
 
             for check in level_completion_location_table:
-                if any(x for x in self.get_locations() if str(x) == check) and\
+                if any(x for x in self.get_locations() if x.name == check) and\
                 goal_entitlement in level_completion_location_table[check][2] :
                     self.get_location(check).place_locked_item(self.create_item("Contract Piece"))
 
