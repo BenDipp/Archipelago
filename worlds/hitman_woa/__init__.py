@@ -70,6 +70,28 @@ class HitmanWorld(World):
     ut_can_gen_without_yaml = True
 
     def generate_early(self):
+        if self.options.game_version.value < 3 and len(self.options.included_s3_locations.value) != 0:
+            raise OptionError("Cannot enable HITMAN 3 Levels when HITMAN "+str(self.options.game_version.value)+" is selected as game")
+
+        if self.options.game_version.value < 2 and len(self.options.included_s2_locations.value) != 0:
+            raise OptionError("Cannot enable HITMAN 2 Levels when HITMAN "+str(self.options.game_version.value)+" is selected as game")
+
+        if self.options.game_version.value < 3 and self.options.starting_location >= 15:
+            raise OptionError("Cannot set a HITMAN 3 Level as starting level when HITMAN "+str(self.options.game_version.value)+" is selected as game")
+
+        if self.options.game_version.value < 2 and self.options.starting_location >= 7:
+            raise OptionError("Cannot set a HITMAN 2 Level as starting level when HITMAN "+str(self.options.game_version.value)+" is selected as game")
+
+        if self.options.game_version.value < 3 and self.options.goal_level >= 15 \
+        and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion \
+        or self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
+            raise OptionError("Cannot set a HITMAN 3 Level as goal level when HITMAN "+str(self.options.game_version.value)+" is selected as game")
+
+        if self.options.game_version.value < 2 and self.options.goal_level >= 7 \
+        and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion \
+        or self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
+            raise OptionError("Cannot set a HITMAN 2 Level as goal level when HITMAN "+str(self.options.game_version.value)+" is selected as game")
+
         if self.options.random_targets.value and self.options.min_number_of_targets.value > self.options.max_number_of_targets.value:
             print("WARNING "+self.player_name+": Minimum number of targets cannot exceed Maximum number of targets, Swapping values to avoid generation Failure.")
             min = self.options.min_number_of_targets.value
@@ -196,79 +218,88 @@ class HitmanWorld(World):
         if self.options.item_packages.value == self.options.item_packages.option_in_itempool:
             self.enabled_entitlements[self.player].append("packages_in_pool")
         
-        self.enabled_entitlements[self.player].append("H3_SIGNITURE_PACK")#Swtich 2 Pre-order Items
-        self.enabled_entitlements[self.player].append("H3_QUACK_PACK")#Switch 2 Physical Pre-order Items
-        self.enabled_entitlements[self.player].append("LOCATION_GOLDEN") #Freelancer Items
+        #Check for version specific DLC
+        match(self.options.game_version.value):
+            case self.options.game_version.option_hitman_world_of_assassination:
+                self.enabled_entitlements[self.player].append("H3_BASE")
+                
+                if self.options.include_freelancer_items:
+                    self.enabled_entitlements[self.player].append("LOCATION_GOLDEN") 
 
-        #TODO: Currently Assume Player is on H3, so always give theese
-        self.enabled_entitlements[self.player].append("H1_GOTY")
-        self.enabled_entitlements[self.player].append("H2_LEGACY")
-        self.enabled_entitlements[self.player].append("H1_REQUIEM_PACK")
+                if self.options.include_deluxe_items:
+                    self.enabled_entitlements[self.player].append("H3_DELUXE_PACK")
 
+                if self.options.include_h2_expansion_items:
+                    self.enabled_entitlements[self.player].append("H3_H2_EXPANSION")
 
-        # Check for H3 editions
-        if self.options.include_deluxe_items:
-            self.enabled_entitlements[self.player].append("H3_DELUXE_PACK")
+                if self.options.include_sins_items: #TODO: options for individual enable
+                    self.enabled_entitlements[self.player].append("H3_SINS_GREED")
+                    self.enabled_entitlements[self.player].append("H3_SINS_PRIDE")
+                    self.enabled_entitlements[self.player].append("H3_SINS_SLOTH")
+                    self.enabled_entitlements[self.player].append("H3_SINS_LUST")
+                    self.enabled_entitlements[self.player].append("H3_SINS_GLUTTONY")
+                    self.enabled_entitlements[self.player].append("H3_SINS_ENVY")
+                    self.enabled_entitlements[self.player].append("H3_SINS_WRATH")
 
-        if self.options.include_h2_expansion_items:
-            self.enabled_entitlements[self.player].append("H2_GREEDY") 
-            self.enabled_entitlements[self.player].append("H2_STINGRAY") 
+                if self.options.include_trinity_items:
+                    self.enabled_entitlements[self.player].append("H3_TRINITY")
 
-        if self.options.include_sins_items: #TODO: options for individual enable
-            self.enabled_entitlements[self.player].append("H3_SINS_GREED")
-            self.enabled_entitlements[self.player].append("H3_SINS_PRIDE")
-            self.enabled_entitlements[self.player].append("H3_SINS_SLOTH")
-            self.enabled_entitlements[self.player].append("H3_SINS_LUST")
-            self.enabled_entitlements[self.player].append("H3_SINS_GLUTTONY")
-            self.enabled_entitlements[self.player].append("H3_SINS_ENVY")
-            self.enabled_entitlements[self.player].append("H3_SINS_WRATH")
+                if self.options.include_street_art_items:
+                    self.enabled_entitlements[self.player].append("H3_VANITY_CONCRETEART")
 
-        # Check for Elusive Target DLCs
-        if self.options.include_splitter_items:
-            self.enabled_entitlements[self.player].append("H3_ET_LAMBIC")
+                if self.options.include_makeshift_items:
+                    self.enabled_entitlements[self.player].append("H3_VANITY_MAKESHIFTSCRAP")
 
-        if self.options.include_disruptor_items:
-            self.enabled_entitlements[self.player].append("H3_ET_PENICILLIN")
+                # Check for H3 Elusive Target DLCs
+                if self.options.include_splitter_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_LAMBIC")
 
-        if self.options.include_undying_items:
-            self.enabled_entitlements[self.player].append("H3_ET_SAMBUCA")
+                if self.options.include_disruptor_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_PENICILLIN")
 
-        if self.options.include_drop_items:
-            self.enabled_entitlements[self.player].append("H3_ET_TOMORROWLAND")
+                if self.options.include_undying_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_SAMBUCA")
 
-        if self.options.include_banker_items:
-            self.enabled_entitlements[self.player].append("H3_ET_FRENCHMARTINI")
+                if self.options.include_drop_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_TOMORROWLAND")
 
-        if self.options.include_bruce_lee_items:
-            self.enabled_entitlements[self.player].append("H3_ET_BAIJU")
+                if self.options.include_banker_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_FRENCHMARTINI")
 
-        if self.options.include_eminem_items:
-            self.enabled_entitlements[self.player].append("H3_ET_BELLINI")
+                if self.options.include_bruce_lee_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_BAIJU")
 
-        # Check for H3 DLC
-        if self.options.include_trinity_items:
-            self.enabled_entitlements[self.player].append("H3_TRINITY")
+                if self.options.include_eminem_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_BELLINI")
 
-        if self.options.include_street_art_items:
-            self.enabled_entitlements[self.player].append("H3_VANITY_CONCRETEART")
+            case self.options.game_version.option_hitman_2:
+                self.enabled_entitlements[self.player].append("H2_BASE")
 
-        if self.options.include_makeshift_items:
-            self.enabled_entitlements[self.player].append("H3_VANITY_MAKESHIFTSCRAP")
+                if self.options.include_h2_legacy_items:
+                    self.enabled_entitlements[self.player].append("H2_LEGACY")
 
-        # Check for H2 DLC
-        if self.options.include_executive_items:
-            self.enabled_entitlements[self.player].append("H2_EXECUTIVE")
-            self.enabled_entitlements[self.player].append("H2_COLLECTORS_OR_EXECUTIVE")
+                if self.options.include_h2_silver_items \
+                or self.options.include_h2_gold_items:
+                    self.enabled_entitlements[self.player].append("H2_EXECUTIVE")
+                    self.enabled_entitlements[self.player].append("H2_COLLECTORS_OR_EXECUTIVE")
+                    self.enabled_entitlements[self.player].append("H2_WINTER_SPORTS")
+                    self.enabled_entitlements[self.player].append("H2_GREEDY")
 
-        if self.options.include_collectors_items:
-            self.enabled_entitlements[self.player].append("H2_COLLECTORS")
-            self.enabled_entitlements[self.player].append("H2_COLLECTORS_OR_EXECUTIVE")
+                if self.options.include_h2_gold_items:
+                    self.enabled_entitlements[self.player].append("H2_COLLECTORS")
+                    self.enabled_entitlements[self.player].append("H2_COLLECTORS_OR_EXECUTIVE")
+                    self.enabled_entitlements[self.player].append("H2_SMART_CASUAL")
+                    self.enabled_entitlements[self.player].append("H2_STINGRAY")
 
-        if self.options.include_smart_casual_items:
-            self.enabled_entitlements[self.player].append("H2_SMART_CASUAL") 
+            # Check for H1 DLC
+            case self.options.game_version.option_hitman_1:
+                self.enabled_entitlements[self.player].append("H1_BASE")
 
-        if self.options.include_winter_sports_items:
-            self.enabled_entitlements[self.player].append("H2_WINTER_SPORTS") 
+                if self.options.include_h1goty_items:
+                    self.enabled_entitlements[self.player].append("H1_GOTY")
+
+                if self.options.include_requiempack_items:
+                    self.enabled_entitlements[self.player].append("H1_REQUIEM_PACK")
 
     def create_regions(self) -> None:
         menu_region = Region("Menu", self.player, self.multiworld)
@@ -279,6 +310,10 @@ class HitmanWorld(World):
         menu_region.connect(map_region)
 
         for location in location_table:
+
+            if location.endswith("Small Pumpkin")\
+            and self.options.game_version.value < 3:
+                continue
 
             #if game is not in master-difficulty, some items appear in additional levels
             if self.options.game_difficulty.value != self.options.game_difficulty.option_master: 
@@ -374,7 +409,7 @@ class HitmanWorld(World):
         starting_locaiton = "Level - "+goal_table[self.options.starting_location.current_key]
 
         for item in item_table:
-            if len(item_table[item][1]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1]):
+            if len(item_table[item][1][self.options.game_version.value]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1][self.options.game_version.value]):
                 if item in self.options.excluded_starting_items.value:
                     self.multiworld.push_precollected(self.create_item(item))
                     continue
@@ -387,7 +422,7 @@ class HitmanWorld(World):
                 if item_table[item][2] == ItemClassification.useful:
                     valid_useful.append(item)
                 if item_table[item][3]: #is allowed to be duplicated
-                     valid_duplicats.append(item)
+                    valid_duplicats.append(item)
 
         second_sphere_item = self.random.choice(item_pool).name
         self.multiworld.early_items[self.player][second_sphere_item] = 1

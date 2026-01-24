@@ -75,6 +75,17 @@ class AdditionalContractPieces(Range):
     range_start = 0
     default = 5
 
+class GameVersion(Choice):
+    """
+    Items and checks not available on the chosen version will not be included."""
+    display_name = "Game Version"
+    option_hitman_world_of_assassination = 3
+    option_hitman_2 = 2
+    option_hitman_1 = 1
+    alias_hitman_3 = option_hitman_world_of_assassination
+    default = 3
+
+
 class StartingLevel(Choice):
     """Which level is unlocked from the start. If the selected level is not included in the "included_x_locations"options, it will be added to it."""
     display_name = "Starting Level"
@@ -259,9 +270,12 @@ class ComplicationWeights(OptionCounter):
     valid_keys = game_changers_table
 
 class EnableEverythingItem(Choice):
-    """Adds multiple Item Packages one for each type of item (Pistol, Poison, Explosive etc.). When starting a mission with a package equipped, all unlocked and concealable items will be added to 47's pocket. 
+    """Adds multiple Item Packages one for each type of item (Pistol, Poison, Explosive etc.). 
+    When starting a mission with a package equipped, all unlocked 
+    and concealable items of that type will be added to 47's pocket. 
     
-    The \"in_inventory\" option adds the packages directly to your starting inventory, the \"in_itempool\" options adds the packages to the itempool and shuffles them to to any check in the multiworld."""
+    The \"in_inventory\" option adds the packages directly to your starting inventory.
+    The \"in_itempool\" options adds the packages to the itempool and shuffles them to to any check in the multiworld."""
     display_name = "Enable Item Packages"
     option_off = 0
     option_in_inventory = 1
@@ -285,9 +299,12 @@ class IncludeDeluxeItems(Toggle):
     display_name = "Include Deluxe Pack Items"
 
 class IncludeGOTYItems(DefaultOnToggle):
-    """Include Items from the HITMAN 1 Game of the Year Update"""
-    display_name = "Include GOTY Items"
-    visibility = Visibility.none #TODO: should be in H3 always, I think, but unsure
+    """For HITMAN 1: Include Items from the HITMAN 1 Game of the Year Edition"""
+    display_name = "Include HITMAN 1 GOTY Items"
+
+class IncludeRequiemItems(Toggle):
+    """For HITMAN 1: Include Items from the HITMAN 1 Requiem Pack"""
+    display_name = "Include HITMAN 1 Requiem Pack Items"
 
 class IncludeExpansionItems(Toggle):
     """Include Items from the HITMAN 2 Expansion Pack"""
@@ -337,30 +354,26 @@ class IncludeMakeshiftItems(Toggle):
     """Include Items from the Makeshift Pack"""
     display_name = "Include Makeshift Pack Items"
 
-class IncludeLegacyItems(Toggle):
-    """Include Items marked as \"Legacy\", which only affects HITMAN 2"""
-    display_name = "Include Legacy Items"
-    visibility = Visibility.none
-# TODO: do this properly along with other H2 support (should be HITMAN 1 acess pass items in H2)
+class IncludeH2LegacyItems(Toggle):
+    """For HITMAN 2: Include Items from the HITMAN Legacy Pack"""
+    display_name = "Include HITMAN 2 Legacy Pack Items"
 
-class IncludeExecutiveItems(Toggle):
-    """Include Items from the HITMAN 2 Executive Pack (Included in \"HITMAN 3 Access Pass: HITMAN 2 Expansion\")"""
-    display_name = "Include Executive Pack Items"
+class IncludeH2SilverItems(Toggle):
+    """For HITMAN 2: Include Items from the HITMAN 2 Silver Edition"""
+    display_name = "Include HITMAN 2 Silver Edition Items"
 
-class IncludeCollectorsItems(Toggle):
-    """Include Items from the HITMAN 2 Collectors Pack (Included in \"HITMAN 3 Access Pass: HITMAN 2 Expansion\")"""
-    display_name = "Include Collectors Pack Items"
+class IncludeH2GoldItems(Toggle):
+    """For HITMAN 2: Include Items from the HITMAN 2 Gold Edition"""
+    display_name = "Include HITMAN 2 Gold Edition Items"
 
-class IncludeSmartCasualItems(Toggle):
-    """Include Items from the HITMAN 2 Smart Casual Pack (Included in \"HITMAN 3 Access Pass: HITMAN 2 Expansion\")"""
-    display_name = "Include Smart Casual Pack Items"
-
-class IncludeWinterSportsItems(Toggle):
-    """Include Items from the Winter Sports Pack (Included in \"HITMAN 3 Access Pass: HITMAN 2 Expansion\")"""
-    display_name = "Include Winter Sports Pack Items"
+class IncludeFreelancerItems(DefaultOnToggle):
+    """Include Items from the Freelancer mode. 
+    (Only missing if you are playing on HITMAN World of Assassination Part One)"""
+    display_name = "Include Freelancer Items"
 
 @dataclass
 class HitmanOptions(PerGameCommonOptions):
+    game_version: GameVersion
     game_difficulty: GameDifficulty
     enable_itemsanity: Itemsanity
     split_itemsanity: SplitItemsanity
@@ -398,6 +411,10 @@ class HitmanOptions(PerGameCommonOptions):
     min_number_of_targets: MinRandomTargets
     max_number_of_targets: MaxRandomTargets
 
+    include_h1goty_items: IncludeGOTYItems
+    include_requiempack_items:IncludeRequiemItems
+
+    include_freelancer_items: IncludeFreelancerItems
     include_deluxe_items: IncludeDeluxeItems
     include_h2_expansion_items: IncludeExpansionItems
     include_sins_items: IncludeSinsItems
@@ -414,13 +431,13 @@ class HitmanOptions(PerGameCommonOptions):
     include_street_art_items: IncludeConcreteArtItems
     include_makeshift_items: IncludeMakeshiftItems
 
-    include_executive_items: IncludeExecutiveItems
-    include_collectors_items: IncludeCollectorsItems
-    include_smart_casual_items: IncludeSmartCasualItems
-    include_winter_sports_items: IncludeWinterSportsItems
+    include_h2_silver_items: IncludeH2SilverItems
+    include_h2_gold_items: IncludeH2GoldItems
+    include_h2_legacy_items: IncludeH2LegacyItems
 
 option_groups = [
         OptionGroup("Ingame Settings",[
+            GameVersion,
             GameDifficulty,
             RandomTargets,
             MinRandomTargets,
@@ -460,23 +477,29 @@ option_groups = [
             ExcludedItems,
             ExcludedStartingItems
         ]),
-        OptionGroup("Included Items from DLC",[
+        OptionGroup("Included Items from HITMAN 3/WoA DLC",[
+            IncludeFreelancerItems,
             IncludeDeluxeItems,
             IncludeExpansionItems,
             IncludeSinsItems,
+            IncludeConcreteArtItems,
+            IncludeMakeshiftItems,
+            IncludeTrinityItems,
             IncludeLambicItems,
             IncludePenecillinItems,
             IncludeSambucaItems,
             IncludeTomorrowlandItems,
             IncludeBankerItems,
             IncludeBruceLeeItems,
-            IncludeEminemItems,
-            IncludeTrinityItems,
-            IncludeConcreteArtItems,
-            IncludeMakeshiftItems,
-            IncludeExecutiveItems,
-            IncludeCollectorsItems,
-            IncludeSmartCasualItems,
-            IncludeWinterSportsItems
+            IncludeEminemItems
+        ]),
+        OptionGroup("Included Items from HITMAN 2 DLC",[
+            IncludeH2SilverItems,
+            IncludeH2GoldItems,
+            IncludeH2LegacyItems
+        ]),
+        OptionGroup("Included Items from HITMAN 1 DLC",[
+            IncludeGOTYItems,
+            IncludeRequiemItems
         ])
     ]

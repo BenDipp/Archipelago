@@ -197,6 +197,10 @@ Thumbs.db
 [Dd]esktop.ini
 
 *.xlsx
+*.xlsx#
 
 fuzz.py
 /fuzz_output
+
+bin/
+pyvenv.cfg
