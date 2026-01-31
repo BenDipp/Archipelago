@@ -5,6 +5,7 @@ import { clearInventoryCache } from "@peacockproject/core/inventory"
 import { getFlag, setFlag } from "@peacockproject/core/flags"
 import {
     Campaign,
+    GameChanger,
     GameVersion,
     GenSingleMissionFunc,
     GenSingleVideoFunc,
@@ -7050,8 +7051,8 @@ function setupMainMenuTiles(){
 }
 
 module.exports = function archipelagoCampaign(controller: Controller) {
-    logArchipelago("Loading Archipelago Plugin (v0.8.0)")
-    
+    logArchipelago("Loading Archipelago Plugin (v0.8.0 Beta 1)")
+
     saveImagesToDisk()
     setupMainMenuTiles()
     setupUnlockables(controller)
