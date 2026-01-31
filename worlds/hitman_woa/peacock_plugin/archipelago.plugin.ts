@@ -6014,29 +6014,29 @@ const disguiseMap: Record<string, {apId:number, name:string, contractId:string}>
     "1cec2601-c1ed-474f-ac70-ff8614799fcc": {apId:3288, name:"Pirate", contractId:"b2aac100-dfc7-4f85-b9cd-528114436f6c"},
     "052cbf5d-e268-479a-a705-17609d528182": {apId:3289, name:"The Buccaneer", contractId:"b2aac100-dfc7-4f85-b9cd-528114436f6c"},
 }
-const gameChangerApIdToRepoIdMap: Record<number,string> = {
-	1: "113ba9e8-4fa5-4ab0-b613-05b97e39e600",
-	2: "63055f1a-bcd2-4e0f-8caf-b446f01d02f3",
-	3: "c2da52c5-ff3e-41cd-a175-4ed9267f6c95",
-	4: "9f409781-0a06-4748-b08d-784e78c6d481",
-	5: "03ca23e8-7daf-4346-8719-29970bc50d17",
-	6: "f41f18fe-0fe5-416a-a793-50727e594655",
-	7: "576b385f-2213-4f72-a17c-c346338d3d9f",
-	8: "3a8d4421-096e-4a1b-853a-c12886a51d1f",
-	9: "1f1f3c9e-1490-4fcc-aee6-5fde7c6c48ca",
-	10: "fd37b209-4e11-461e-a11f-394c92fbbe80",
-	11: "3fea3aea-0233-46bb-8bc1-08757a2f6a74",
-	12: "25760ea6-958b-4aab-97d4-b539c5b025c8",
-	13: "5fef7df0-94ef-47ef-b91e-d67578f81d76",
-	14: "95b8fdcf-9879-4e16-978f-c220ee6adac1",
-	15: "5b368c64-ed49-4907-9075-d4a31953374a",
-	16: "fdc7a60b-aa7f-4628-bd03-00c93393967f",
-	17: "f123cf4d-25c9-4eab-ad29-1b7d5294c74f",
-	18: "351ce43a-9f8f-4645-8e3a-4adf2ff08fc7",
-	19: "ce154566-a4ba-43c5-be4e-79240ce0f3f9",
-	20: "e06e5d9c-36ac-4ba4-a97b-d439c900d81b",
-	21: "61b1203e-84a0-4b77-bf88-8ba956ebd2bd",
-	22: "bb0c22b7-f5e4-4a91-bc7a-9070177a87e4"
+const gameChangerApIdToRepoIdMap: Record<number,{repoId:string, manifest?:GameChanger, versionsToOverride?:string[], overrides?:Record<string,string>}> = {
+	1:  {repoId: "113ba9e8-4fa5-4ab0-b613-05b97e39e600"},
+	2:  {repoId: "63055f1a-bcd2-4e0f-8caf-b446f01d02f3"},
+	3:  {repoId: "c2da52c5-ff3e-41cd-a175-4ed9267f6c95"},
+	4:  {repoId: "9f409781-0a06-4748-b08d-784e78c6d481"},
+	5:  {repoId: "03ca23e8-7daf-4346-8719-29970bc50d17"},
+	6:  {repoId: "f41f18fe-0fe5-416a-a793-50727e594655"},
+	7:  {repoId: "576b385f-2213-4f72-a17c-c346338d3d9f"},
+	8:  {repoId: "3a8d4421-096e-4a1b-853a-c12886a51d1f"},
+	9:  {repoId: "1f1f3c9e-1490-4fcc-aee6-5fde7c6c48ca"},
+	10: {repoId: "fd37b209-4e11-461e-a11f-394c92fbbe80"},
+	11: {repoId: "3fea3aea-0233-46bb-8bc1-08757a2f6a74"},
+	12: {repoId: "25760ea6-958b-4aab-97d4-b539c5b025c8"},
+	13: {repoId: "5fef7df0-94ef-47ef-b91e-d67578f81d76"},
+	14: {repoId: "95b8fdcf-9879-4e16-978f-c220ee6adac1"},
+	15: {repoId: "5b368c64-ed49-4907-9075-d4a31953374a"},
+	16: {repoId: "fdc7a60b-aa7f-4628-bd03-00c93393967f"},
+	17: {repoId: "f123cf4d-25c9-4eab-ad29-1b7d5294c74f"},
+	18: {repoId: "351ce43a-9f8f-4645-8e3a-4adf2ff08fc7"},
+	19: {repoId: "ce154566-a4ba-43c5-be4e-79240ce0f3f9"},
+	20: {repoId: "e06e5d9c-36ac-4ba4-a97b-d439c900d81b", versionsToOverride:["h1","h2"], overrides:{"TileImage":"images/contracts/ap/campaign.jpg"}},
+	21: {repoId: "61b1203e-84a0-4b77-bf88-8ba956ebd2bd", versionsToOverride:["h1","h2"], overrides:{"Name":"Kill method accidental", "Description":"You have to kill your targets solely through accidents."}},
+	22: {repoId: "bb0c22b7-f5e4-4a91-bc7a-9070177a87e4", versionsToOverride:["h1","h2"], overrides:{"Name":"No poison elimination", "Description":"Do not eliminate any target using lethal poison.", "TileImage":"images/contracts/ap/campaign.jpg"}}
 }
 
 const everythingUnlockables: Record<string,{apId:number,unlockableTemplate:Unlockable}> = {
@@ -6198,6 +6198,18 @@ const setupUnlockables = (controller: Controller)=> {
 	//Fix accident-only and no-poison-kill gameChanger not beeing primary
 	configs.GameChangerProperties["61b1203e-84a0-4b77-bf88-8ba956ebd2bd"].Objectives[0].Category = "primary"
 	configs.GameChangerProperties["bb0c22b7-f5e4-4a91-bc7a-9070177a87e4"].Objectives[0].Category = "primary"
+
+    //For consistency remove only gamechanger with hudtemplate
+    //TODO: maybe for consistency add Hudtempalte for all?
+    configs.GameChangerProperties["bb0c22b7-f5e4-4a91-bc7a-9070177a87e4"].Objectives[0].HUDTemplate = undefined
+    
+    //add custom gamechangers
+    for(const id in gameChangerApIdToRepoIdMap){
+        if(gameChangerApIdToRepoIdMap[id].manifest != undefined){
+            configs.GameChangerProperties[gameChangerApIdToRepoIdMap[id].repoId] = gameChangerApIdToRepoIdMap[id].manifest
+        }
+    }
+
 }
 
 function addChallange(controller:Controller, name:string, imagePath:string, description:string, icon:string, statemachine:any, groupId:string, locationParent:string, inclusionDataContractIds:string[], apId:number){
@@ -6629,8 +6641,13 @@ const addModifiedMissions = (controller: Controller, difficulty: string, seed: s
 			const gameChangers = splitGameChangers[contractIndex].split("_")
             for(const id in gameChangers){
                 if(gameChangers[id]!=""){
-					contract.Data.GameChangers?.push(gameChangerApIdToRepoIdMap[Number(gameChangers[id])]) //TODO: are gamechangers version agnostic? (might be, they just are in the Peacock-list)
-				}
+                    const gamechanger = gameChangerApIdToRepoIdMap[Number(gameChangers[id])]
+                    if(gamechanger != undefined){
+                        contract.Data.GameChangers?.push(gamechanger.repoId)
+                    }else{
+                        errArchipelago("No gameChanger found with apId "+gameChangers[id]+" when adding to "+contractMap[contractId].name)
+                    }
+                }
 			}
 		}
 
@@ -7279,7 +7296,25 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 			}
 		}
 	)
-
+    controller.hooks.fixContract.tap("overrideGameChangers",
+		(contract: MissionManifest,
+		GameVersion: GameVersion) => {
+            const gameChangers = contract.Data.GameChangers
+            if(gameChangers != undefined){
+                for(const id in gameChangers){
+                    const record = Object.values(gameChangerApIdToRepoIdMap).filter((element:any) => element.repoId == gameChangers[id])
+                    if(record.length!=0){ 
+                        if(record[0].versionsToOverride != undefined && record[0].versionsToOverride.includes(GameVersion)){
+                            for(const keyId in Object.keys(record[0].overrides!)){
+                                const key = Object.keys(record[0].overrides!)[keyId]
+                                configs.GameChangerProperties[gameChangers[id]][key] = record[0].overrides![key] 
+                            }
+                        }
+                    }
+                }
+            }
+		}
+	)
 	printApIcon()
     logArchipelago("Archipelago Plugin Loaded.")
 }
