@@ -294,6 +294,12 @@ class ExcludedStartingItems(ItemSet):
     Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")"""
     display_name = "Excluded Starting Items"
 
+class IncludedFiller(ItemSet):
+    """List of Items to always be shuffled into the multiworld.
+    Selected Items will be included before any other non-progression Item, ensuring they are not left out if there are more items then checks. 
+    Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")"""
+    display_name = "Prioritized Filler Items"
+
 class IncludeDeluxeItems(Toggle):
     """Include Items from the HITMAN 3 Deluxe Pack"""
     display_name = "Include Deluxe Pack Items"
@@ -392,6 +398,7 @@ class HitmanOptions(PerGameCommonOptions):
 
     excluded_items: ExcludedItems
     excluded_starting_items: ExcludedStartingItems
+    prioritized_filler: IncludedFiller
     item_packages: EnableEverythingItem
 
     starting_location: StartingLevel
@@ -475,7 +482,8 @@ option_groups = [
         OptionGroup("Item Settings",[
             EnableEverythingItem,
             ExcludedItems,
-            ExcludedStartingItems
+            ExcludedStartingItems,
+            IncludedFiller
         ]),
         OptionGroup("Included Items from HITMAN 3/WoA DLC",[
             IncludeFreelancerItems,

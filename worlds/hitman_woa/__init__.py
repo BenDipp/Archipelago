@@ -113,7 +113,10 @@ class HitmanWorld(World):
 
         if any(x.startswith("Level - ") for x in self.options.excluded_items.value):
             raise OptionError("Cannot exclude Level-Items. If you want to exclude a Level, use the \"included_x_locations\" options.")
-
+        
+        if any(x.startswith("Level - ") for x in self.options.excluded_starting_items.value):
+            raise OptionError("Cannot exclude Level-Items. If you want to exclude a Level, use the \"included_x_locations\" options.")
+        
         self.enabled_entitlements[self.player] = []
 
         # Universal Tracker support:
@@ -224,7 +227,7 @@ class HitmanWorld(World):
                 self.enabled_entitlements[self.player].append("H3_BASE")
                 
                 if self.options.include_freelancer_items:
-                    self.enabled_entitlements[self.player].append("LOCATION_GOLDEN") 
+                    self.enabled_entitlements[self.player].append("H3_FREELANCER") 
 
                 if self.options.include_deluxe_items:
                     self.enabled_entitlements[self.player].append("H3_DELUXE_PACK")
@@ -405,6 +408,7 @@ class HitmanWorld(World):
 
         valid_filler = []
         valid_useful = []
+        priority_filler = []
         valid_duplicats = []
         starting_locaiton = "Level - "+goal_table[self.options.starting_location.current_key]
 
@@ -417,12 +421,14 @@ class HitmanWorld(World):
                     continue
                 if item_table[item][2] == ItemClassification.progression and item != starting_locaiton and item != "Contract Piece":
                     item_pool.append(self.create_item(item))
-                if item_table[item][2] == ItemClassification.filler:
+                if item_table[item][2] == ItemClassification.filler and item not in self.options.prioritized_filler.value:
                     valid_filler.append(item)
-                if item_table[item][2] == ItemClassification.useful:
+                if item_table[item][2] == ItemClassification.useful and item not in self.options.prioritized_filler.value:
                     valid_useful.append(item)
                 if item_table[item][3]: #is allowed to be duplicated
                     valid_duplicats.append(item)
+                if item in self.options.prioritized_filler.value and item_table[item][2] != ItemClassification.progression:
+                    priority_filler.append(item)
 
         second_sphere_item = self.random.choice(item_pool).name
         self.multiworld.early_items[self.player][second_sphere_item] = 1
@@ -453,7 +459,11 @@ class HitmanWorld(World):
         total_items = len(item_pool)
         
         for _ in range(total_locations - total_items):
-            if len(valid_useful) != 0:
+            if len(priority_filler) != 0:
+                choosenItem = self.random.choice(priority_filler)
+                item_pool.append(self.create_item(choosenItem))
+                priority_filler.remove(choosenItem)
+            elif len(valid_useful) != 0:
                 choosenItem = self.random.choice(valid_useful)
                 item_pool.append(self.create_item(choosenItem))
                 valid_useful.remove(choosenItem)
