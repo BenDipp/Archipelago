@@ -1,6 +1,6 @@
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Dict, List
-from BaseClasses import Item, ItemClassification, Region, Tutorial
+from BaseClasses import Item, ItemClassification, Region, Tutorial, LocationProgressType
 from Fill import FillError
 from Options import OptionError
 from worlds.generic.Rules import set_rule
@@ -388,6 +388,18 @@ class HitmanWorld(World):
                             lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
 
             self.target_slotdata = "vanilla"
+
+        if self.options.exclude_goal_level_locations.value \
+         and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion\
+         or  self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
+            for location in map_region.locations:
+                if self.options.game_difficulty.value != self.options.game_difficulty.option_master: 
+                    locations_to_search = location_table[location.name][1] + location_table[location.name][4]
+                else:
+                    locations_to_search = location_table[location.name][1]
+                
+                if all((x==self.options.goal_level.current_key or x not in self.enabled_entitlements[self.player]) for x in locations_to_search):
+                    location.progress_type = LocationProgressType.EXCLUDED
 
         enabled_levels_count = sum(entitlement in goal_table.keys() for entitlement in set(self.enabled_entitlements[self.player]))
         contract_piece_count = self.options.goal_required_contract_pieces.value + self.options.goal_additional_contract_pieces.value

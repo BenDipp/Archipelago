@@ -190,6 +190,10 @@ class SplitItemsanity(Toggle):
     """Split the checks from itemsanity by map (\"Itempickup - Crowbar\" becomes \"Itempickup - ICA Facility - Crowbar\", \"Itempickup - Paris - Crowbar\", \"Itempickup - Sapienza - Crowbar\" etc.)"""
     display_name = "Split Itemsanity"
 
+class ExcludeGoalLevelChecks(DefaultOnToggle):
+    """When goal is set to level_completion or contract_collection_level_completion, adds all checks in the Goal-Level to the list of excluded checks, preventing progression items to be placed there."""
+    display_name = "Checks in Goal Level are excluded"
+
 class GameDifficulty(Choice):
     """Set the ingame difficulty for all missions:
     - Casual: Unlimited saves, All Mission Story guides available, No surveillance cameras, Less enforcers, Forgiving combat, More items are legal to carry, NPCs are less attentive to sounds.
@@ -385,6 +389,7 @@ class HitmanOptions(PerGameCommonOptions):
     split_itemsanity: SplitItemsanity
     enable_disguisesanity: DisguiseSanity
     enable_target_checks : CheckForTarget
+    exclude_goal_level_locations : ExcludeGoalLevelChecks 
 
     random_complications : RandomComplications
     min_number_of_complications: MinComplications
@@ -475,6 +480,7 @@ option_groups = [
             Goal,
             GoalLevel,
             GoalDifficulty,
+            ExcludeGoalLevelChecks,
             GoalAmount,
             RequiredContractPieceAmount,
             AdditionalContractPieces
