@@ -239,7 +239,7 @@ class MinComplications(Range):
     """The minimum number of Complications to be assigned to a Level if Random Complications is active""" 
     display_name = "Min Number of Complications"
     range_end = 5
-    range_start = 1
+    range_start = 0
     default = 1
 
 class ComplicationWeights(OptionCounter):
