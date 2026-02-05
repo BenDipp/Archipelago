@@ -221,6 +221,9 @@ class HitmanWorld(World):
         if self.options.item_packages.value == self.options.item_packages.option_in_itempool:
             self.enabled_entitlements[self.player].append("packages_in_pool")
         
+        if self.options.include_sniper_assassin_weapons:
+            self.enabled_entitlements[self.player].append("heavy_snipers")
+
         #Check for version specific DLC
         match(self.options.game_version.value):
             case self.options.game_version.option_hitman_world_of_assassination:

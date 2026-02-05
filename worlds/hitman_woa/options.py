@@ -304,6 +304,10 @@ class IncludedFiller(ItemSet):
     Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")"""
     display_name = "Prioritized Filler Items"
 
+class IncludeHeavySnipers(Toggle):
+    """Include the Snipers from the Sniper Assassin gamemode in the itempool, making them useable in normal missions."""
+    display_name = "Include Sniper Assassin Weapons"
+
 class IncludeDeluxeItems(Toggle):
     """Include Items from the HITMAN 3 Deluxe Pack"""
     display_name = "Include Deluxe Pack Items"
@@ -405,6 +409,7 @@ class HitmanOptions(PerGameCommonOptions):
     excluded_starting_items: ExcludedStartingItems
     prioritized_filler: IncludedFiller
     item_packages: EnableEverythingItem
+    include_sniper_assassin_weapons: IncludeHeavySnipers
 
     starting_location: StartingLevel
     goal_mode: Goal
@@ -489,7 +494,8 @@ option_groups = [
             EnableEverythingItem,
             ExcludedItems,
             ExcludedStartingItems,
-            IncludedFiller
+            IncludedFiller,
+            IncludeHeavySnipers
         ]),
         OptionGroup("Included Items from HITMAN 3/WoA DLC",[
             IncludeFreelancerItems,
