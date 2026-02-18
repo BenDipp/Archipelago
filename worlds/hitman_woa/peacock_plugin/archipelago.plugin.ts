@@ -36,7 +36,6 @@ interface slotData {
     },
     levels: Record<string,{enabled:boolean, complications?:number[], targets?:number[]}>
 }
-let modifiedContractMap: Record<string,{name:string, id:string}> = {}
 
 const contractMap: Record<string,{contractId:string, contractCreationId:string, locationParent:string, completionApIds:Record<string,number>, vanillaTargets:string[] }>= {
     "ICA Facility" : {contractId:"ada5f2b1-8529-48bb-a596-717f75f5eacb", contractCreationId:"535615f2-f8b2-492a-a9c7-150f954dd078", locationParent:"LOCATION_PARENT_ICA_FACILITY", completionApIds:{"completed":1000,"sa":1022,"so":1044,"saso":1066}, vanillaTargets:["579f2544-1970-4865-afa3-ad4566e5f98d"]},
@@ -6178,7 +6177,8 @@ const setupUnlockables = (controller: Controller)=> {
 				unlockable.Properties.RepositoryAssets = [unlockable.Properties.RepositoryId!]
 			}
         }else{
-            if(!apItemMap[apid].apItemName.startsWith("Level -") && !apItemMap[apid].apItemName.startsWith("Package -")){
+            const start = apItemMap[apid].apItemName.split(" - ")[0]
+            if(start != "Level" && start != "Package" && start != "Heavy Sniper"){
                 errArchipelago("Unlockable "+unlockableId+" is not in allunlockables.json")
             }
         }
@@ -6224,7 +6224,6 @@ const setupUnlockables = (controller: Controller)=> {
         if(customUnlockables[id].availableInVersions.includes("h1")){
             apItemMap[customUnlockables[id].apId].h1unlockable = JSON.parse(JSON.stringify(customUnlockables[id].unlockable))
         }
-        logArchipelago(apItemMap[customUnlockables[id].apId].apItemName)
     }
 	//Remove references to Unlockables to avoid log-erros complaining that they are missing
 	const masterydata: MasteryPackage = {LocationId : "", GameVersions : ["h1","h2","h3"], SubPackages: undefined, Drops: []}
@@ -7234,45 +7233,47 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 				checkLocation(challangeIdToApIdMap[challenge.Id])
 			}
 		}
-	)	
+	)
 	controller.hooks.onUserLogin.tap("markChallangesAsChecked",
 		(gameVersion: GameVersion,
 		userId: string) =>  {
 			logArchipelago("User logged in with gameVerison: "+gameVersion)
-			if(challangesNeedToBeUnset){
-				logArchipelago("Unsetting challanges")
-				const userData = getUserData(userId, gameVersion)
-				for(const challangeId in challangeIdToApIdMap){
-					if(userData.Extensions.ChallengeProgression[challangeId] != undefined){
-						userData.Extensions.ChallengeProgression[challangeId] = {
-							CurrentState: "Start",
-							State: {},
-							Completed: false,
-							Ticked: false,
-						}
-					}
-				}
-				writeUserData(userId,gameVersion)
-				challangesNeedToBeUnset = false;
-			}
-			//TODO: find better place for this, don't require re-login
-			if(listOfUncheckedChallanges.length!=0){
-				const userData = getUserData(userId,gameVersion)
-				for(const id in listOfUncheckedChallanges){
-					userData.Extensions.ChallengeProgression[listOfUncheckedChallanges[id]] = {
-        	        	CurrentState: "Start",
-        	        	State: {},
-        	        	Completed: true,
-        	        	Ticked: true,
-        	    	}
-				}
-				while(listOfUncheckedChallanges.length!=0){
-					listOfUncheckedChallanges.pop()
-				}
-			}
+	        if(challangesNeedToBeUnset){
+	        	logArchipelago("Unsetting challanges")
+	        	const userData = getUserData(userId, gameVersion)
+	        	for(const challangeId in challangeIdToApIdMap){
+	        		if(userData.Extensions.ChallengeProgression[challangeId] != undefined){
+	        			userData.Extensions.ChallengeProgression[challangeId] = {
+	        				CurrentState: "Start",
+	        				State: {},
+	        				Completed: false,
+	        				Ticked: false,
+	        			}
+	        		}
+	        	}
+	        	writeUserData(userId,gameVersion)
+                asyncGuard.forceFlush().then(()=>{loadUserData(userId,gameVersion)})
+	        	challangesNeedToBeUnset = false;
+	        }
+	        if(listOfUncheckedChallanges.length!=0){
+	        	const userData = getUserData(userId,gameVersion)
+	        	for(const id in listOfUncheckedChallanges){
+	        		userData.Extensions.ChallengeProgression[listOfUncheckedChallanges[id]] = {
+                    	CurrentState: "Start",
+                    	State: {},
+                    	Completed: true,
+                    	Ticked: true,
+                	}
+	        	}
+	        	while(listOfUncheckedChallanges.length!=0){
+	        		listOfUncheckedChallanges.pop()
+	        	}
+                writeUserData(userId,gameVersion)
+                asyncGuard.forceFlush().then(()=>{loadUserData(userId,gameVersion)})
+	        }
 		}
 	)
-	controller.hooks.fixContract.tap("addEntitlements",
+	controller.hooks.fixContract.tap("disableNotUnlockedContracts",
 		(contract: MissionManifest,
 		GameVersion: GameVersion) => {
 			if(modifiedContractMap[contract.Metadata.Id]!=undefined){
