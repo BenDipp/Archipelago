@@ -190,6 +190,14 @@ class SplitItemsanity(Toggle):
     """Split the checks from itemsanity by map (\"Itempickup - Crowbar\" becomes \"Itempickup - ICA Facility - Crowbar\", \"Itempickup - Paris - Crowbar\", \"Itempickup - Sapienza - Crowbar\" etc.)"""
     display_name = "Split Itemsanity"
 
+class MaxNumberOfCheckInLevel(Range):
+    """The maximum number of Itemsanity and Disguisesanity checks enabled in each level.
+    If set to 0, no maximum is enforced."""
+    display_name = "Max Itemsanity and Disguisesanity checks per Level"
+    range_start = 0
+    range_end = 157
+    default = 0
+
 class ExcludeGoalLevelChecks(DefaultOnToggle):
     """When goal is set to level_completion or contract_collection_level_completion, adds all checks in the Goal-Level to the list of excluded checks, preventing progression items to be placed there."""
     display_name = "Checks in Goal Level are excluded"
@@ -392,6 +400,7 @@ class HitmanOptions(PerGameCommonOptions):
     enable_itemsanity: Itemsanity
     split_itemsanity: SplitItemsanity
     enable_disguisesanity: DisguiseSanity
+    max_sanity_checks_per_level: MaxNumberOfCheckInLevel
     enable_target_checks : CheckForTarget
     exclude_goal_level_locations : ExcludeGoalLevelChecks 
 
@@ -476,6 +485,7 @@ option_groups = [
             Itemsanity,
             SplitItemsanity,
             DisguiseSanity,
+            MaxNumberOfCheckInLevel,
             CheckForCompletion,
             CheckForSA,
             CheckForSO,

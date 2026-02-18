@@ -9,7 +9,7 @@ from worlds.LauncherComponents import Component, Type, components, launch as lau
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, level_completion_location_table, goal_table, valid_targets_table, valid_targets_table_non_master, vanilla_target_table, game_changers_table
+from .locations import HitmanLocation, location_table, sanity_location_table, level_completion_location_table, goal_table, valid_targets_table, valid_targets_table_non_master, vanilla_target_table, game_changers_table
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -315,10 +315,54 @@ class HitmanWorld(World):
         self.multiworld.regions.append(map_region)
         menu_region.connect(map_region)
 
+        if self.options.max_sanity_checks_per_level.value > 0:
+            max_per_level = self.options.max_sanity_checks_per_level.value
+
+            # Build mapping: check -> set(levels it belongs to)
+            check_levels = {}
+            for check in sanity_location_table:
+                levels = set()
+
+                if (len(sanity_location_table[check][2]) > 0 and not
+                 any(y in sanity_location_table[check][2] for y in self.enabled_entitlements[self.player])):
+                    continue
+
+                for level in goal_table:
+                    if level in self.enabled_entitlements[self.player] and\
+                     (level in sanity_location_table[check][1] or
+                     (self.options.game_difficulty.value != self.options.game_difficulty.option_master and
+                     level in sanity_location_table[check][4])):
+                        levels.add(level)
+
+                if levels:
+                    check_levels[check] = levels
+                    #sanity_location_table[check][]
+            # Track how many checks each level currently has
+            level_counts = {level: 0 for level in goal_table}
+            allowed_sanity_checks = []
+
+            # Shuffle checks to keep randomness
+            all_checks = list(check_levels.keys())
+            self.random.shuffle(all_checks)
+
+            for check in all_checks:
+                levels = check_levels[check]
+
+                # Only allow if ALL levels are still below cap
+                if all(level_counts[level] < max_per_level for level in levels):
+                    allowed_sanity_checks.append(check)
+                    for level in levels:
+                        level_counts[level] += 1
+        else:
+            allowed_sanity_checks = list(sanity_location_table.keys())
+
         for location in location_table:
 
             if location.endswith("Small Pumpkin")\
             and self.options.game_version.value < 3:
+                continue
+            
+            if location in sanity_location_table and location not in allowed_sanity_checks:
                 continue
 
             #if game is not in master-difficulty, some items appear in additional levels

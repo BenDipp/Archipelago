@@ -6017,6 +6017,8 @@ location_table = item_pickup_location_table | level_completion_location_table | 
 
 location_table["All Contract Pieces Collected"] = (10000,[],["contract_mode"],["Contract Piece"],[],[],[])
 
+sanity_location_table = item_pickup_location_table | split_item_pickup_location_table | disguise_location_table
+
 goal_table = {
     "ica_facility":"ICA Facility",
     "paris":"Paris",

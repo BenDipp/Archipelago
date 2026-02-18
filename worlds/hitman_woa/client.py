@@ -9,7 +9,7 @@ from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg
 from NetUtils import ClientStatus, NetworkItem
 from settings import get_settings
 from .items import item_table, base_id
-from .locations import goal_table
+from .locations import goal_table, item_pickup_location_table, split_item_pickup_location_table, level_completion_location_table, target_kill_location_table, disguise_location_table
 
 class HitmanCommandProcessor(ClientCommandProcessor):
     def __init__(self, ctx: CommonContext):
@@ -104,61 +104,70 @@ class HitmanContext(CommonContext):
             if(cares_about_goal_rating):
                 enabled_levels.append(self.slot_data["goal_location_name"])
 
-            enabled_string = ""
-            completion_string = ""
+            level_data = {}
+            targets = self.slot_data.get("targets","vanilla")
+            if targets != "vanilla":
+                targets = targets.split("-")
 
-            for location in goal_table.keys():
-                if location in enabled_levels:
-                    enabled_string += "t-"
+            complications = self.slot_data.get("complications","vanilla")
+            if complications != "vanilla":
+                complications = complications.split("-")
 
-                    if location in self.slot_data["levels_with_check_for_completion"] or\
-                    "all" in self.slot_data["levels_with_check_for_completion"] or\
-                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
-                     self.slot_data["goal_rating"] == "any"):
-                        completion_string+="completed_"
+            i = 0
+            for level in goal_table.keys():
+                level_object = {}
+                if level in enabled_levels:
+                    level_object["enabled"] = True
+                    if complications != "vanilla":
+                        level_object["complications"] = list(x for x in complications[i].split("_") if x != "")
+                    else:
+                        level_object["complications"] = []
+
+                    if targets != "vanilla" and targets[i] != "":
+                        level_object["targets"] = list(x for x in targets[i].split("_") if x != "")
+
+                else:
+                    level_object["enabled"] = False
+                
+                level_data[goal_table[level]] = level_object 
+                i = i+1
+
+            all_checks = {
+                "itemPickupChecks":[],
+                "splitItemPickupChecks":[],
+                "completionChecks":[],
+                "eliminationChecks":[],
+                "disguiseChecks":[]
+            }
+            for id in list(x-base_id for x in self.server_locations):
+                location_name = self.location_names.lookup_in_game(id+base_id)
+                if location_name in item_pickup_location_table:
+                    all_checks["itemPickupChecks"].append(id)
+                elif location_name in split_item_pickup_location_table:
+                    all_checks["splitItemPickupChecks"].append(id)
+                elif location_name in level_completion_location_table:
+                    all_checks["completionChecks"].append(id)
+                elif location_name in target_kill_location_table:
+                    all_checks["eliminationChecks"].append(id)
+                elif location_name in disguise_location_table:
+                    all_checks["disguiseChecks"].append(id)
             
-                    if location in self.slot_data["levels_with_check_for_sa"] or\
-                    "all" in self.slot_data["levels_with_check_for_sa"] or\
-                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
-                     self.slot_data["goal_rating"] == "silent_assassin"):
-                        completion_string+="sa_"
+            all_checks["itemPickupChecks"].sort()
+            all_checks["splitItemPickupChecks"].sort()
+            all_checks["completionChecks"].sort()
+            all_checks["eliminationChecks"].sort()
+            all_checks["disguiseChecks"].sort()
 
-                    if location in self.slot_data["levels_with_check_for_so"] or\
-                    "all" in self.slot_data["levels_with_check_for_so"] or\
-                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
-                     self.slot_data["goal_rating"] == "suit_only"):
-                        completion_string+="so_" 
-
-                    if location in self.slot_data["levels_with_check_for_saso"] or\
-                    "all" in self.slot_data["levels_with_check_for_saso"] or\
-                    (cares_about_goal_rating and location == self.slot_data["goal_location_name"] and\
-                     self.slot_data["goal_rating"] == "silent_assassin_suit_only"):
-                        completion_string+="saso_"
-
-                    completion_string+="-"
-                else:
-                    enabled_string += "-"
-                    completion_string += "-"
-
-            itemsanity_string = "off"
-            if self.slot_data["enable_itemsanity"]:
-                if self.slot_data["split_itemsanity"]:
-                    itemsanity_string = "split"
-                else:
-                    itemsanity_string = "combined"
-
-            r = requests.get(
-                self.peacock_url+"/setData/"+
-                self.slot_data["difficulty"]+"/"+
-                str(self.current_seed)+"/"+
-                enabled_string+"/"+
-                completion_string+"/"+
-                self.slot_data.get("targets","vanilla")+"/"+
-                str(self.slot_data.get("enable_target_checks",0)==1)+"/"+
-                self.slot_data.get("complications","vanilla")+"/"+
-                itemsanity_string+"/"+
-                str(self.slot_data.get("enable_disguisesanity",0)==1)+"/"+
-                str(self.slot_data.get("item_packages","off")))
+            r = requests.post(
+                self.peacock_url+"/setData",
+                json={
+                    "difficulty":self.slot_data.get("difficulty","normal"),
+                    "seed":self.current_seed,
+                    "everythingItemInInventory":self.slot_data.get("item_packages","")=="in_inventory",
+                    "checks":all_checks,
+                    "levels":level_data
+                    #TODO: consolidate goal into this
+                })
             r.raise_for_status()
             logger.info("Slot Data sent.")
         except Exception as e:
