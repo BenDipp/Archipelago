@@ -408,6 +408,13 @@ class HitmanWorld(World):
                     valid_targets = valid_targets_table[map]
                     if self.options.game_difficulty.value != self.options.game_difficulty.option_master:
                         valid_targets += valid_targets_table_non_master[map]
+                    if len(valid_targets) == 0 and self.options.enable_target_checks.value:
+                        for i in vanilla_target_table[map]:
+                            location = self.location_id_to_name[i+base_id]
+                            map_region.add_locations({location: i+base_id}, HitmanLocation)
+
+                            set_rule(self.multiworld.get_location(location, self.player),
+                             lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))    
                     for i in range(0, num_of_targets):
                         if(len(valid_targets) <= len(already_used_targets)):
                             break
