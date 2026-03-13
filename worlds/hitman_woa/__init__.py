@@ -3,13 +3,13 @@ from typing import Any, Dict, List
 from BaseClasses import Item, ItemClassification, Region, Tutorial, LocationProgressType
 from Fill import FillError
 from Options import OptionError
-from worlds.generic.Rules import set_rule
+from rule_builder.rules import *
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch as launch_component, icon_paths
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, sanity_location_table, level_completion_location_table, goal_table, valid_targets_table, valid_targets_table_non_master, vanilla_target_table, game_changers_table
+from .locations import HitmanLocation, location_table, sanity_location_table, level_completion_location_table, goal_table, valid_targets_table, valid_targets_table_non_master, vanilla_target_table, game_changers_table, LocationTableEntry
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -44,12 +44,13 @@ class HitmanWorld(World):
     topology_present = True
     ut_can_gen_without_yaml = True
 
-    location_name_to_id = {name: data[0] + base_id for name, data in location_table.items()}
+    location_name_to_id = {name: data.id + base_id for name, data in location_table.items()}
     item_name_to_id = {name: data[0] + base_id for name, data in item_table.items()}
 
     #Keep as list with playerId to differentiate enttilements from multiple players using same world
-    enabled_entitlements:Dict[int,List] = {}
+    enabled_entitlements:Dict[int,list] = {}
 
+    @staticmethod
     def build_name_groups(item_list, index):
         name_groups = {}
         for name, data in item_list.items():
@@ -60,7 +61,18 @@ class HitmanWorld(World):
                 name_groups.setdefault(group, set()).add(name)
         return name_groups
 
-    location_name_groups = build_name_groups(location_table, 6)
+    @staticmethod
+    def build_location_groups(location_list):
+        name_groups = {}
+        for name, data in location_list.items():
+            groups = data.location_groups
+            if not groups:  # skip if empty
+                continue
+            for group in groups:
+                name_groups.setdefault(group, set()).add(name)
+        return name_groups
+
+    location_name_groups = build_location_groups(location_table)
     item_name_groups = build_name_groups(item_table, 4)
     
     # Universal Tracker support:
@@ -224,6 +236,9 @@ class HitmanWorld(World):
         if self.options.include_sniper_assassin_weapons:
             self.enabled_entitlements[self.player].append("heavy_snipers")
 
+        if self.options.game_difficulty.value == self.options.game_difficulty.option_master:
+            self.enabled_entitlements[self.player].append("master")
+
         #Check for version specific DLC
         match(self.options.game_version.value):
             case self.options.game_version.option_hitman_world_of_assassination:
@@ -307,6 +322,69 @@ class HitmanWorld(World):
                 if self.options.include_requiempack_items:
                     self.enabled_entitlements[self.player].append("H1_REQUIEM_PACK")
 
+        if self.options.random_targets.value:
+            target_slot_data = ""
+            already_used_targets = []
+            for level in valid_targets_table:
+                if level in self.enabled_entitlements[self.player]:
+                    num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets.value)
+                    valid_targets = valid_targets_table[level]
+                    if self.options.game_difficulty.value != self.options.game_difficulty.option_master:
+                        valid_targets += valid_targets_table_non_master[level]
+                    if len(valid_targets) == 0 and self.options.enable_target_checks.value:
+                        for i in vanilla_target_table[level]:
+                            self.enabled_entitlements[self.player].append("TARGET_"+str(i))
+                    for i in range(0, num_of_targets):
+                        if len(valid_targets) <= len(already_used_targets):
+                            break
+                        chosen_target = self.random.choice(list(set(valid_targets)-set(already_used_targets)))
+                        target_slot_data += str(chosen_target)+"_"
+                        already_used_targets.append(chosen_target)
+
+                        if self.options.enable_target_checks.value:
+                            self.enabled_entitlements[self.player].append("TARGET_"+str(chosen_target))
+
+                target_slot_data+="-"
+                already_used_targets = []
+
+            self.target_slotdata = target_slot_data
+        else:
+            if self.options.enable_target_checks.value:
+                for level in vanilla_target_table:
+                    if  level in self.enabled_entitlements[self.player]:
+                        for i in vanilla_target_table[level]:
+                            self.enabled_entitlements[self.player].append("TARGET_"+str(i)) #TODO: could be replaced with "vanilla_targets" entitlement
+
+            self.target_slotdata = "vanilla"
+
+        if self.options.random_complications.value:
+            complication_slot_data = ""
+            complication_weights = self.options.complications_weights.value
+
+            for level in goal_table:
+                if level in self.enabled_entitlements[self.player] and level != "carpathian_mountains":
+                    num_of_complications = self.random.randint(self.options.min_number_of_complications.value,
+                                                               self.options.max_number_of_complications.value)
+
+                    already_used_complications = []
+                    for _ in range(0, num_of_complications):
+                        chosen_complication = self.random.choice(
+                            [x for x, w in complication_weights.items()
+                             for _ in range(w)
+                             if w != 0 and x not in already_used_complications]
+                        )
+
+                        already_used_complications.append(chosen_complication)
+                        for entitlement in game_changers_table[chosen_complication][1]:
+                            self.enabled_entitlements[self.player].append(level+entitlement)
+
+                        complication_slot_data += str(game_changers_table[chosen_complication]) + "_"
+
+                complication_slot_data += "-"
+            self.complications = complication_slot_data
+        else:
+            self.complications = "vanilla"
+
     def create_regions(self) -> None:
         menu_region = Region("Menu", self.player, self.multiworld)
         self.multiworld.regions.append(menu_region)
@@ -321,22 +399,19 @@ class HitmanWorld(World):
             # Build mapping: check -> set(levels it belongs to)
             check_levels = {}
             for check in sanity_location_table:
+                if not sanity_location_table[check].is_allowed(self.enabled_entitlements[self.player]):
+                    continue
                 levels = set()
 
-                if (len(sanity_location_table[check][2]) > 0 and not
-                 any(y in sanity_location_table[check][2] for y in self.enabled_entitlements[self.player])):
-                    continue
-
                 for level in goal_table:
-                    if level in self.enabled_entitlements[self.player] and\
-                     (level in sanity_location_table[check][1] or
-                     (self.options.game_difficulty.value != self.options.game_difficulty.option_master and
-                     level in sanity_location_table[check][4])):
+                    if any(condition.is_fulfilled(self.enabled_entitlements[self.player]) and
+                      "Level - "+goal_table[level] in condition.required_items
+                      for condition in sanity_location_table[check].inclusion_conditions):
                         levels.add(level)
 
                 if levels:
                     check_levels[check] = levels
-                    #sanity_location_table[check][]
+
             # Track how many checks each level currently has
             level_counts = {level: 0 for level in goal_table}
             allowed_sanity_checks = []
@@ -365,97 +440,28 @@ class HitmanWorld(World):
             if location in sanity_location_table and location not in allowed_sanity_checks:
                 continue
 
-            #if game is not in master-difficulty, some items appear in additional levels
-            if self.options.game_difficulty.value != self.options.game_difficulty.option_master: 
-                entitlement_appendex =  location_table[location][4]
-            else:
-                entitlement_appendex = []
-            
-            location_entitlements_fulfilled = any(x in (location_table[location][1] + entitlement_appendex) for x in self.enabled_entitlements[self.player])
-
-            settings_entitlements_fulfilled = len(location_table[location][2]) == 0 or any(x in location_table[location][2] for x in self.enabled_entitlements[self.player])
-    
-            if location_entitlements_fulfilled and settings_entitlements_fulfilled:
-
-                if self.options.game_difficulty.value != self.options.game_difficulty.option_master: 
-                    required_item_appendex = location_table[location][5]
-                else:
-                    required_item_appendex = []
-
-                all_required_items = location_table[location][3]+required_item_appendex # resolve late binding of "location" inside the following lambda by making copy
-
+            if location_table[location].is_allowed(self.enabled_entitlements[self.player]):
                 map_region.add_locations({location :self.location_name_to_id[location]},HitmanLocation)
-                set_rule(self.multiworld.get_location(location, self.player),
-                        lambda state, required_items = all_required_items: state.has_from_list(required_items,self.player,1))
+                self.set_rule(self.multiworld.get_location(location, self.player), location_table[location].get_rule(self.enabled_entitlements[self.player]))
             
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or \
         self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
-            map_region.add_locations({location :self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
-            set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
-                        lambda state, required_items = "Contract Piece": state.has(required_items,self.player,self.options.goal_required_contract_pieces.value))
+            map_region.add_locations({"All Contract Pieces Collected":self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
+            self.set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
+                          Has("Contract Piece",self.options.goal_required_contract_pieces.value))
 
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions:
-            map_region.add_locations({location :self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
-            set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
-                        lambda state, required_items = "Contract Piece": state.has(required_items,self.player,self.options.goal_amount.value))
-            
-        if self.options.random_targets.value:
-            target_slot_data = ""
-            already_used_targets = []
-            for map in valid_targets_table:
-                if map in self.enabled_entitlements[self.player]:
-                    num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets)
-                    valid_targets = valid_targets_table[map]
-                    if self.options.game_difficulty.value != self.options.game_difficulty.option_master:
-                        valid_targets += valid_targets_table_non_master[map]
-                    if len(valid_targets) == 0 and self.options.enable_target_checks.value:
-                        for i in vanilla_target_table[map]:
-                            location = self.location_id_to_name[i+base_id]
-                            map_region.add_locations({location: i+base_id}, HitmanLocation)
-
-                            set_rule(self.multiworld.get_location(location, self.player),
-                             lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))    
-                    for i in range(0, num_of_targets):
-                        if(len(valid_targets) <= len(already_used_targets)):
-                            break
-                        chosen_target = self.random.choice(list(set(valid_targets)-set(already_used_targets)))
-                        target_slot_data += str(chosen_target)+"_"
-                        already_used_targets.append(chosen_target)
-
-                        if self.options.enable_target_checks.value:
-                            location = self.location_id_to_name[chosen_target+base_id]
-                            map_region.add_locations({location: chosen_target+base_id},HitmanLocation)
-
-                            set_rule(self.multiworld.get_location(location, self.player),
-                                lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
-
-                target_slot_data+="-"
-                already_used_targets = []
-
-            self.target_slotdata = target_slot_data
-        else:
-            if self.options.enable_target_checks.value:            
-                for map in vanilla_target_table:
-                    if  map in self.enabled_entitlements[self.player]:
-                        for i in vanilla_target_table[map]:
-                            location = self.location_id_to_name[i+base_id]
-                            map_region.add_locations({location: i+base_id}, HitmanLocation)
-
-                            set_rule(self.multiworld.get_location(location, self.player),
-                            lambda state, required_items = location_table[location][3]: state.has_from_list(required_items,self.player,1))
-
-            self.target_slotdata = "vanilla"
+            map_region.add_locations({"All Contract Pieces Collected":self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
+            self.set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
+                          Has("Contract Piece",self.options.goal_amount.value))
 
         if self.options.exclude_goal_level_locations.value \
          and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion\
          or  self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
+
+            goal_item = "Level - "+goal_table[self.options.goal_level.current_key]
             for location in map_region.locations:
-                if self.options.game_difficulty.value != self.options.game_difficulty.option_master: 
-                    locations_to_search = location_table[location.name][1] + location_table[location.name][4]
-                else:
-                    locations_to_search = location_table[location.name][1]
-                
-                if all((x==self.options.goal_level.current_key or x not in self.enabled_entitlements[self.player]) for x in locations_to_search):
+                if all(x.required_items == [goal_item] for x in location_table[location.name].fulfilled_conditions(self.enabled_entitlements[self.player])):
                     location.progress_type = LocationProgressType.EXCLUDED
 
         enabled_levels_count = sum(entitlement in goal_table.keys() for entitlement in set(self.enabled_entitlements[self.player]))
@@ -463,7 +469,7 @@ class HitmanWorld(World):
 
         progression_item_count = enabled_levels_count + (contract_piece_count if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or self.options.goal_mode.value ==self.options.goal_mode.option_contract_collection_level_completion else 0)
 
-        if progression_item_count-1 > len(self.multiworld.get_locations(self.player)): 
+        if progression_item_count-1 > len(list(location for location in self.multiworld.get_locations(self.player) if location.progress_type != LocationProgressType.EXCLUDED)):
             raise OptionError("Not enough locations for progression items. Consider adding more locations or remove some Contract Pieces.")
 
     def create_item(self, item:str) -> HitmanItem:
@@ -520,8 +526,8 @@ class HitmanWorld(World):
                 case self.options.goal_rating.option_silent_assassin_suit_only: goal_entitlement = "saso"
 
             for check in level_completion_location_table:
-                if any(x for x in self.get_locations() if x.name == check) and\
-                goal_entitlement in level_completion_location_table[check][2] :
+                if level_completion_location_table[check].is_allowed(self.enabled_entitlements[self.player]) and\
+                any(goal_entitlement in condition.require_any for condition in level_completion_location_table[check].inclusion_conditions):
                     self.get_location(check).place_locked_item(self.create_item("Contract Piece"))
 
         total_locations = len(self.multiworld.get_unfilled_locations(self.player))
@@ -548,7 +554,6 @@ class HitmanWorld(World):
         self.multiworld.itempool.extend(item_pool)
 
     def set_rules(self) -> None:
-
         match self.options.goal_mode.value:
             case self.options.goal_mode.option_level_completion | self.options.goal_mode.option_contract_collection_level_completion:
                 self.multiworld.completion_condition[self.player] = lambda state: state.can_reach_location(self.goal_location, self.player)
@@ -594,31 +599,8 @@ class HitmanWorld(World):
 
         slotdata["targets"] = self.target_slotdata
 
-        if self.options.random_complications.value:
-            complication_slot_data = ""
-            complication_weights = self.options.complications_weights.value
-
-            for map in goal_table:
-                if map in self.enabled_entitlements[self.player] and map != "carpathian_mountains":
-                    num_of_complications = self.random.randint(self.options.min_number_of_complications.value,self.options.max_number_of_complications)
-
-                    alread_used_complications = []
-                    for _ in range(0, num_of_complications):
-                        chosen_complications = self.random.choice(
-                            [x for x, w in complication_weights.items() 
-                             for _ in range(w) 
-                             if w != 0 and x not in alread_used_complications]
-                            )
-                        
-                        alread_used_complications.append(chosen_complications)
-                    
-                        complication_slot_data += str(game_changers_table[chosen_complications])+"_"
-
-                complication_slot_data+="-"
-            slotdata["complications"] = complication_slot_data
-        else:
-            slotdata["complications"] = "vanilla"
-
         slotdata["item_packages"] = self.options.item_packages.current_key
+
+        slotdata["complications"] = self.complications
 
         return slotdata
