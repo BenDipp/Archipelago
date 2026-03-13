@@ -933,15 +933,15 @@ item_table= { # id, required entitlement per game version (h0, h1, h2, h3) (all 
     "Melee - Fiber Wire Red Tie":(925,[[],["N/A"],["N/A"],["H3_BASE"]], ItemClassification.filler, True, ["Melee - Any"]),   
 
 
-    "Heavy Sniper - Siger 300 Ghost":(1600,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.useful, False, ["Sniper - Any"]),
-    "Heavy Sniper - Jaeger 7 Copperhead":(1601,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
-    "Heavy Sniper - Siger 300 Redeemer":(1602,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
-    "Heavy Sniper - Druzhina 34 ICA":(1603,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
-    "Heavy Sniper - Jaeger 7 Rude Ruby":(1604,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
-    "Heavy Sniper - Sieger 300 Viper":(1605,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
-    "Heavy Sniper - Druzhina 34 ICA Arctic":(1606,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
-    "Heavy Sniper - Jaeger 7 Snow Fox":(1607,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
-    "Heavy Sniper - Siger 300 Ice":(1608,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any"]),
+    "Heavy Sniper - Siger 300 Ghost":(1600,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.useful, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Jaeger 7 Copperhead":(1601,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Siger 300 Redeemer":(1602,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Druzhina 34 ICA":(1603,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Jaeger 7 Rude Ruby":(1604,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Sieger 300 Viper":(1605,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Druzhina 34 ICA Arctic":(1606,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Jaeger 7 Snow Fox":(1607,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
+    "Heavy Sniper - Siger 300 Ice":(1608,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
 }
 item_table["Contract Piece"] = (1000,[[],["contract_mode"],["contract_mode"],["contract_mode"]],ItemClassification.progression, False, [])
 #item_table["Nothing"] = (1001,[],ItemClassification.filler, False, [])
