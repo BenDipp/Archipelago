@@ -364,6 +364,10 @@ class IncludeEminemItems(Toggle):
     """Include Items from the Eminem vs. Slim Shady Pack"""
     display_name = "Include Eminem vs. Slim Shady Pack Items"
 
+class IncludePatientZeroRequiemItems(Toggle):
+    """Include Items from the Patient Zero Requiem Pack"""
+    display_name = "Include Patient Zero Requiem Pack Items"
+
 class IncludeTrinityItems(Toggle):
     """Include Items from the Trinity Pack"""
     display_name = "Include Trinity Pack Items"
@@ -452,6 +456,7 @@ class HitmanOptions(PerGameCommonOptions):
     include_banker_items: IncludeBankerItems
     include_bruce_lee_items: IncludeBruceLeeItems
     include_eminem_items: IncludeEminemItems
+    include_jovovich_items: IncludePatientZeroRequiemItems
 
     include_trinity_items: IncludeTrinityItems
     include_street_art_items: IncludeConcreteArtItems
@@ -521,7 +526,8 @@ option_groups = [
             IncludeTomorrowlandItems,
             IncludeBankerItems,
             IncludeBruceLeeItems,
-            IncludeEminemItems
+            IncludeEminemItems,
+            IncludePatientZeroRequiemItems
         ]),
         OptionGroup("Included Items from HITMAN 2 DLC",[
             IncludeH2SilverItems,

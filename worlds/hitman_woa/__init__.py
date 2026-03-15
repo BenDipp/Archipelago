@@ -293,6 +293,9 @@ class HitmanWorld(World):
                 if self.options.include_eminem_items:
                     self.enabled_entitlements[self.player].append("H3_ET_BELLINI")
 
+                if self.options.include_jovovich_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_FILUR")
+
             case self.options.game_version.option_hitman_2:
                 self.enabled_entitlements[self.player].append("H2_BASE")
 
