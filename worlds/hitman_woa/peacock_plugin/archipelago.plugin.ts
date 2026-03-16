@@ -6674,6 +6674,8 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
 }
 function addToEverythingItem (unlockableToUnlock:Unlockable|undefined, categoryEverythingItem:Unlockable|undefined, everythingItem:Unlockable|undefined){
     if(unlockableToUnlock != undefined && unlockableToUnlock.Subtype){
+        if(unlockableToUnlock.Id == "PROP_MELEE_MACE" || unlockableToUnlock.Id == "FIREARMS_SMG_TACTICAL_DAK_DTI_BLACK_COVERT" || unlockableToUnlock.Id == "FIREARMS_SMG_TACTICAL_DAK_DTI_GOLD_COVERT" ||unlockableToUnlock.Id == "FIREARMS_HERO_SMG_TAC_SMG_LUXURIOUS" || unlockableToUnlock.Id == "TOKEN_PROP_MELEE_KALI_STICKS")
+            unlockableToUnlock.Properties.ItemSize = "ITEMSIZE_LARGE"
 		if(unlockableToUnlock.Properties.ItemSize! != "ITEMSIZE_LARGE" ||
            categoryEverythingItem!.Properties.ItemSize! == "ITEMSIZE_LARGE"){
 			if(unlockableToUnlock.Properties.RepositoryAssets){
