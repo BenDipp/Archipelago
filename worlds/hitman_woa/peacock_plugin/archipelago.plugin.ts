@@ -7117,9 +7117,9 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             apItemMap[everythingUnlockables[id].apId].h2unlockable = JSON.parse(JSON.stringify(everythingUnlockables[id].unlockableTemplate))
             apItemMap[everythingUnlockables[id].apId].h3unlockable = JSON.parse(JSON.stringify(everythingUnlockables[id].unlockableTemplate))
     		if(req.body.everythingItemInInventory){
-                controller.configManager.configs.allunlockables.push(apItemMap[id].h3unlockable)
-                controller.configManager.configs.H2allunlockables.push(apItemMap[id].h2unlockable)
-                controller.configManager.configs.Legacyallunlockables.push(apItemMap[id].h1unlockable)
+                controller.configManager.configs.allunlockables.push(apItemMap[everythingUnlockables[id].apId].h3unlockable)
+                controller.configManager.configs.H2allunlockables.push(apItemMap[everythingUnlockables[id].apId].h2unlockable)
+                controller.configManager.configs.Legacyallunlockables.push(apItemMap[everythingUnlockables[id].apId].h1unlockable)
 			}
 		}
 
