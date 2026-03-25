@@ -2,7 +2,7 @@
 import { log, LogLevel } from "@peacockproject/core/loggingInterop"
 import { Controller } from "@peacockproject/core/controller"
 import { clearInventoryCache } from "@peacockproject/core/inventory"
-import { getFlag, setFlag } from "@peacockproject/core/flags"
+import { defaultFlags, getFlag, setFlag } from "@peacockproject/core/flags"
 import {
     Campaign,
     GameChanger,
@@ -6675,7 +6675,8 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
 			contract.Metadata.Type = "mission" //was "tutorial"
 		}
 
-        controller.addMission(contract); 
+        //controller.addMission(contract);
+        contractMap[levelName].contractData = contract
     }
 }
 function addToEverythingItem (unlockableToUnlock:Unlockable|undefined, categoryEverythingItem:Unlockable|undefined, everythingItem:Unlockable|undefined){
@@ -7049,17 +7050,34 @@ function setupMainMenuTiles(){
     }
 }
 
+function setupFlags(){
+    defaultFlags.peacock.flags.apDisableComplications = {
+        category: "Archipelago",
+        title: "disableComplications",
+        desc: "When set to true, all Archipelago Missions with complications will have their complications removed.",
+        default: false,
+    }
+    setFlag("apDisableComplications", false)
+    defaultFlags.peacock.flags.apEnableDifficultySelection = {
+        category: "Archipelago",
+        title: "enableDifficultySelection",
+        desc: "When set to true, all Archipelago Missions regain their difficulty selection ingame, instead of forcing the YAML selected difficulty.",
+        default: false,
+    }
+    setFlag("apEnableDifficultySelection", false)
+
+    for (const levelName in contractMap){
+        setFlag("Level - "+levelName, false)
+    }
+}
 module.exports = function archipelagoCampaign(controller: Controller) {
     logArchipelago("Loading Archipelago Plugin (v0.8.0 Beta 1)")
 
+    setupFlags()
     saveImagesToDisk()
     setupMainMenuTiles()
     setupUnlockables(controller)
 
-    // ================ SETUP LEVEL FLAGS ================
-    for (const levelName in contractMap){
-        setFlag("Level - "+levelName, false)
-    }
     // =============== SETUP CLIENT ENDPOINTS ============
     webFeaturesRouter.use(function(req, res, next){
         var data = "";
@@ -7302,41 +7320,45 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 	        }
 		}
 	)
-	controller.hooks.fixContract.tap("disableNotUnlockedContracts",
-		(contract: MissionManifest,
-		GameVersion: GameVersion) => {
-			if(modifiedContractMap[contract.Metadata.Id]!=undefined){
-				if(getFlag("Level - "+modifiedContractMap[contract.Metadata.Id].name)){
-                    if(contract.Metadata.ScenePath.endsWith("DISABLED")){
-                        contract.Metadata.ScenePath = contract.Metadata.ScenePath.split("DISABLED")[0]
-                    }
-				}else{
-                    if(!contract.Metadata.ScenePath.endsWith("DISABLED")){
-                        contract.Metadata.ScenePath = contract.Metadata.ScenePath+"DISABLED"
-                    }
-				}
-			}
-		}
-	)
-    controller.hooks.fixContract.tap("overrideGameChangers",
-		(contract: MissionManifest,
-		GameVersion: GameVersion) => {
-            const gameChangers = contract.Data.GameChangers
-            if(gameChangers != undefined){
-                for(const id in gameChangers){
-                    const record = Object.values(gameChangerApIdToRepoIdMap).filter((element:any) => element.repoId == gameChangers[id])
-                    if(record.length!=0){ 
-                        if(record[0].versionsToOverride != undefined && record[0].versionsToOverride.includes(GameVersion)){
-                            for(const keyId in Object.keys(record[0].overrides!)){
-                                const key = Object.keys(record[0].overrides!)[keyId]
-                                configs.GameChangerProperties[gameChangers[id]][key] = record[0].overrides![key] 
-                            }
+    controller.hooks.getContractManifest.tap("getArchipelagoContract",(contractId, gameVersion) => {
+        if (modifiedContractMap[contractId] == undefined){
+            return undefined
+        }
+
+        const manifest = JSON.parse(JSON.stringify(contractMap[modifiedContractMap[contractId].name].contractData))
+
+        // Make level unplayable if it was reached outside of campaign menu
+        if(!getFlag("Level - "+modifiedContractMap[contractId].name)){
+            manifest.Metadata.ScenePath = manifest.Metadata.ScenePath+"DISABLED"
+        }
+
+        // Remove GameChangers if override is active
+        if(getFlag("apDisableComplications")){
+            manifest.Data.GameChangers = []
+        }
+
+        // Enable difficulty selection if override is active
+        if(getFlag("apEnableDifficultySelection")){
+            manifest.Data.GameDifficulties = controller.resolveContract(modifiedContractMap[contractId].oldId, gameVersion)?.Data.GameDifficulties
+        }
+
+        // Override used GameChangers in other GameVersions (ex. custom name if name string is not in H1)
+        const gameChangers = manifest.Data.GameChangers
+        if(gameChangers != undefined){
+            for(const id in gameChangers){
+                const record = Object.values(gameChangerApIdToRepoIdMap).filter((element:any) => element.repoId == gameChangers[id])
+                if(record.length!=0){
+                    if(record[0].versionsToOverride != undefined && record[0].versionsToOverride.includes(gameVersion)){
+                        for(const keyId in Object.keys(record[0].overrides!)){
+                            const key = Object.keys(record[0].overrides!)[keyId]
+                            configs.GameChangerProperties[gameChangers[id]][key] = record[0].overrides![key]
                         }
                     }
                 }
             }
-		}
-	)
+        }
+        return manifest
+    })
 	printApIcon()
     logArchipelago("Archipelago Plugin Loaded.")
 }
