@@ -25,6 +25,7 @@ class GoalDifficulty(Choice):
     option_silent_assassin = 2
     option_suit_only = 3
     option_silent_assassin_suit_only = 4
+    option_sniper_assassin = 5
     default = 1
 
 class GoalLevel(Choice):
@@ -173,6 +174,12 @@ class CheckForSASO(OptionSet):
     valid options: all, ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido, hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail, new_york, haven_island, dubai, dartmoor, berlin, chongqing, mendoza, carpathian_mountains, ambrose_island"""
     display_name = "Levels with Silent Assassin, Suit Only checks"
     valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "carpathian_mountains", "ambrose_island"]
+
+class CheckForSnA(OptionSet):
+    """Add a check for beating each of the listed levels with Sniper Assassin Rating
+    valid options: all, ica_facility, paris, sapienza, marrakesh, bangkok, colorado, hokkaido, hawkes_bay, miami, santa_fortuna, mumbai, whittleton_creek, isle_of_sgail, new_york, haven_island, dubai, dartmoor, berlin, chongqing, mendoza, ambrose_island"""
+    display_name = "Levels with Sniper Assassin checks"
+    valid_keys = ["all", "ica_facility", "paris", "sapienza", "marrakesh", "bangkok", "colorado", "hokkaido", "hawkes_bay", "miami", "santa_fortuna", "mumbai", "whittleton_creek", "isle_of_sgail", "new_york", "haven_island", "dubai", "dartmoor", "berlin", "chongqing", "mendoza", "ambrose_island"]
 
 class CheckForTarget(DefaultOnToggle):
     """Add a check for each Target to be eliminated"""
@@ -436,6 +443,7 @@ class HitmanOptions(PerGameCommonOptions):
     levels_with_check_for_sa: CheckForSA
     levels_with_check_for_so: CheckForSO
     levels_with_check_for_saso: CheckForSASO
+    levels_with_check_for_sna: CheckForSnA
 
     random_targets: RandomTargets
     min_number_of_targets: MinRandomTargets
@@ -494,7 +502,8 @@ option_groups = [
             CheckForCompletion,
             CheckForSA,
             CheckForSO,
-            CheckForSASO
+            CheckForSASO,
+            CheckForSnA
         ]),
         OptionGroup("Goal Settings",[
             Goal,

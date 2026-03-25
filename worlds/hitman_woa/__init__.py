@@ -172,6 +172,9 @@ class HitmanWorld(World):
                 case self.options.goal_rating.option_silent_assassin_suit_only:
                                 self.enabled_entitlements[self.player].append(self.options.goal_level.current_key+"_saso")
                                 self.goal_location = goal_table[self.options.goal_level.current_key] + " Completed - Silent Assassin, Suit Only"
+                case self.options.goal_rating.option_sniper_assassin:
+                                self.enabled_entitlements[self.player].append(self.options.goal_level.current_key+"_sna")
+                                self.goal_location = goal_table[self.options.goal_level.current_key] + " Completed - Sniper Assassin"
 
         # make sure the start Level is added as location
         self.enabled_entitlements[self.player].append(self.options.starting_location.current_key)
@@ -185,6 +188,12 @@ class HitmanWorld(World):
             self.options.goal_amount.value > len(set(self.enabled_entitlements[self.player])):
             raise OptionError("Not enough levels enabled for chosen Goal Amount.")
 
+        if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions and\
+           self.options.goal_rating == self.options.goal_rating.option_sniper_assassin and\
+           "carpathian_mountains" in self.enabled_entitlements[self.player] and\
+           self.options.goal_amount.value > len(set(self.enabled_entitlements[self.player]))-1:
+            raise OptionError("Not enough levels enabled for chosen Goal Amount. (Note: Carpathian Mountains cannot contain a Sniper Assassin check)")
+
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions:
             match(self.options.goal_rating.value):
                 case self.options.goal_rating.option_any:
@@ -195,6 +204,8 @@ class HitmanWorld(World):
                     self.options.levels_with_check_for_so.value.add("all")
                 case self.options.goal_rating.option_silent_assassin_suit_only:
                     self.options.levels_with_check_for_saso.value.add("all")
+                case self.options.goal_rating.option_sniper_assassin:
+                    self.options.levels_with_check_for_sna.value.add("all")
 
         # enable completion checks
         if "all" in self.options.levels_with_check_for_completion.value:
@@ -220,6 +231,12 @@ class HitmanWorld(World):
         else:
             for location in self.options.levels_with_check_for_saso.value:
                 self.enabled_entitlements[self.player].append(location+"_saso")
+
+        if "all" in self.options.levels_with_check_for_sna.value:
+            self.enabled_entitlements[self.player].append("sna")
+        else:
+            for location in self.options.levels_with_check_for_sna.value:
+                self.enabled_entitlements[self.player].append(location+"_sna")
 
         if self.options.enable_itemsanity:
             if self.options.split_itemsanity:
@@ -478,6 +495,9 @@ class HitmanWorld(World):
     def create_item(self, item:str) -> HitmanItem:
         return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)
 
+    def create_item_with_classification(self, item:str, itemtype:ItemClassification) -> HitmanItem:
+        return HitmanItem(item,itemtype,item_table[item][0]+base_id,self.player)
+
     def create_event(self, event: str) -> HitmanItem:
         return HitmanItem(event, ItemClassification.progression, None, self.player)
       
@@ -489,6 +509,8 @@ class HitmanWorld(World):
         priority_filler = []
         valid_duplicats = []
         starting_locaiton = "Level - "+goal_table[self.options.starting_location.current_key]
+        required_itemgroups = set(group for location in location_table for group in location_table[location].get_required_item_groups(self.enabled_entitlements[self.player]))
+        required_items = set(item for location in location_table for item in location_table[location].get_required_items(self.enabled_entitlements[self.player]))
 
         for item in item_table:
             if len(item_table[item][1][self.options.game_version.value]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1][self.options.game_version.value]):
@@ -497,12 +519,15 @@ class HitmanWorld(World):
                     continue
                 if item in self.options.excluded_items.value:
                     continue
-                if item_table[item][2] == ItemClassification.progression and item != starting_locaiton and item != "Contract Piece":
-                    item_pool.append(self.create_item(item))
-                if item_table[item][2] == ItemClassification.filler and item not in self.options.prioritized_filler.value:
+                if item in required_items:
+                    item_pool.append(self.create_item_with_classification(item, ItemClassification.progression))
+                if item_table[item][2] == ItemClassification.filler and item not in self.options.prioritized_filler.value and item not in required_items:
                     valid_filler.append(item)
                 if item_table[item][2] == ItemClassification.useful and item not in self.options.prioritized_filler.value:
-                    valid_useful.append(item)
+                    if any(group in item_table[item][4] for group in required_itemgroups):
+                         item_pool.append(self.create_item_with_classification(item, ItemClassification.progression))
+                    else:
+                        valid_useful.append(item)
                 if item_table[item][3]: #is allowed to be duplicated
                     valid_duplicats.append(item)
                 if item in self.options.prioritized_filler.value and item_table[item][2] != ItemClassification.progression:
@@ -527,6 +552,7 @@ class HitmanWorld(World):
                 case self.options.goal_rating.option_silent_assassin: goal_entitlement = "sa"
                 case self.options.goal_rating.option_suit_only: goal_entitlement = "so"
                 case self.options.goal_rating.option_silent_assassin_suit_only: goal_entitlement = "saso"
+                case self.options.goal_rating.option_sniper_assassin: goal_entitlement = "sna"
 
             for check in level_completion_location_table:
                 if level_completion_location_table[check].is_allowed(self.enabled_entitlements[self.player]) and\
@@ -539,20 +565,21 @@ class HitmanWorld(World):
         for _ in range(total_locations - total_items):
             if len(priority_filler) != 0:
                 choosenItem = self.random.choice(priority_filler)
-                item_pool.append(self.create_item(choosenItem))
                 priority_filler.remove(choosenItem)
             elif len(valid_useful) != 0:
                 choosenItem = self.random.choice(valid_useful)
-                item_pool.append(self.create_item(choosenItem))
                 valid_useful.remove(choosenItem)
             elif len(valid_filler) != 0:
                 choosenItem = self.random.choice(valid_filler)
-                item_pool.append(self.create_item(choosenItem))
                 valid_filler.remove(choosenItem)
             else:
                 choosenItem = self.random.choice(valid_duplicats)
+
+            if any(group in item_table[choosenItem][4] for group in required_itemgroups):
+                item_pool.append(self.create_item_with_classification(choosenItem, ItemClassification.progression_deprioritized))
+            else:
                 item_pool.append(self.create_item(choosenItem))
-        
+
         self.multiworld.push_precollected(self.create_item(starting_locaiton))
         self.multiworld.itempool.extend(item_pool)
 

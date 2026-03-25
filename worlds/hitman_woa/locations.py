@@ -1,6 +1,7 @@
 from attr import dataclass, field
 from BaseClasses import Location
-from rule_builder.rules import False_, HasAll
+from rule_builder.rules import False_, HasAll, HasGroup
+
 
 @dataclass
 class Condition:
@@ -9,6 +10,7 @@ class Condition:
     require_none: set[str] = field(factory=set)
     #require_count: dict[str, int] = field(factory=dict)
     required_items: set[str] = field(factory=set)
+    required_item_groups: set[str] = field(factory=set)
     def is_fulfilled(self, enabled_entitlements:set[str]):
         if len(self.require_all) != 0 and any(x not in enabled_entitlements for x in self.require_all):
             return False
@@ -31,10 +33,24 @@ class LocationTableEntry:
     def fulfilled_conditions(self, enabled_entitlements:set[str]):
         return list(condition for condition in self.inclusion_conditions if condition.is_fulfilled(enabled_entitlements))
     def get_rule(self, enabled_entitlements:set[str]):
-        rule = False_()
+        result_rule = False_()
         for condition in self.fulfilled_conditions(enabled_entitlements):
-            rule |= HasAll(*condition.required_items)
-        return rule
+            rule = HasAll(*condition.required_items)
+            if len(condition.required_item_groups)!=0:
+                for group in condition.required_item_groups:
+                    rule &= HasGroup(group)
+            result_rule |= rule
+        return result_rule
+    def get_required_item_groups(self, enabled_entitlements:set[str]):
+        required_groups = set()
+        for condition in self.fulfilled_conditions(enabled_entitlements):
+            required_groups = required_groups.union(condition.required_item_groups)
+        return required_groups
+    def get_required_items(self, enabled_entitlements:set[str]):
+        required_items = set()
+        for condition in self.fulfilled_conditions(enabled_entitlements):
+            required_items = required_items.union(condition.required_items)
+        return required_items
 
     # location ids ranges:
     # 	1-209      Itempickup Checks
@@ -1264,6 +1280,28 @@ level_completion_location_table = {
     "Mendoza Completed - Silent Assassin, Suit Only":LocationTableEntry(1085,[Condition(require_all={"mendoza"},require_any={"mendoza_saso","saso"}, required_items={"Level - Mendoza"})], ["Any Completed - Silent Assassin, Suit Only"]),
     "Carpathian Mountains Completed - Silent Assassin, Suit Only":LocationTableEntry(1086,[Condition(require_all={"carpathian_mountains"},require_any={"carpathian_mountains_saso","saso"}, required_items={"Level - Carpathian Mountains"})], ["Any Completed - Silent Assassin, Suit Only"]),
     "Ambrose Island Completed - Silent Assassin, Suit Only":LocationTableEntry(1087,[Condition(require_all={"ambrose_island"},require_any={"ambrose_island_saso","saso"}, required_items={"Level - Ambrose Island"})], ["Any Completed - Silent Assassin, Suit Only"]),
+    "ICA Facility Completed - Sniper Assassin":LocationTableEntry(1088,[Condition(require_all={"ica_facility"},require_any={"ica_facility_sna","sna"}, required_items={"Level - ICA Facility"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"ica_facility"},require_any={"ica_facility_sna","sna"}, required_items={"Level - ICA Facility"}, required_item_groups={"Sniper - Any", "Agency Pickup - ICA Facility - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Paris Completed - Sniper Assassin":LocationTableEntry(1089,[Condition(require_all={"paris"},require_any={"paris_sna","sna"}, required_items={"Level - Paris"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"paris"},require_any={"paris_sna","sna"}, required_items={"Level - Paris"}, required_item_groups={"Sniper - Any", "Agency Pickup - Paris - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Sapienza Completed - Sniper Assassin":LocationTableEntry(1090,[Condition(require_all={"sapienza"},require_any={"sapienza_sna","sna"}, required_items={"Level - Sapienza"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"sapienza"},require_any={"sapienza_sna","sna"}, required_items={"Level - Sapienza"}, required_item_groups={"Sniper - Any", "Agency Pickup - Sapienza - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Marrakesh Completed - Sniper Assassin":LocationTableEntry(1091,[Condition(require_all={"marrakesh"},require_any={"marrakesh_sna","sna"}, required_items={"Level - Marrakesh"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"marrakesh"},require_any={"marrakesh_sna","sna"}, required_items={"Level - Marrakesh"}, required_item_groups={"Sniper - Any", "Agency Pickup - Marrakesh - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Bangkok Completed - Sniper Assassin":LocationTableEntry(1092,[Condition(require_all={"bangkok"},require_any={"bangkok_sna","sna"}, required_items={"Level - Bangkok"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"bangkok"},require_any={"bangkok_sna","sna"}, required_items={"Level - Bangkok"}, required_item_groups={"Sniper - Any", "Agency Pickup - Bangkok - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Colorado Completed - Sniper Assassin":LocationTableEntry(1093,[Condition(require_all={"colorado"},require_any={"colorado_sna","sna"}, required_items={"Level - Colorado"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"colorado"},require_any={"colorado_sna","sna"}, required_items={"Level - Colorado"}, required_item_groups={"Sniper - Any", "Agency Pickup - Colorado - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Hokkaido Completed - Sniper Assassin":LocationTableEntry(1094,[Condition(require_all={"hokkaido"},require_any={"hokkaido_sna","sna"}, required_items={"Level - Hokkaido"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"hokkaido"},require_any={"hokkaido_sna","sna"}, required_items={"Level - Hokkaido"}, required_item_groups={"Sniper - Any", "Agency Pickup - Hokkaido - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Hawkes Bay Completed - Sniper Assassin":LocationTableEntry(1095,[Condition(require_all={"hawkes_bay"},require_any={"hawkes_bay_sna","sna"}, required_items={"Level - Hawkes Bay"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"hawkes_bay"},require_any={"hawkes_bay_sna","sna"}, required_items={"Level - Hawkes Bay"}, required_item_groups={"Sniper - Any", "Agency Pickup - Hawkes Bay - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Miami Completed - Sniper Assassin":LocationTableEntry(1096,[Condition(require_all={"miami"},require_any={"miami_sna","sna"}, required_items={"Level - Miami"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"miami"},require_any={"miami_sna","sna"}, required_items={"Level - Miami"}, required_item_groups={"Sniper - Any", "Agency Pickup - Miami - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Santa Fortuna Completed - Sniper Assassin":LocationTableEntry(1097,[Condition(require_all={"santa_fortuna"},require_any={"santa_fortuna_sna","sna"}, required_items={"Level - Santa Fortuna"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"santa_fortuna"},require_any={"santa_fortuna_sna","sna"}, required_items={"Level - Santa Fortuna"}, required_item_groups={"Sniper - Any", "Agency Pickup - Santa Fortuna - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Mumbai Completed - Sniper Assassin":LocationTableEntry(1098,[Condition(require_all={"mumbai"},require_any={"mumbai_sna","sna"}, required_items={"Level - Mumbai"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"mumbai"},require_any={"mumbai_sna","sna"}, required_items={"Level - Mumbai"}, required_item_groups={"Sniper - Any", "Agency Pickup - Mumbai - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Whittleton Creek Completed - Sniper Assassin":LocationTableEntry(1099,[Condition(require_all={"whittleton_creek"},require_any={"whittleton_creek_sna","sna"}, required_items={"Level - Whittleton Creek"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"whittleton_creek"},require_any={"whittleton_creek_sna","sna"}, required_items={"Level - Whittleton Creek"}, required_item_groups={"Sniper - Any", "Agency Pickup - Whittleton Creek - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Isle of Sgail Completed - Sniper Assassin":LocationTableEntry(1100,[Condition(require_all={"isle_of_sgail"},require_any={"isle_of_sgail_sna","sna"}, required_items={"Level - Isle of Sgail"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"isle_of_sgail"},require_any={"isle_of_sgail_sna","sna"}, required_items={"Level - Isle of Sgail"}, required_item_groups={"Sniper - Any", "Agency Pickup - Isle of Sgail - Any"})], ["Any Completed - Sniper Assassin"]),
+    "New York Completed - Sniper Assassin":LocationTableEntry(1101,[Condition(require_all={"new_york"},require_any={"new_york_sna","sna"}, required_items={"Level - New York"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"new_york"},require_any={"new_york_sna","sna"}, required_items={"Level - New York"}, required_item_groups={"Sniper - Any", "Agency Pickup - New York - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Haven Island Completed - Sniper Assassin":LocationTableEntry(1102,[Condition(require_all={"haven_island"},require_any={"haven_island_sna","sna"}, required_items={"Level - Haven Island"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"haven_island"},require_any={"haven_island_sna","sna"}, required_items={"Level - Haven Island"}, required_item_groups={"Sniper - Any", "Agency Pickup - Haven Island - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Dubai Completed - Sniper Assassin":LocationTableEntry(1103,[Condition(require_all={"dubai"},require_any={"dubai_sna","sna"}, required_items={"Level - Dubai"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"dubai"},require_any={"dubai_sna","sna"}, required_items={"Level - Dubai"}, required_item_groups={"Sniper - Any", "Agency Pickup - Dubai - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Dartmoor Completed - Sniper Assassin":LocationTableEntry(1104,[Condition(require_all={"dartmoor"},require_any={"dartmoor_sna","sna"}, required_items={"Level - Dartmoor"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"dartmoor"},require_any={"dartmoor_sna","sna"}, required_items={"Level - Dartmoor"}, required_item_groups={"Sniper - Any", "Agency Pickup - Dartmoor - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Berlin Completed - Sniper Assassin":LocationTableEntry(1105,[Condition(require_all={"berlin"},require_any={"berlin_sna","sna"}, required_items={"Level - Berlin"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"berlin"},require_any={"berlin_sna","sna"}, required_items={"Level - Berlin"}, required_item_groups={"Sniper - Any", "Agency Pickup - Berlin - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Chongqing Completed - Sniper Assassin":LocationTableEntry(1106,[Condition(require_all={"chongqing"},require_any={"chongqing_sna","sna"}, required_items={"Level - Chongqing"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"chongqing"},require_any={"chongqing_sna","sna"}, required_items={"Level - Chongqing"}, required_item_groups={"Sniper - Any", "Agency Pickup - Chongqing - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Mendoza Completed - Sniper Assassin":LocationTableEntry(1107,[Condition(require_all={"mendoza"},require_any={"mendoza_sna","sna"}, required_items={"Level - Mendoza"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"mendoza"},require_any={"mendoza_sna","sna"}, required_items={"Level - Mendoza"}, required_item_groups={"Sniper - Any", "Agency Pickup - Mendoza - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Carpathian Mountains Completed - Sniper Assassin":LocationTableEntry(1108,[Condition(require_all={"carpathian_mountains"},require_any={"carpathian_mountains_sna","sna"}, required_items={"Level - Carpathian Mountains"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"carpathian_mountains"},require_any={"carpathian_mountains_sna","sna"}, required_items={"Level - Carpathian Mountains"}, required_item_groups={"Sniper - Any", "Agency Pickup - Carpathian Mountains - Any"})], ["Any Completed - Sniper Assassin"]),
+    "Ambrose Island Completed - Sniper Assassin":LocationTableEntry(1109,[Condition(require_all={"ambrose_island"},require_any={"ambrose_island_sna","sna"}, required_items={"Level - Ambrose Island"}, required_item_groups={"Sniper - Any", "Suitcase - Any"}),Condition(require_all={"ambrose_island"},require_any={"ambrose_island_sna","sna"}, required_items={"Level - Ambrose Island"}, required_item_groups={"Sniper - Any", "Agency Pickup - Ambrose Island - Any"})], ["Any Completed - Sniper Assassin"]),
 }
 
 target_kill_location_table = {
@@ -6038,6 +6076,11 @@ disguise_location_table = {
     "Disguise - Ambrose Island - Pirate":LocationTableEntry(3288, [Condition(require_all={"disguisesanity", "ambrose_island"}, require_none={"ambrose_island_no_disguise", "ambrose_island_no_pacification"}, required_items={"Level - Ambrose Island"})], ["Disguise - Any", "Disguise - Ambrose Island - Any"]),
     "Disguise - Ambrose Island - The Buccaneer":LocationTableEntry(3289, [Condition(require_all={"disguisesanity", "ambrose_island"}, require_none={"ambrose_island_no_disguise", "ambrose_island_no_pacification"}, required_items={"Level - Ambrose Island"}), Condition(require_all={"disguisesanity", "ambrose_island"}, require_none={"ambrose_island_no_disguise"}, required_items={"Level - Ambrose Island"})], ["Disguise - Any", "Disguise - Ambrose Island - Any"]),
 }
+
+#Manual overrides
+level_completion_location_table["Carpathian Mountains Completed - Sniper Assassin"].inclusion_conditions = [Condition(require_all={"N/A"})]
+level_completion_location_table["ICA Facility Completed - Sniper Assassin"].inclusion_conditions = [Condition(require_all={"ica_facility"},require_any={"ica_facility_sna","sna"}, required_items={"Level - ICA Facility"}, required_item_groups={"Sniper - Any", "Suitcase - Any"})]
+level_completion_location_table["Dubai Completed - Sniper Assassin"].inclusion_conditions[0] = Condition(require_all={"dubai"},require_any={"dubai_sna","sna"}, required_items={"Level - Dubai", "Starting Location - Dubai - Atrium Lobby"}, required_item_groups={"Sniper - Any", "Suitcase - Any"})
 
 location_table = level_completion_location_table | item_pickup_location_table | split_item_pickup_location_table | disguise_location_table | target_kill_location_table
 
