@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from attr import dataclass, field
 from BaseClasses import Location
 from rule_builder.rules import False_, HasAll, HasGroup
@@ -6077,12 +6079,40 @@ disguise_location_table = {
     "Disguise - Ambrose Island - The Buccaneer":LocationTableEntry(3289, [Condition(require_all={"disguisesanity", "ambrose_island"}, require_none={"ambrose_island_no_disguise", "ambrose_island_no_pacification"}, required_items={"Level - Ambrose Island"}), Condition(require_all={"disguisesanity", "ambrose_island"}, require_none={"ambrose_island_no_disguise"}, required_items={"Level - Ambrose Island"})], ["Disguise - Any", "Disguise - Ambrose Island - Any"]),
 }
 
-#Manual overrides
+#Manual overrides:
+
+#Carpathian has no way bring a sniper
 level_completion_location_table["Carpathian Mountains Completed - Sniper Assassin"].inclusion_conditions = [Condition(require_all={"N/A"})]
+#ICA has no Hidden Stash or Agency Pickup, only bring Sniper via Suitcase
 level_completion_location_table["ICA Facility Completed - Sniper Assassin"].inclusion_conditions = [Condition(require_all={"ica_facility"},require_any={"ica_facility_sna","sna"}, required_items={"Level - ICA Facility"}, required_item_groups={"Sniper - Any", "Suitcase - Any"})]
-level_completion_location_table["Dubai Completed - Sniper Assassin"].inclusion_conditions[0] = Condition(require_all={"dubai"},require_any={"dubai_sna","sna"}, required_items={"Level - Dubai", "Starting Location - Dubai - Atrium Lobby"}, required_item_groups={"Sniper - Any", "Suitcase - Any"})
+#Dubai default entrance doesn't allow Suitcases, Atrium is the only one
+level_completion_location_table["Dubai Completed - Sniper Assassin"].inclusion_conditions[0].required_items.add("Starting Location - Dubai - Atrium Lobby")
+
+#chongqing+vanilla targets+no agility makes reactor core impossible => require startinglocation which skips reactor
+for name in level_completion_location_table:
+    if "Chongqing" in name:
+        new_conditions = []
+        for condition in level_completion_location_table[name].inclusion_conditions:
+            new_condition = deepcopy(condition)
+            condition.require_none = {"chongqing_need_to_skip_datacore"}
+            new_condition.required_items.add("Starting Location - Chongqing - River-side Walkway")
+            new_condition.require_all.add("chongqing_need_to_skip_datacore")
+            new_conditions.append(new_condition)
+        level_completion_location_table[name].inclusion_conditions += new_conditions
 
 location_table = level_completion_location_table | item_pickup_location_table | split_item_pickup_location_table | disguise_location_table | target_kill_location_table
+
+#Dubai+no agility spawns outside with no way of entering the level, always require Atrium in this case
+for name in location_table:
+    new_conditions = []
+    for condition in location_table[name].inclusion_conditions:
+        if "dubai" in condition.require_all:
+            new_condition = deepcopy(condition)
+            condition.require_none.add("dubai_no_agility")
+            new_condition.require_all.add("dubai_no_agility")
+            new_condition.required_items.add("Starting Location - Dubai - Atrium Lobby") #TODO: could allow any entrance, but worried about saso
+            new_conditions.append(new_condition)
+    location_table[name].inclusion_conditions += new_conditions
 
 location_table["All Contract Pieces Collected"] = LocationTableEntry(10000,[Condition(require_all={"skipped"})],[])
 
@@ -6189,7 +6219,7 @@ vanilla_target_table = {
 }
 
 game_changers_table = {
-    "No Agility":(1, []), 
+    "No Agility":(1, ["_no_agility"]),
     "No Disguises":(2, ["_no_disguise"]),
     #"All Bodies Hidden":(3, []),
     "Do Not get Spotted":(4, []),

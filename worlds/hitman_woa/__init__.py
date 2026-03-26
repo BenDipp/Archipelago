@@ -369,6 +369,7 @@ class HitmanWorld(World):
 
             self.target_slotdata = target_slot_data
         else:
+            self.enabled_entitlements[self.player].append("vanilla_targets")
             if self.options.enable_target_checks.value:
                 for level in vanilla_target_table:
                     if  level in self.enabled_entitlements[self.player]:
@@ -398,12 +399,16 @@ class HitmanWorld(World):
                         for entitlement in game_changers_table[chosen_complication][1]:
                             self.enabled_entitlements[self.player].append(level+entitlement)
 
-                        complication_slot_data += str(game_changers_table[chosen_complication]) + "_"
+                        complication_slot_data += str(game_changers_table[chosen_complication][0]) + "_"
 
                 complication_slot_data += "-"
             self.complications = complication_slot_data
         else:
             self.complications = "vanilla"
+
+        if "chongqing_no_agility" in self.enabled_entitlements[self.player]\
+        and "vanilla_targets" in self.enabled_entitlements[self.player]:
+            self.enabled_entitlements[self.player].append("chongqing_need_to_skip_datacore")
 
     def create_regions(self) -> None:
         menu_region = Region("Menu", self.player, self.multiworld)
