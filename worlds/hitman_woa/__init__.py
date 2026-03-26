@@ -524,7 +524,7 @@ class HitmanWorld(World):
                     continue
                 if item in self.options.excluded_items.value:
                     continue
-                if item in required_items:
+                if item in required_items and item != starting_locaiton:
                     item_pool.append(self.create_item_with_classification(item, ItemClassification.progression))
                 if item_table[item][2] == ItemClassification.filler and item not in self.options.prioritized_filler.value and item not in required_items:
                     valid_filler.append(item)
