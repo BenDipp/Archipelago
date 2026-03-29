@@ -1,8 +1,8 @@
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from BaseClasses import Item, ItemClassification, Region, Tutorial, LocationProgressType
 from Fill import FillError
-from Options import OptionError
+from Options import OptionError, Option
 from rule_builder.rules import *
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch as launch_component, icon_paths
@@ -42,7 +42,6 @@ class HitmanWorld(World):
     options_dataclass = HitmanOptions
     options: HitmanOptions
     topology_present = True
-    ut_can_gen_without_yaml = True
 
     location_name_to_id = {name: data.id + base_id for name, data in location_table.items()}
     item_name_to_id = {name: data[0] + base_id for name, data in item_table.items()}
@@ -136,24 +135,13 @@ class HitmanWorld(World):
             if hasattr(self.multiworld, "re_gen_passthrough"):
                 if self.game in self.multiworld.re_gen_passthrough:
                     slot_data = self.multiworld.re_gen_passthrough[self.game]
-                    self.options.enable_itemsanity.value = slot_data["enable_itemsanity"]
-                    self.options.split_itemsanity.value = slot_data["split_itemsanity"]
-                    self.options.included_s1_locations.value = slot_data["included_s1_locations"]
-                    self.options.included_s2_locations.value = slot_data["included_s2_locations"]
-                    self.options.included_s2_dlc_locations.value = slot_data["included_s2_dlc_locations"]
-                    self.options.included_s3_locations.value = slot_data["included_s3_locations" ]
-                    self.options.levels_with_check_for_completion.value = slot_data["levels_with_check_for_completion"]
-                    self.options.levels_with_check_for_sa.value = slot_data["levels_with_check_for_sa"]
-                    self.options.levels_with_check_for_so.value = slot_data["levels_with_check_for_so"]
-                    self.options.levels_with_check_for_saso.value = slot_data["levels_with_check_for_saso"]
-                    self.options.starting_location.value = slot_data["starting_location"]
-                    self.options.goal_level.value = slot_data["goal_level"]
-                    self.options.random_targets.value = slot_data["random_targets"]
-                    self.options.min_number_of_targets.value = slot_data["min_number_of_targets"]
-                    self.options.max_number_of_targets.value = slot_data[ "max_number_of_targets"]
-                    self.options.enable_target_checks.value = slot_data["enable_target_checks"]
-                    self.options.enable_disguisesanity.value = slot_data["enable_disguisesanity"]
-
+                    for key, value in slot_data.items():
+                        opt: Optional[Option] = getattr(self.options, key, None)
+                        if opt is not None:
+                            # You can also set .value directly but that won't work if you have OptionSets
+                            setattr(self.options, key, opt.from_any(value))
+                    self.enabled_entitlements[self.player] = slot_data["entitlements"]
+                    return
         
         # make sure the goal Level is added as location
         if self.options.goal_mode.value == self.options.goal_mode.option_level_completion or \
@@ -418,7 +406,7 @@ class HitmanWorld(World):
         self.multiworld.regions.append(map_region)
         menu_region.connect(map_region)
 
-        if self.options.max_sanity_checks_per_level.value > 0:
+        if self.options.max_sanity_checks_per_level.value > 0 and not hasattr(self.multiworld, "re_gen_passthrough"):
             max_per_level = self.options.max_sanity_checks_per_level.value
 
             # Build mapping: check -> set(levels it belongs to)
@@ -597,12 +585,19 @@ class HitmanWorld(World):
     
     def fill_slot_data(self):
         slotdata = self.options.as_dict( # copy options for yaml-less Universal Tracker
-            "enable_itemsanity", "split_itemsanity", "enable_disguisesanity",
-            "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations", 
-            "levels_with_check_for_completion", "levels_with_check_for_sa", "levels_with_check_for_so", "levels_with_check_for_saso",
-            "starting_location", "goal_level",
-            "random_targets", "min_number_of_targets", "max_number_of_targets", "enable_target_checks"
+            "game_version",
+            "game_difficulty", "enable_itemsanity", "split_itemsanity", "enable_disguisesanity", "max_sanity_checks_per_level",
+            "enable_target_checks", "exclude_goal_level_locations",
+            "random_complications", "min_number_of_complications", "max_number_of_complications", "complications_weights",
+            "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations",
+            "excluded_items", "excluded_starting_items", "prioritized_filler", "item_packages",
+            "include_sniper_assassin_weapons", "starting_location", "goal_mode", "goal_rating",
+            "goal_level", "goal_amount", "goal_required_contract_pieces", "goal_additional_contract_pieces",
+            "levels_with_check_for_completion", "levels_with_check_for_sa","levels_with_check_for_so",
+            "levels_with_check_for_saso", "levels_with_check_for_sna",
+            "random_targets", "min_number_of_targets", "max_number_of_targets"
         )
+        slotdata["entitlements"] = self.enabled_entitlements[self.player]
         slotdata["starting_location_name"] = self.options.starting_location.current_key
 
         match self.options.game_difficulty.value:
