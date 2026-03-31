@@ -1,7 +1,5 @@
-from decimal import ROUND_HALF_UP, Decimal
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from BaseClasses import Item, ItemClassification, Region, Tutorial, LocationProgressType
-from Fill import FillError
 from Options import OptionError, Option
 from rule_builder.rules import *
 from worlds.AutoWorld import WebWorld, World
@@ -94,12 +92,12 @@ class HitmanWorld(World):
             raise OptionError("Cannot set a HITMAN 2 Level as starting level when HITMAN "+str(self.options.game_version.value)+" is selected as game")
 
         if self.options.game_version.value < 3 and self.options.goal_level >= 15 \
-        and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion \
+        and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion
         or self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
             raise OptionError("Cannot set a HITMAN 3 Level as goal level when HITMAN "+str(self.options.game_version.value)+" is selected as game")
 
         if self.options.game_version.value < 2 and self.options.goal_level >= 7 \
-        and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion \
+        and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion
         or self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
             raise OptionError("Cannot set a HITMAN 2 Level as goal level when HITMAN "+str(self.options.game_version.value)+" is selected as game")
 
@@ -173,7 +171,7 @@ class HitmanWorld(World):
         self.enabled_entitlements[self.player].extend(self.options.included_s3_locations.value)
 
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions and\
-            self.options.goal_amount.value > len(set(self.enabled_entitlements[self.player])):
+           self.options.goal_amount.value > len(set(self.enabled_entitlements[self.player])):
             raise OptionError("Not enough levels enabled for chosen Goal Amount.")
 
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions and\
@@ -183,7 +181,7 @@ class HitmanWorld(World):
             raise OptionError("Not enough levels enabled for chosen Goal Amount. (Note: Carpathian Mountains cannot contain a Sniper Assassin check)")
 
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions:
-            match(self.options.goal_rating.value):
+            match self.options.goal_rating.value:
                 case self.options.goal_rating.option_any:
                     self.options.levels_with_check_for_completion.value.add("all")
                 case self.options.goal_rating.option_silent_assassin:
@@ -245,7 +243,7 @@ class HitmanWorld(World):
             self.enabled_entitlements[self.player].append("master")
 
         #Check for version specific DLC
-        match(self.options.game_version.value):
+        match self.options.game_version.value:
             case self.options.game_version.option_hitman_world_of_assassination:
                 self.enabled_entitlements[self.player].append("H3_BASE")
                 
@@ -469,7 +467,7 @@ class HitmanWorld(World):
                           Has("Contract Piece",self.options.goal_amount.value))
 
         if self.options.exclude_goal_level_locations.value \
-         and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion\
+         and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion
          or  self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
 
             goal_item = "Level - "+goal_table[self.options.goal_level.current_key]
@@ -540,7 +538,7 @@ class HitmanWorld(World):
 
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions:
             goal_entitlement = None 
-            match(self.options.goal_rating.value):
+            match self.options.goal_rating.value:
                 case self.options.goal_rating.option_any: goal_entitlement = "completed"
                 case self.options.goal_rating.option_silent_assassin: goal_entitlement = "sa"
                 case self.options.goal_rating.option_suit_only: goal_entitlement = "so"
@@ -557,21 +555,21 @@ class HitmanWorld(World):
         
         for _ in range(total_locations - total_items):
             if len(priority_filler) != 0:
-                choosenItem = self.random.choice(priority_filler)
-                priority_filler.remove(choosenItem)
+                chosen_item = self.random.choice(priority_filler)
+                priority_filler.remove(chosen_item)
             elif len(valid_useful) != 0:
-                choosenItem = self.random.choice(valid_useful)
-                valid_useful.remove(choosenItem)
+                chosen_item = self.random.choice(valid_useful)
+                valid_useful.remove(chosen_item)
             elif len(valid_filler) != 0:
-                choosenItem = self.random.choice(valid_filler)
-                valid_filler.remove(choosenItem)
+                chosen_item = self.random.choice(valid_filler)
+                valid_filler.remove(chosen_item)
             else:
-                choosenItem = self.random.choice(valid_duplicats)
+                chosen_item = self.random.choice(valid_duplicats)
 
-            if any(group in item_table[choosenItem][4] for group in required_itemgroups):
-                item_pool.append(self.create_item_with_classification(choosenItem, ItemClassification.progression_deprioritized))
+            if any(group in item_table[chosen_item][4] for group in required_itemgroups):
+                item_pool.append(self.create_item_with_classification(chosen_item, ItemClassification.progression_deprioritized))
             else:
-                item_pool.append(self.create_item(choosenItem))
+                item_pool.append(self.create_item(chosen_item))
 
         self.multiworld.push_precollected(self.create_item(starting_locaiton))
         self.multiworld.itempool.extend(item_pool)

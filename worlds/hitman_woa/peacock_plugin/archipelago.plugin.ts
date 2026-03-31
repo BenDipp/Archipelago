@@ -6081,7 +6081,6 @@ const gameChangerApIdToRepoIdMap: Record<number,{repoId:string, manifest?:GameCh
 	21: {repoId: "61b1203e-84a0-4b77-bf88-8ba956ebd2bd", versionsToOverride:["h1","h2"], overrides:{"Name":"Kill method accidental", "Description":"You have to kill your targets solely through accidents."}},
 	22: {repoId: "bb0c22b7-f5e4-4a91-bc7a-9070177a87e4", versionsToOverride:["h1","h2"], overrides:{"Name":"No poison elimination", "Description":"Do not eliminate any target using lethal poison.", "TileImage":"images/contracts/ap/campaign.jpg"}}
 }
-
 const everythingUnlockables: Record<string,{apId:number,unlockableTemplate:Unlockable}> = {
     "EVERYTHING":{apId:1500, unlockableTemplate:{"Id": "EVERYTHING_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000000","Type": "gear","Subtype": "Archipelago","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Icon": "images/evergreen/mastery/eg_mastery_gearcapincrease.jpg", "Quality": 1, "LoadoutSlot": "gear", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000000",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"EVERYTHING_PACKAGE","GameAsset":null}},
     "pistol":{apId:1501, unlockableTemplate:{"Id": "PISTOL_PACKAGE", "Guid": "00000000-0000-0000-0000-100000000001","Type": "gear","Subtype": "Archipelago","ImageId": "","RMTPrice": -1, "GamePrice": -1,"IsPurchasable": false,"IsPublished": true,"IsDroppable": false,"Capabilities": [],"Qualities": {},"Properties": {"Icon": "images/evergreen/challenges/Evergreen_Challenge_The_Hitman.jpg", "Quality": 1, "LoadoutSlot": "concealedweapon", "Rarity": "common","RepositoryId": "00000000-0000-0000-0000-100000000001",  "RepositoryAssets": [],"ItemSize": "ITEMSIZE_SMALL" },"Rarity": "common","DisplayNameLocKey":"PISTOL_PACKAGE","GameAsset":null}},
@@ -6129,7 +6128,7 @@ const getContractFromName = (contractName:string) =>{
             return contractId
         }
     }
-    
+
     // if nothing was found, try snakecase
     for(const contractId in modifiedContractMap){
         if(modifiedContractMap[contractId].name.toLowerCase().replaceAll(" ","_") === contractName){
@@ -6145,7 +6144,7 @@ let latestUnlockedLevel = ""
 
 const listOfUnsentChecks:number[] = []
 const checkLocation = (id:number) =>{
-    if(id != undefined){
+    if(id !== undefined){
         id = id + baseId
         if(!listOfUnsentChecks.includes(id)){
             logArchipelago("Saving id: "+id+" to send")
@@ -6161,7 +6160,7 @@ const listOfUncheckedChallanges:string[]=[]
 function handleCheckedLocations(controller:Controller, locations:number[]):boolean{
 	for(const id in locations){
 		const locationApId = locations[id] //- baseId
-		if(locationApId == 10000) // "All Contract Pieces Collected has intentionally no challange"
+		if(locationApId === 10000) // "All Contract Pieces Collected has intentionally no challange"
 			continue
 		let foundMatch = false
 		for(const challangeId in challangeIdToApIdMap){
@@ -6184,10 +6183,10 @@ const setupUnlockables = (controller: Controller)=> {
 
     for(const apid in apItemMap){
         const unlockableId = apItemMap[apid].unlockableId
-        
+
         //h3
-        let lockable:Unlockable[] = controller.configManager.configs.allunlockables.filter((unlockable:Unlockable) => unlockable.Id == unlockableId)
-        if(lockable.length != 0){
+        let lockable:Unlockable[] = controller.configManager.configs.allunlockables.filter((unlockable:Unlockable) => unlockable.Id === unlockableId)
+        if(lockable.length !== 0){
             const unlockable = lockable[0]
             apItemMap[apid].h3unlockable = unlockable
 			if(unlockable.Properties.GameAssets === undefined){
@@ -6198,14 +6197,14 @@ const setupUnlockables = (controller: Controller)=> {
 			}
         }else{
             const start = apItemMap[apid].apItemName.split(" - ")[0]
-            if(start != "Level" && start != "Package" && start != "Heavy Sniper"){
+            if(start !== "Level" && start !== "Package" && start !== "Heavy Sniper"){
                 errArchipelago("Unlockable "+unlockableId+" is not in allunlockables.json")
             }
         }
 
         //h2
-        lockable = controller.configManager.configs.H2allunlockables.filter((unlockable:Unlockable) => unlockable.Id == unlockableId)
-        if(lockable.length != 0){
+        lockable = controller.configManager.configs.H2allunlockables.filter((unlockable:Unlockable) => unlockable.Id === unlockableId)
+        if(lockable.length !== 0){
             const unlockable = lockable[0]
             apItemMap[apid].h2unlockable = unlockable
 			if(unlockable.Properties.GameAssets === undefined){
@@ -6217,8 +6216,8 @@ const setupUnlockables = (controller: Controller)=> {
         }
 
         //h1
-        lockable = controller.configManager.configs.Legacyallunlockables.filter((unlockable:Unlockable) => unlockable.Id == unlockableId)
-        if(lockable.length != 0){
+        lockable = controller.configManager.configs.Legacyallunlockables.filter((unlockable:Unlockable) => unlockable.Id === unlockableId)
+        if(lockable.length !== 0){
             const unlockable = lockable[0]
             apItemMap[apid].h1unlockable = unlockable
 			if(unlockable.Properties.GameAssets === undefined){
@@ -6255,7 +6254,7 @@ const setupUnlockables = (controller: Controller)=> {
 	for(const contractId in contractMap){
 		masterydata.LocationId = contractMap[contractId].locationParent
 		controller.masteryService.registerMasteryData(masterydata)
-	} 
+	}
 	masterydata.LocationId = "LOCATION_PARENT_SNUG"
 	controller.masteryService.registerMasteryData(masterydata) //Exception for evergreen
 
@@ -6272,10 +6271,10 @@ const setupUnlockables = (controller: Controller)=> {
     //For consistency remove only gamechanger with hudtemplate
     //TODO: maybe for consistency add Hudtempalte for all?
     configs.GameChangerProperties["bb0c22b7-f5e4-4a91-bc7a-9070177a87e4"].Objectives[0].HUDTemplate = undefined
-    
+
     //add custom gamechangers
     for(const id in gameChangerApIdToRepoIdMap){
-        if(gameChangerApIdToRepoIdMap[id].manifest != undefined){
+        if(gameChangerApIdToRepoIdMap[id].manifest !== undefined){
             configs.GameChangerProperties[gameChangerApIdToRepoIdMap[id].repoId] = gameChangerApIdToRepoIdMap[id].manifest
         }
     }
@@ -6290,7 +6289,7 @@ function addChallange(controller:Controller, name:string, imagePath:string, desc
             "ImageName": imagePath,
             "Description": description,
             "Rewards": {
-                "MasteryXP": 10 
+                "MasteryXP": 10
             },
 			"Xp":0,
     		"Drops": [],
@@ -6347,12 +6346,12 @@ function addChallangeGroup(controller:Controller, name:string, imagePath:string,
 	controller.challengeService.registerGroup(group, locationParent,"h1")
 }
 const addItemsanityChallanges = (controller:Controller, slotData:slotData) => {
-    if(slotData.checks.splitItemPickupChecks.length != 0){
+    if(slotData.checks.splitItemPickupChecks.length !== 0){
 		for(const contractId in contractMap){
             addChallangeGroup(controller,"AP Itempickups","images/contracts/ap/campaign.jpg","challenge_category_discovery","AP_PICKUP_CHECKS",contractMap[contractId].locationParent)
 		}
 	}
-    if(slotData.checks.itemPickupChecks.length != 0) {
+    if(slotData.checks.itemPickupChecks.length !== 0) {
 		controller.challengeService.globalMergeGroups.set("AP_PICKUP_CHECKS", {
 			gameVersions: ["h3", "h2", "h1"],
 			groupId: "AP_PICKUP_CHECKS",
@@ -6367,7 +6366,7 @@ const addItemsanityChallanges = (controller:Controller, slotData:slotData) => {
 	for(const itemId in itemPickupMap){
 		const availableOnContracts = []
 		for(const contractId in modifiedContractMap){
-			if(itemPickupMap[itemId].locations.includes(modifiedContractMap[contractId].name) || (slotData.difficulty!="hard" && itemPickupMap[itemId].locationsNonMaster.includes(modifiedContractMap[contractId].name))){
+			if(itemPickupMap[itemId].locations.includes(modifiedContractMap[contractId].name) || (slotData.difficulty!=="hard" && itemPickupMap[itemId].locationsNonMaster.includes(modifiedContractMap[contractId].name))){
                 availableOnContracts.push(contractId)
 			}
 		}
@@ -6380,7 +6379,7 @@ const addItemsanityChallanges = (controller:Controller, slotData:slotData) => {
             	]
             }
 		]
-					
+
 		if(itemPickupMap[itemId].otherIds.length > 0){
 			for(const id in itemPickupMap[itemId].otherIds){
 				pickupConditions.push(
@@ -6393,7 +6392,7 @@ const addItemsanityChallanges = (controller:Controller, slotData:slotData) => {
 				)
 			}
 		}
-        
+
 		for(const id in availableOnContracts){
             if(slotData.checks.splitItemPickupChecks.includes(itemPickupMap[itemId].locationSpecificApIds[modifiedContractMap[availableOnContracts[id]].name])){
                 addChallange(controller,
@@ -6411,7 +6410,7 @@ const addItemsanityChallanges = (controller:Controller, slotData:slotData) => {
 									},
 									"Transition": "Success"
 								}
-							}                    
+							}
             		    }
 					},
 					"AP_PICKUP_CHECKS",
@@ -6421,7 +6420,7 @@ const addItemsanityChallanges = (controller:Controller, slotData:slotData) => {
 				)
             }
 		}
-		if(availableOnContracts.length != 0 && slotData.checks.itemPickupChecks.includes(itemPickupMap[itemId].apId)){
+		if(availableOnContracts.length !== 0 && slotData.checks.itemPickupChecks.includes(itemPickupMap[itemId].apId)){
 			addChallange(controller,
 				"Itempickup - "+itemPickupMap[itemId].name,
 				"images/unlockables/item_perspective_"+itemId+"_0.jpg",
@@ -6437,7 +6436,7 @@ const addItemsanityChallanges = (controller:Controller, slotData:slotData) => {
 								},
 								"Transition": "Success"
 							}
-						}                    
+						}
 					}
 				},
 				"AP_PICKUP_CHECKS",
@@ -6452,15 +6451,15 @@ const addDisguisesanityChallanges = (controller:Controller, slotData:slotData) =
 	for(const contractId in contractMap){
         addChallangeGroup(controller,"AP Disguises","images/contracts/ap/campaign.jpg","challenge_category_discovery","AP_DISGUISE_CHECKS",contractMap[contractId].locationParent)
 	}
-	
+
 	addChallangePack(controller, "AP_DISGUISE_CHECKS", "AP Disguise Checks")
 
 	for(const disguiseId in disguiseMap){
 		if(!slotData.checks.disguiseChecks.includes(disguiseMap[disguiseId].apId)){
 			continue
 		}
-        let contractIds = Object.keys(modifiedContractMap).filter(modifiedId => modifiedContractMap[modifiedId].oldId == disguiseMap[disguiseId].contractId)
-        if(contractIds.length == 0){
+        let contractIds = Object.keys(modifiedContractMap).filter(modifiedId => modifiedContractMap[modifiedId].oldId === disguiseMap[disguiseId].contractId)
+        if(contractIds.length === 0){
             errArchipelago(disguiseMap[disguiseId].name+" was enabled, but corresponding map is not in modifiedContractMap")
             continue
         }
@@ -6492,11 +6491,11 @@ const addDisguisesanityChallanges = (controller:Controller, slotData:slotData) =
 			disguiseMap[disguiseId].apId
 		)
 	}
-	
+
 }
 const addCompletionChallanges = (controller:Controller, slotData:slotData)=>{
 	addChallangePack(controller, "AP_COMPLETION_CHECKS", "AP Completion Checks")
-	
+
 	for(const modifiedContractId in modifiedContractMap){
         const contractRecord = contractMap[modifiedContractMap[modifiedContractId].name]
 		addChallangeGroup(controller,"AP Completions","images/contracts/ap/campaign.jpg","profile","AP_COMPLETION_CHECKS",contractRecord.locationParent)
@@ -6507,11 +6506,11 @@ const addCompletionChallanges = (controller:Controller, slotData:slotData)=>{
             }
 
 			let stateMachine = JSON.parse(JSON.stringify(completionTemplates[completionType].stateMachine));
-			if(contractRecord.contractId == "0e81a82e-b409-41e9-9e3b-5f82e57f7a12" && slotData.levels.Hokkaido.targets == undefined &&(completionType == "sa" || completionType == "saso")){
+			if(contractRecord.contractId === "0e81a82e-b409-41e9-9e3b-5f82e57f7a12" && slotData.levels.Hokkaido.targets === undefined &&(completionType === "sa" || completionType === "saso")){
                 //If hokkaido is on vanilla targets, allow killing CrowdNPCs in sa/saso, so killing Soders doesn't invalidate it
 				stateMachine.States.Start.CrowdNPC_Died = undefined
 			}
-			addChallange(controller, 
+			addChallange(controller,
 				modifiedContractMap[modifiedContractId].name+completionTemplates[completionType].suffix,
 				completionTemplates[completionType].imagePath,
 				completionTemplates[completionType].description,
@@ -6530,14 +6529,14 @@ const addEliminationChallanges = (controller:Controller, slotData:slotData)=>{
 
     for(const id in slotData.checks.eliminationChecks){
         const targetRecord = targetMap[slotData.checks.eliminationChecks[id]]
-        const modifiedContractRecord = Object.values(modifiedContractMap).find((contractRecord) => contractRecord.oldId == targetRecord.contractId)
+        const modifiedContractRecord = Object.values(modifiedContractMap).find((contractRecord) => contractRecord.oldId === targetRecord.contractId)
 
-        if(modifiedContractRecord == undefined){
+        if(modifiedContractRecord === undefined){
             errArchipelago("No enabled contract was found with id "+targetRecord.contractId+" while adding Elimination check for "+targetRecord.name)
             continue
         }
 
-        const contractRecord = contractMap[modifiedContractRecord.name] 
+        const contractRecord = contractMap[modifiedContractRecord.name]
 
         addChallangeGroup(controller, "AP Eliminations","images/contracts/ap/campaign.jpg","challenge_category_targets","AP_KILL_CHECKS",contractRecord.locationParent)
 
@@ -6559,7 +6558,7 @@ const addEliminationChallanges = (controller:Controller, slotData:slotData)=>{
 							},
 							"Transition": "Success"
 						}
-					}                    
+					}
 				}
 			},
 			"AP_KILL_CHECKS",
@@ -6570,11 +6569,11 @@ const addEliminationChallanges = (controller:Controller, slotData:slotData)=>{
     }
 }
 const addModifiedMissions = (controller: Controller, slotData:slotData) => {
-    // add copy of contracts to the game  
+    // add copy of contracts to the game
 
     for (const levelName in contractMap){
         const levelData = slotData.levels[levelName]
-		if(levelData == undefined || !levelData.enabled){
+		if(levelData === undefined || !levelData.enabled){
 			continue
 		}
         const contractId = contractMap[levelName].contractId
@@ -6585,7 +6584,7 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
         }
 		let newContractId = slotData.seed.substring(slotData.seed.length-8)+"-0000-0000-0000-"+contractId.split("-")[4]
 
-        if(levelData.targets != undefined) {	
+        if(levelData.targets !== undefined) {
 
 			// get contractcreation contract instead of main mission
 			let bareContract = controller.resolveContract(contractMap[levelName].contractCreationId, "h3")
@@ -6616,32 +6615,32 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
             */
             for(const id in levelData.targets){
 				const newTarget = targetMap[levelData.targets[id]].targetId
-				if(contractId!= targetMap[levelData.targets[id]].contractId){
+				if(contractId !== targetMap[levelData.targets[id]].contractId){
 					errArchipelago("Selected target "+newTarget+" is not available in level "+contractId+"! Skipping Target addition.")
 					continue
 				}
 
                 let targetObjective = JSON.parse(JSON.stringify(targetTemplate));
-                    
+
                 targetObjective.Id = newTarget
                 targetObjective.Definition.Context.Targets = [newTarget]
                 targetObjective.Definition.States.Start.Kill.Condition.$eq[1]=newTarget
                 targetObjective.HUDTemplate.display.$loc.data = "$($repository "+newTarget+").Name"
                 targetObjective.BriefingText.$loc.data = targetObjective.HUDTemplate.display.$loc.data
-                
+
                 contract.Data.Objectives!.push(targetObjective)
 
 			}
 		}else{
-			if(contractId == "42bac555-bbb9-429d-a8ce-f1ffdf94211c"){ //exception to remove bunker-objective from vanilla Colorado
+			if(contractId === "42bac555-bbb9-429d-a8ce-f1ffdf94211c"){ //exception to remove bunker-objective from vanilla Colorado
 				contract.Data.EnableExits?.$eq?.shift() //remove requirement for "TargetsDead_EnableExits" and always enable exits when targets are dead
 			}
 		}
 
-		if(levelData.complications != undefined){
+		if(levelData.complications !== undefined){
             for(const id in levelData.complications){
                 const gamechanger = gameChangerApIdToRepoIdMap[Number(levelData.complications[id])]
-                if(gamechanger != undefined){
+                if(gamechanger !== undefined){
                     contract.Data.GameChangers?.push(gamechanger.repoId)
                 }else{
                     errArchipelago("No gameChanger found with apId "+levelData.complications[id]+" when adding to "+levelName)
@@ -6651,7 +6650,7 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
 
         // remove difficulties not set by archipelago
         let savedDifficulty
-                
+
         if(contract.Data.GameDifficulties !== undefined){
             for (const i in contract.Data.GameDifficulties){
                 if(contract.Data.GameDifficulties[i].Difficulty === slotData.difficulty){
@@ -6665,12 +6664,12 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
             }else{
                 errArchipelago("No difficulty was saved for level "+levelName)
             }
-        }    
+        }
 
         modifiedContractMap[newContractId] = {name: levelName, oldId:contractId}
         contract.Metadata.Id = newContractId
 
-		if(contractId == "ada5f2b1-8529-48bb-a596-717f75f5eacb"){
+		if(contractId === "ada5f2b1-8529-48bb-a596-717f75f5eacb"){
 			contract.Data.MandatoryLoadout = undefined
 			contract.Metadata.Type = "mission" //was "tutorial"
 		}
@@ -6680,18 +6679,18 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
     }
 }
 function addToEverythingItem (unlockableToUnlock:Unlockable|undefined, categoryEverythingItem:Unlockable|undefined, everythingItem:Unlockable|undefined){
-    if(unlockableToUnlock != undefined && unlockableToUnlock.Subtype){
-        if(unlockableToUnlock.Id == "PROP_MELEE_MACE" || unlockableToUnlock.Id == "FIREARMS_SMG_TACTICAL_DAK_DTI_BLACK_COVERT" || unlockableToUnlock.Id == "FIREARMS_SMG_TACTICAL_DAK_DTI_GOLD_COVERT" ||unlockableToUnlock.Id == "FIREARMS_HERO_SMG_TAC_SMG_LUXURIOUS" || unlockableToUnlock.Id == "TOKEN_PROP_MELEE_KALI_STICKS")
+    if(unlockableToUnlock !== undefined && unlockableToUnlock.Subtype){
+        if(unlockableToUnlock.Id === "PROP_MELEE_MACE" || unlockableToUnlock.Id === "FIREARMS_SMG_TACTICAL_DAK_DTI_BLACK_COVERT" || unlockableToUnlock.Id === "FIREARMS_SMG_TACTICAL_DAK_DTI_GOLD_COVERT" ||unlockableToUnlock.Id === "FIREARMS_HERO_SMG_TAC_SMG_LUXURIOUS" || unlockableToUnlock.Id === "TOKEN_PROP_MELEE_KALI_STICKS")
             unlockableToUnlock.Properties.ItemSize = "ITEMSIZE_LARGE"
-		if(unlockableToUnlock.Properties.ItemSize! != "ITEMSIZE_LARGE" ||
-           categoryEverythingItem!.Properties.ItemSize! == "ITEMSIZE_LARGE"){
+		if(unlockableToUnlock.Properties.ItemSize! !== "ITEMSIZE_LARGE" ||
+           categoryEverythingItem!.Properties.ItemSize! === "ITEMSIZE_LARGE"){
 			if(unlockableToUnlock.Properties.RepositoryAssets){
 		        categoryEverythingItem!.Properties.RepositoryAssets!.push(...unlockableToUnlock.Properties.RepositoryAssets)
 	        }else{
 		        categoryEverythingItem!.Properties.RepositoryAssets!.push(unlockableToUnlock.Properties.RepositoryId!)
 	        }
 		}
-		if(unlockableToUnlock.Properties.ItemSize != "ITEMSIZE_LARGE"){
+		if(unlockableToUnlock.Properties.ItemSize !== "ITEMSIZE_LARGE"){
 			if(unlockableToUnlock.Properties.RepositoryAssets){
 		        everythingItem!.Properties.RepositoryAssets!.push(...unlockableToUnlock.Properties.RepositoryAssets)
 	        }else{
@@ -6707,11 +6706,11 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
     let errorOccured = false
     for(const i in itemIds){
         const id = itemIds[i] // - baseId
-        
+
         if (apItemMap[id] === undefined){
             if(id === 1000){ // exception for Contract Pieces
                 collectedContractPieces++;
-                
+
                 editMenuGoalUi("Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString, undefined)
 
 				if(collectedContractPieces >= parseInt(contractGoalAmount)){
@@ -6727,55 +6726,55 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
             continue
         }
         const itemName = apItemMap[id].apItemName
-    
+
         if(itemName.startsWith("Level -")){
             logArchipelago("Setting Flag: " + itemName)
-    
+
             setFlag(itemName, true)
-    
+
             latestUnlockedLevel = getContractFromName(itemName.split("Level - ")[1])
                 // TODO: somehow force update the menu and campaign
         }else{
-            logArchipelago("Awarding Unlockable: "+apItemMap[id].unlockableId+" in "+(apItemMap[id].h3unlockable != undefined ? "h3 " : "")+(apItemMap[id].h2unlockable != undefined ? "h2 " : "")+(apItemMap[id].h1unlockable != undefined ? "h1 " : ""))
-            if(apItemMap[id].h3unlockable == undefined){
+            logArchipelago("Awarding Unlockable: "+apItemMap[id].unlockableId+" in "+(apItemMap[id].h3unlockable !== undefined ? "h3 " : "")+(apItemMap[id].h2unlockable !== undefined ? "h2 " : "")+(apItemMap[id].h1unlockable !== undefined ? "h1 " : ""))
+            if(apItemMap[id].h3unlockable === undefined){
                 // Assumes no item is in h1/h2 but not in h3, since itemlist was taken from h3
                 errArchipelago("Unlockable "+apItemMap[id].unlockableId+" was not found in Peacock. Did another mod/plugin move it? Skipping unlockable...")
                 continue
             }
             const alreadyUnlockedH3Unlockable = controller.configManager.configs.allunlockables.find((element: Unlockable) => element.Id === apItemMap[id].unlockableId)
 
-			if(alreadyUnlockedH3Unlockable != undefined){ //Modify existing if it would be a copy		
+			if(alreadyUnlockedH3Unlockable !== undefined){ //Modify existing if it would be a copy
 				alreadyUnlockedH3Unlockable.Properties.GameAssets.push(...apItemMap[id].h3unlockable.Properties.GameAssets!)
 				alreadyUnlockedH3Unlockable.Properties.RepositoryAssets.push(...apItemMap[id].h3unlockable.Properties.RepositoryAssets!)
 
                 const alreadyUnlockedH2Unlockable = controller.configManager.configs.H2allunlockables.find((element: Unlockable) => element.Id === apItemMap[id].unlockableId)
-                if(alreadyUnlockedH2Unlockable != undefined){
+                if(alreadyUnlockedH2Unlockable !== undefined){
                   	alreadyUnlockedH2Unlockable.Properties.GameAssets.push(...apItemMap[id].h2unlockable!.Properties.GameAssets!)
-				    alreadyUnlockedH2Unlockable.Properties.RepositoryAssets.push(...apItemMap[id].h2unlockable!.Properties.RepositoryAssets!)  
+				    alreadyUnlockedH2Unlockable.Properties.RepositoryAssets.push(...apItemMap[id].h2unlockable!.Properties.RepositoryAssets!)
                 }
 
                 const alreadyUnlockedH1Unockable = controller.configManager.configs.Legacyallunlockables.find((element: Unlockable) => element.Id === apItemMap[id].unlockableId)
-                if(alreadyUnlockedH1Unockable != undefined){
+                if(alreadyUnlockedH1Unockable !== undefined){
                   	alreadyUnlockedH1Unockable.Properties.GameAssets.push(...apItemMap[id].h2unlockable!.Properties.GameAssets!)
-				    alreadyUnlockedH1Unockable.Properties.RepositoryAssets.push(...apItemMap[id].h2unlockable!.Properties.RepositoryAssets!)  
+				    alreadyUnlockedH1Unockable.Properties.RepositoryAssets.push(...apItemMap[id].h2unlockable!.Properties.RepositoryAssets!)
                 }
 			}else{
 				if(id >= 1500 && id < 1520){ // Do not copy by value everything items, they need to be managed from the other array
                     controller.configManager.configs.allunlockables.push(apItemMap[id].h3unlockable)
-                    if(apItemMap[id].h2unlockable!=undefined)
+                    if(apItemMap[id].h2unlockable !== undefined)
                         controller.configManager.configs.H2allunlockables.push(apItemMap[id].h2unlockable)
-                    if(apItemMap[id].h1unlockable!=undefined)
+                    if(apItemMap[id].h1unlockable !== undefined)
                         controller.configManager.configs.Legacyallunlockables.push(apItemMap[id].h1unlockable)
 				}else{
 					controller.configManager.configs.allunlockables.push(JSON.parse(JSON.stringify(apItemMap[id].h3unlockable)))
-                    if(apItemMap[id].h2unlockable!=undefined)
+                    if(apItemMap[id].h2unlockable !== undefined)
                         controller.configManager.configs.H2allunlockables.push(JSON.parse(JSON.stringify(apItemMap[id].h2unlockable)))
-                    if(apItemMap[id].h1unlockable!=undefined)
+                    if(apItemMap[id].h1unlockable !== undefined)
                         controller.configManager.configs.Legacyallunlockables.push(JSON.parse(JSON.stringify(apItemMap[id].h1unlockable)))
 				}
 			}
             let subtype = apItemMap[id].h3unlockable.Subtype
-            if(everythingUnlockables[subtype!] != undefined){
+            if(everythingUnlockables[subtype!] !== undefined){
 
                 addToEverythingItem(
                     apItemMap[id].h3unlockable,
@@ -6835,7 +6834,7 @@ function printApIcon(){
                  ${o}                ${x}
                  ${o}                ${x}
                    ${o}            ${x}
-                     ${o}        ${x}`) 
+                     ${o}        ${x}`)
 }
 
 function saveImagesToDisk(){
@@ -6855,17 +6854,17 @@ function saveImagesToDisk(){
 function editMenuGoalUi(title:string, imagePath?:string){
     configs.EiderDashboard.children.$mergearrays[5].data.title = title
     configs.EiderDashboard.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = title
-    if(imagePath != undefined)
+    if(imagePath !== undefined)
         configs.EiderDashboard.children.$mergearrays[5].data.image = imagePath
 
     configs.H2DashboardTemplate.children.$mergearrays[5].data.title = title
     configs.H2DashboardTemplate.children.$mergearrays[5].actions.select["replace-children"].children[0].data.title = title
-    if(imagePath != undefined)
+    if(imagePath !== undefined)
         configs.H2DashboardTemplate.children.$mergearrays[5].data.image = imagePath
 
     configs.LegacyHubTemplate.body.children[3].children[0].children.children.$merge[5].data.title = title
     configs.LegacyHubTemplate.body.children[3].children[0].children.children.$merge[5].actions.select["replace-children"].children[0].data.title = title
-    if(imagePath != undefined)
+    if(imagePath !== undefined)
         configs.LegacyHubTemplate.body.children[3].children[0].children.children.$merge[5].data.image = imagePath
 
 }
@@ -7029,7 +7028,7 @@ function setupMainMenuTiles(){
 		"open-url": {
 			"url": "https://www.hitmaps.com/"
         }
-   
+
     }]
     configs.LegacyHubTemplate.body.children[3].children[0].children.children.$merge[4].actions.select = {
 		"replace-children": {
@@ -7084,9 +7083,9 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         req.on('data', function(chunk){ data += chunk})
         req.on('end', function(){
             // @ts-ignore
-            req.rawBody = data; 
+            req.rawBody = data;
             try {
-                if(data != undefined && data != "")
+                if(data !== undefined && data !== "")
                     req.body = JSON.parse(data)
             } catch (error) {
                 errArchipelago("json-body error: "+error)
@@ -7099,7 +7098,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         res.contentType("text").send("OK")
     })
     webFeaturesRouter.post("/archipelago/sendCheckedLocations", (req,res)=>{
-        const locationIds: number[] = JSON.parse(String(req.query.items)) 
+        const locationIds: number[] = JSON.parse(String(req.query.items))
         const worked = handleCheckedLocations(controller, locationIds)
 
         if(worked) {
@@ -7109,7 +7108,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         }
     })
 	webFeaturesRouter.post("/archipelago/sendItems", (req,res)=>{
-        const itemIds: number[] = JSON.parse(String(req.query.items)) 
+        const itemIds: number[] = JSON.parse(String(req.query.items))
         const worked = handleRecivedItems(controller, itemIds)
 
         if(worked) {
@@ -7157,16 +7156,16 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         modifiedContractMap = {}
 
         addModifiedMissions(controller, req.body)
-		if(req.body.checks.itemPickupChecks.length != 0 || req.body.checks.splitItemPickupChecks.length != 0){
+		if(req.body.checks.itemPickupChecks.length !== 0 || req.body.checks.splitItemPickupChecks.length !== 0){
 			addItemsanityChallanges(controller, req.body)
 		}
-		if(req.body.checks.disguiseChecks.length != 0){
+		if(req.body.checks.disguiseChecks.length !== 0){
 			addDisguisesanityChallanges(controller, req.body)
 		}
-		if(req.body.checks.completionChecks.length != 0){
+		if(req.body.checks.completionChecks.length !== 0){
 			addCompletionChallanges(controller, req.body)
 		}
-        if(req.body.checks.eliminationChecks.length != 0){
+        if(req.body.checks.eliminationChecks.length !== 0){
 			addEliminationChallanges(controller, req.body)
 		}
 		res.status(200).send()
@@ -7174,7 +7173,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
     webFeaturesRouter.get("/archipelago/checks", (req,res) =>{
         res.status(200).contentType("json").send(listOfUnsentChecks)
 
-        while(listOfUnsentChecks.length != 0){
+        while(listOfUnsentChecks.length !== 0){
             listOfUnsentChecks.pop()
         }
     })
@@ -7193,7 +7192,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             case "contract_collection_level_completion":
                 contractGoalAmount = req.params.goalDetails
 	    	    goalLevelString = req.params.moreGoalDetails+" ("+req.params.evenMoreGoalDetails!.replaceAll("_"," ")+")"
-	    	
+
                 editMenuGoalUi(
                     "Contract Collection "+collectedContractPieces+"/"+contractGoalAmount+" - "+goalLevelString,
                     "$res "+controller.resolveContract(getContractFromName(req.params.moreGoalDetails!), "h3")!.Metadata.TileImage
@@ -7232,7 +7231,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             gameVersion: GameVersion,
         ) => {
             const myStoryData = []
-            
+
             for (const contractId in modifiedContractMap) {
                 if (getFlag("Level - "+modifiedContractMap[contractId].name)){
 					myStoryData.push(
@@ -7276,7 +7275,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 		(userId: string,
 		challenge: RegistryChallenge,
 		gameVersion: GameVersion) => {
-			if(challangeIdToApIdMap[challenge.Id] != undefined){
+			if(challangeIdToApIdMap[challenge.Id] !== undefined){
 				checkLocation(challangeIdToApIdMap[challenge.Id])
 			}
 		}
@@ -7289,7 +7288,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 	        	logArchipelago("Unsetting challanges")
 	        	const userData = getUserData(userId, gameVersion)
 	        	for(const challangeId in challangeIdToApIdMap){
-	        		if(userData.Extensions.ChallengeProgression[challangeId] != undefined){
+	        		if(userData.Extensions.ChallengeProgression[challangeId] !== undefined){
 	        			userData.Extensions.ChallengeProgression[challangeId] = {
 	        				CurrentState: "Start",
 	        				State: {},
@@ -7302,7 +7301,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
                 asyncGuard.forceFlush().then(()=>{loadUserData(userId,gameVersion)})
 	        	challangesNeedToBeUnset = false;
 	        }
-	        if(listOfUncheckedChallanges.length!=0){
+	        if(listOfUncheckedChallanges.length !== 0){
 	        	const userData = getUserData(userId,gameVersion)
 	        	for(const id in listOfUncheckedChallanges){
 	        		userData.Extensions.ChallengeProgression[listOfUncheckedChallanges[id]] = {
@@ -7312,7 +7311,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
                     	Ticked: true,
                 	}
 	        	}
-	        	while(listOfUncheckedChallanges.length!=0){
+	        	while(listOfUncheckedChallanges.length !== 0){
 	        		listOfUncheckedChallanges.pop()
 	        	}
                 writeUserData(userId,gameVersion)
@@ -7321,7 +7320,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 		}
 	)
     controller.hooks.getContractManifest.tap("getArchipelagoContract",(contractId, gameVersion) => {
-        if (modifiedContractMap[contractId] == undefined){
+        if (modifiedContractMap[contractId] === undefined){
             return undefined
         }
 
@@ -7344,11 +7343,11 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 
         // Override used GameChangers in other GameVersions (ex. custom name if name string is not in H1)
         const gameChangers = manifest.Data.GameChangers
-        if(gameChangers != undefined){
+        if(gameChangers !== undefined){
             for(const id in gameChangers){
-                const record = Object.values(gameChangerApIdToRepoIdMap).filter((element:any) => element.repoId == gameChangers[id])
-                if(record.length!=0){
-                    if(record[0].versionsToOverride != undefined && record[0].versionsToOverride.includes(gameVersion)){
+                const record = Object.values(gameChangerApIdToRepoIdMap).filter((element:any) => element.repoId === gameChangers[id])
+                if(record.length !== 0){
+                    if(record[0].versionsToOverride !== undefined && record[0].versionsToOverride.includes(gameVersion)){
                         for(const keyId in Object.keys(record[0].overrides!)){
                             const key = Object.keys(record[0].overrides!)[keyId]
                             configs.GameChangerProperties[gameChangers[id]][key] = record[0].overrides![key]
@@ -7359,6 +7358,31 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         }
         return manifest
     })
+    /*
+    controller.hooks.onMissionEnd.tap("why no SA?",(session:ContractSession) => {
+        for(const id in modifiedContractMap){
+            if(session.contractId == id){
+                for(const challangeId in session.challengeContexts){
+                    logArchipelago(challangeId+": ")
+                    logArchipelago(session.challengeContexts![challangeId])
+                }
+                logArchipelago(session.completedObjectives)
+                logArchipelago(session.failedObjectives)
+                logArchipelago(
+                JSON.stringify(session.challengeContexts!["00000000-0000-0000-0000-00"+(baseId+contractMap[modifiedContractMap[id].id].completionApIds.sa)]
+               ))
+            }
+        }
+    })*/
+	/*
+	controller.hooks.newEvent.tap("A",(event: ClientToServerEvent<unknown>, details: {
+    gameVersion: GameVersion;
+    userId: string;
+	}, session: ContractSession)=>{
+		if(event.Name == "HoldingIllegalWeapon"){
+			logArchipelago(event.Value)
+		}
+	})*/
 	printApIcon()
     logArchipelago("Archipelago Plugin Loaded.")
 }

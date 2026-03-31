@@ -4,7 +4,6 @@ from attr import dataclass, field
 from BaseClasses import Location
 from rule_builder.rules import False_, HasAll, HasGroup
 
-
 @dataclass
 class Condition:
     require_all: set[str] = field(factory=set)
@@ -275,7 +274,7 @@ item_pickup_location_table = {
 }
 
 split_item_pickup_location_table = {
-    "Itempickup - ICA Facility - Crowbar":LocationTableEntry(1500, [Condition(require_all=["split_itemsanity", "ica_facility"], required_items=["Level - ICA Facility"])], ["Itempickup - Any"]),
+    "Itempickup - ICA Facility - Crowbar":LocationTableEntry(1500, [Condition(require_all={"split_itemsanity", "ica_facility"}, required_items={"Level - ICA Facility"})], ["Itempickup - Any"]),
     "Itempickup - ICA Facility - Hammer":LocationTableEntry(1501, [Condition(require_all={"split_itemsanity", "ica_facility"}, required_items={"Level - ICA Facility"})], ["Itempickup - Any"]),
     "Itempickup - ICA Facility - Coin":LocationTableEntry(1502, [Condition(require_all={"split_itemsanity", "ica_facility"}, required_items={"Level - ICA Facility"})], ["Itempickup - Any"]),
     "Itempickup - ICA Facility - Emetic Rat Poison":LocationTableEntry(1503, [Condition(require_all={"split_itemsanity", "ica_facility"}, required_items={"Level - ICA Facility"})], ["Itempickup - Any"]),

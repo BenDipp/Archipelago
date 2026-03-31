@@ -75,7 +75,7 @@ class HitmanContext(CommonContext):
                 print("Not implemented cmd: "+cmd+", with args: "+str(args))
 
     async def disconnect(self, allow_autoreconnect: bool = False):
-        if self.sse_thread != None:
+        if self.sse_thread is not None:
             self.sse_running = False
 
         await super().disconnect(allow_autoreconnect)
@@ -179,24 +179,24 @@ class HitmanContext(CommonContext):
         try:
             match self.slot_data["goal_mode"]:
                 case "level_completion":
-                    goalData = self.slot_data["goal_location_name"]
-                    moreGoalData = self.slot_data["goal_rating"]
-                    evenMoreGoalData = "none"
+                    goal_data = self.slot_data["goal_location_name"]
+                    more_goal_data = self.slot_data["goal_rating"]
+                    even_more_goal_data = "none"
                 case "contract_collection":
-                    goalData = self.slot_data["goal_amount"]
-                    moreGoalData = "none"
-                    evenMoreGoalData = "none"
+                    goal_data = self.slot_data["goal_amount"]
+                    more_goal_data = "none"
+                    even_more_goal_data = "none"
                 case "contract_collection_level_completion":
-                    goalData = self.slot_data["goal_amount"]
-                    moreGoalData = self.slot_data["goal_location_name"]
-                    evenMoreGoalData = self.slot_data["goal_rating"]
+                    goal_data = self.slot_data["goal_amount"]
+                    more_goal_data = self.slot_data["goal_location_name"]
+                    even_more_goal_data = self.slot_data["goal_rating"]
                 case "number_of_completions":
-                    goalData = self.slot_data["goal_amount"]
-                    moreGoalData = self.slot_data["goal_rating"]
-                    evenMoreGoalData = "none"
+                    goal_data = self.slot_data["goal_amount"]
+                    more_goal_data = self.slot_data["goal_rating"]
+                    even_more_goal_data = "none"
 
             logger.info("Sending Goal information...")
-            r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goalData)+"/"+moreGoalData+"/"+evenMoreGoalData)
+            r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goal_data)+"/"+more_goal_data+"/"+even_more_goal_data)
             r.raise_for_status()
             logger.info("Goal information sent.")
         except Exception as e:
