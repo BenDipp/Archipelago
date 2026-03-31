@@ -5,17 +5,24 @@ import time
 import typing
 import requests
 
-from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg, server_loop, gui_enabled, logger, CommonContext
+from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg, server_loop, gui_enabled, logger
 from NetUtils import ClientStatus, NetworkItem
 from settings import get_settings
 from .items import item_table, base_id
 from .locations import goal_table, item_pickup_location_table, split_item_pickup_location_table, level_completion_location_table, target_kill_location_table, disguise_location_table
 
+tracker_loaded = False
+try:
+    from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
+    tracker_loaded = True
+except ModuleNotFoundError:
+    from CommonClient import CommonContext as SuperContext
+
 class HitmanCommandProcessor(ClientCommandProcessor):
-    def __init__(self, ctx: CommonContext):
+    def __init__(self, ctx: SuperContext):
         super().__init__(ctx)
 
-class HitmanContext(CommonContext):
+class HitmanContext(SuperContext):
     command_processor = HitmanCommandProcessor
     game = "HITMAN World of Assassination"
     tags = {"AP"}
@@ -48,6 +55,7 @@ class HitmanContext(CommonContext):
         await self.send_connect(game=self.game) 
 
     def on_package(self, cmd: str, args: dict):
+        super().on_package(cmd, args) #keep Universal Tracker in the loop
         match cmd:
             case "Connected":
                 self.collected_contract_pieces = 0
@@ -279,6 +287,8 @@ async def main(args):
 
     ctx.server_task = asyncio.create_task(server_loop(ctx), name="server loop")
 
+    if tracker_loaded:
+        ctx.run_generator()
     if gui_enabled:
         ctx.run_gui()
     ctx.run_cli()
