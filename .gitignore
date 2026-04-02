@@ -203,8 +203,13 @@ Thumbs.db
 *.xlsx
 *.xlsx#
 
+*.ods
+*.ods#
+
 fuzz.py
 /fuzz_output
 
 bin/
 pyvenv.cfg
+
+worlds/hitman_woa/tracker/images/png

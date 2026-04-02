@@ -41,6 +41,19 @@ class HitmanWorld(World):
     options: HitmanOptions
     topology_present = True
 
+    tracker_world: ClassVar = {
+        "map_page_folder" : "tracker",
+        "map_page_maps" : "maps/maps.json",
+        "map_page_locations" : ["locations/itempickup_map_locations.json",
+                                "locations/itempickup_overview_locations.json",
+                                "locations/completion_locations.json",
+                                "locations/elimination_locations.json",
+                                "locations/disguise_locations.json"],
+        "map_page_layouts": ["layouts/layout.json"]
+        #"map_page_setting_key" : <optional tag that informs which data storage key will be watched for auto tabbing> TODO: is Autotabbing possible?
+        #"map_page_index" : <optional function that will control the auto tabbing>
+    }
+
     location_name_to_id = {name: data.id + base_id for name, data in location_table.items()}
     item_name_to_id = {name: data[0] + base_id for name, data in item_table.items()}
 
