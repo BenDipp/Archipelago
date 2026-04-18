@@ -409,6 +409,17 @@ class HitmanWorld(World):
         and "vanilla_targets" in self.enabled_entitlements[self.player]:
             self.enabled_entitlements[self.player].append("chongqing_need_to_skip_datacore")
 
+        if self.options.disable_annoying_locations.value.get("skip_locations_with_wait_time", 0):
+            self.enabled_entitlements[self.player].append("SKIP_LOCATIONS_WITH_WAIT_TIMES")
+        if self.options.disable_annoying_locations.value.get("skip_locations_with_extra_steps", 0):
+            self.enabled_entitlements[self.player].append("SKIP_LOCATIONS_WITH_EXTRA_STEPS")
+        if self.options.disable_annoying_locations.value.get("skip_locations_carried_by_npcs", 0):
+            self.enabled_entitlements[self.player].append("SKIP_LOCATIONS_FROM_CARRIED_ITEMS")
+        if self.options.disable_annoying_locations.value.get("skip_locations_requiring_other_items", 0):
+            self.enabled_entitlements[self.player].append("SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM")
+        if self.options.disable_annoying_locations.value.get("skip_buried_locations", 0):
+            self.enabled_entitlements[self.player].append("SKIP_BURIED_LOCATIONS")
+
     def create_regions(self) -> None:
         menu_region = Region("Menu", self.player, self.multiworld)
         self.multiworld.regions.append(menu_region)

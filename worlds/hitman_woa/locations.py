@@ -53,6 +53,31 @@ class LocationTableEntry:
             required_items = required_items.union(condition.required_items)
         return required_items
 
+goal_table = {
+    "ica_facility":"ICA Facility",
+    "paris":"Paris",
+    "sapienza":"Sapienza",
+    "marrakesh":"Marrakesh",
+    "bangkok":"Bangkok",
+    "colorado":"Colorado",
+    "hokkaido":"Hokkaido",
+    "hawkes_bay":"Hawkes Bay",
+    "miami":"Miami",
+    "santa_fortuna":"Santa Fortuna",
+    "mumbai":"Mumbai",
+    "whittleton_creek":"Whittleton Creek",
+    "isle_of_sgail":"Isle of Sgail",
+    "new_york":"New York",
+    "haven_island":"Haven Island",
+    "dubai":"Dubai",
+    "dartmoor":"Dartmoor",
+    "berlin":"Berlin",
+    "chongqing":"Chongqing",
+    "mendoza":"Mendoza",
+    "carpathian_mountains":"Carpathian Mountains",
+    "ambrose_island":"Ambrose Island"
+}
+
     # location ids ranges:
     # 	1-209      Itempickup Checks
 	# 	1000-1087  Completion Checks
@@ -6087,6 +6112,144 @@ level_completion_location_table["ICA Facility Completed - Sniper Assassin"].incl
 #Dubai default entrance doesn't allow Suitcases, Atrium is the only one
 level_completion_location_table["Dubai Completed - Sniper Assassin"].inclusion_conditions[0].required_items.add("Starting Location - Dubai - Atrium Lobby")
 
+@dataclass
+class ItemsanityException:
+    itemname:str = field(factory=str)
+    location:str = field(factory=str)
+    added_restriction:str = field(factory=str)
+
+itemsanity_exceptions = [
+    ItemsanityException(itemname="Lethal Poison Pill Jar", location="paris", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Placed by Dalia after meeting with Helmut, otherwise carried by her, for Logic assume always carried
+    ItemsanityException(itemname="Lethal Poison Pill Jar", location="paris", added_restriction="paris_no_pacification"),
+
+    ItemsanityException(itemname="Wristwatch Alarm", location="hawkes_bay", added_restriction="SKIP_LOCATIONS_WITH_WAIT_TIMES"), #Placed only after shower => long wait
+    ItemsanityException(itemname="Shovel", location="hawkes_bay", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"), #In Closet, needs a body to be deposited to hold door open
+    ItemsanityException(itemname="Shovel", location="hawkes_bay", added_restriction="hawkes_bay_no_pacification"),
+
+    ItemsanityException(itemname="Car Bomb", location="miami", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #In Safe, needs combination from next door
+    ItemsanityException(itemname="Modern Lethal Syringe", location="miami", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #In Safe, needs Medical Cabinet Key
+    ItemsanityException(itemname="Cocaine Brick", location="miami", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Carried by Hector Delgado
+
+    ItemsanityException(itemname="Cocaine Souvenir", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #Needs glue from cave
+    ItemsanityException(itemname="Gold Idol", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Needs key that is carried
+    ItemsanityException(itemname="Gold Idol", location="santa_fortuna", added_restriction="santa_fortuna_no_pacification"),
+    ItemsanityException(itemname="Sacrificial Knife", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Needs Gold idol and shamen disguise
+    ItemsanityException(itemname="Sacrificial Knife", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
+    ItemsanityException(itemname="Sacrificial Knife", location="santa_fortuna", added_restriction="santa_fortuna_no_pacification"),
+    ItemsanityException(itemname="Sacrificial Knife", location="santa_fortuna", added_restriction="santa_fortuna_no_disguise"),
+    ItemsanityException(itemname="\"El Matador\"", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"), #Needs Safe combination which needs disguise + carried love letter
+    ItemsanityException(itemname="\"El Matador\"", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"),
+    ItemsanityException(itemname="\"El Matador\"", location="santa_fortuna", added_restriction="santa_fortuna_no_disguise"),
+    ItemsanityException(itemname="\"El Matador\"", location="santa_fortuna", added_restriction="santa_fortuna_no_pacification"),
+
+    ItemsanityException(itemname="Beak Staff", location="whittleton_creek", added_restriction="SKIP_LOCATIONS_WITH_WAIT_TIMES"), #Spawns after listening to entire basement song => ~5 min wait
+    ItemsanityException(itemname="Package", location="whittleton_creek", added_restriction="SKIP_LOCATIONS_WITH_WAIT_TIMES"), #Dropped by Mailman when he is done with his rounds
+    ItemsanityException(itemname="Battle Axe", location="whittleton_creek", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"), #In Underground vault, needs open garage + ring doorbell 3x
+    ItemsanityException(itemname="Remote CX Demo Block", location="whittleton_creek", added_restriction="SKIP_LOCATIONS_WITH_WAIT_TIMES"), #Placed by Police guy who talked to Gardener in front of Janus House
+    ItemsanityException(itemname="Cigar Box", location="whittleton_creek", added_restriction="SKIP_BURIED_LOCATIONS"),
+    ItemsanityException(itemname="Cigar Box", location="whittleton_creek", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Hatchet", location="whittleton_creek", added_restriction="SKIP_BURIED_LOCATIONS"),
+    ItemsanityException(itemname="Hatchet", location="whittleton_creek", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Expired Can of Spaghetti Sauce", location="whittleton_creek", added_restriction="SKIP_BURIED_LOCATIONS"),
+    ItemsanityException(itemname="Expired Can of Spaghetti Sauce", location="whittleton_creek", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+
+    ItemsanityException(itemname="Cigar Box", location="ambrose_island", added_restriction="SKIP_BURIED_LOCATIONS"),
+    ItemsanityException(itemname="Cigar Box", location="ambrose_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Jarl's Pirate Saber", location="ambrose_island", added_restriction="SKIP_BURIED_LOCATIONS"),
+    ItemsanityException(itemname="Jarl's Pirate Saber", location="ambrose_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Doubloon", location="ambrose_island", added_restriction="SKIP_BURIED_LOCATIONS"),
+    ItemsanityException(itemname="Doubloon", location="ambrose_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Doubloon", location="ambrose_island", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"), #Needs to light 3 Braziers
+    ItemsanityException(itemname="Makeshift Explosive", location="ambrose_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #Needs to be crafted with Fuse Cell and Bag of Gunpowder
+    ItemsanityException(itemname="Makeshift Explosive", location="ambrose_island", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
+    ItemsanityException(itemname="Emetic Gas Grenade", location="ambrose_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #Needs to be crafted with Lethal Poisonous Frog
+    ItemsanityException(itemname="Emetic Gas Grenade", location="ambrose_island", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"), #Needs to be crafted with Lethal Poisonous Frog
+    ItemsanityException(itemname="Lethal Poison Vial", location="ambrose_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #Needs to be crafted with Poisonous Flower (Emetic)
+    ItemsanityException(itemname="Lethal Poison Vial", location="ambrose_island", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"), #Needs to be crafted with Poisonous Flower (Emetic)
+
+    ItemsanityException(itemname="Hackl 9S Covert", location="isle_of_sgail", added_restriction="SKIP_BURIED_LOCATIONS"),
+    ItemsanityException(itemname="Hackl 9S Covert", location="isle_of_sgail", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Sacrificial Knife", location="isle_of_sgail", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #needs Golden Idol and Burial Robes
+    ItemsanityException(itemname="Sacrificial Knife", location="isle_of_sgail", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
+    ItemsanityException(itemname="Sacrificial Knife", location="isle_of_sgail", added_restriction="isle_of_sgail_no_disguise"),
+    ItemsanityException(itemname="Flash Grenade", location="isle_of_sgail", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Raiders
+    ItemsanityException(itemname="Flash Grenade", location="isle_of_sgail", added_restriction="isle_of_sgail_no_pacification"),
+    ItemsanityException(itemname="Botulinum Toxin", location="isle_of_sgail", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Json Portman
+    ItemsanityException(itemname="Botulinum Toxin", location="isle_of_sgail", added_restriction="isle_of_sgail_no_pacification"),
+    ItemsanityException(itemname="Bartoli 75S", location="isle_of_sgail", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #needs safe code from next door (in model ship)
+    ItemsanityException(itemname="Bartoli 75S", location="isle_of_sgail", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Bartoli 75S", location="isle_of_sgail", added_restriction="isle_of_sgail_no_pacification"),
+
+    ItemsanityException(itemname="Small Goldbar", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Requires Deposit Master Key, carried by High Security Guard
+    ItemsanityException(itemname="Small Goldbar", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Small Goldbar", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Toy Tank", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Requires Deposit Master Key, carried by High Security Guard
+    ItemsanityException(itemname="Toy Tank", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Toy Tank", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Letterbomb Parcel", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Requires Deposit Master Key, carried by High Security Guard
+    ItemsanityException(itemname="Letterbomb Parcel", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Letterbomb Parcel", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Burial Dagger", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Requires Deposit Master Key, carried by High Security Guard
+    ItemsanityException(itemname="Burial Dagger", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Burial Dagger", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Imperial Filigree Egg", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Requires Deposit Master Key, carried by High Security Guard
+    ItemsanityException(itemname="Imperial Filigree Egg", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Imperial Filigree Egg", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Antique Carved Knife", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Requires Deposit Master Key, carried by High Security Guard
+    ItemsanityException(itemname="Antique Carved Knife", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Antique Carved Knife", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="DAK X2", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Male Bank Robber
+    ItemsanityException(itemname="DAK X2", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Folding Knife", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Female Bank Robber
+    ItemsanityException(itemname="Folding Knife", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Gold Idol", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #needs deposit box key that needs to be shot down from light 2 stories above
+    ItemsanityException(itemname="Goldbar", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #needs to enter vault, which needs keycard one way or another
+    ItemsanityException(itemname="Goldbar", location="new_york", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
+    ItemsanityException(itemname="Goldbar", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Golden Sawed Off Bartoli 12G", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #needs to enter vault, which needs keycard one way or another and bank robber disguise
+    ItemsanityException(itemname="Golden Sawed Off Bartoli 12G", location="new_york", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
+    ItemsanityException(itemname="Golden Sawed Off Bartoli 12G", location="new_york", added_restriction="new_york_no_pacification"),
+    ItemsanityException(itemname="Golden Sawed Off Bartoli 12G", location="new_york", added_restriction="new_york_no_disguise"),
+
+    ItemsanityException(itemname="Folding Knife", location="haven_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #in locker, needs Lockpick or "nearby" Crowbar
+    ItemsanityException(itemname="Jarl's Pirate Saber", location="haven_island", added_restriction="SKIP_BURIED_LOCATIONS"), #in treasure chest
+    ItemsanityException(itemname="Jarl's Pirate Saber", location="haven_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+    ItemsanityException(itemname="Doubloon", location="haven_island", added_restriction="SKIP_BURIED_LOCATIONS"), #in treasure chest
+    ItemsanityException(itemname="Doubloon", location="haven_island", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"),
+
+    ItemsanityException(itemname="Folding Knife", location="dubai", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Zana "The Vulture" Kazem
+    ItemsanityException(itemname="Folding Knife", location="dubai", added_restriction="dubai_no_pacification"),
+    ItemsanityException(itemname="Lethal Poison Pill Jar", location="dubai", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Zana "The Vulture" Kazem
+    ItemsanityException(itemname="Lethal Poison Pill Jar", location="dubai", added_restriction="dubai_no_pacification"),
+    ItemsanityException(itemname="Hackl 9S Covert", location="dubai", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Zana "The Vulture" Kazem
+    ItemsanityException(itemname="Hackl 9S Covert", location="dubai", added_restriction="dubai_no_pacification"),
+
+    ItemsanityException(itemname="Banana", location="dartmoor", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #needs key from outside
+
+    ItemsanityException(itemname="Lethal Pills", location="berlin", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Agent Rhodes
+    ItemsanityException(itemname="Lethal Pills", location="berlin", added_restriction="berlin_no_pacification"),
+    ItemsanityException(itemname="Modern Lethal Syringe", location="berlin", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Agent Banner
+    ItemsanityException(itemname="Modern Lethal Syringe", location="berlin", added_restriction="berlin_no_pacification"),
+    ItemsanityException(itemname="Concealable Knife", location="berlin", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Agent Green
+    ItemsanityException(itemname="Concealable Knife", location="berlin", added_restriction="berlin_no_pacification"),
+    ItemsanityException(itemname="ICA Remote Audio Distraction Mk III", location="berlin", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Agent Thames
+    ItemsanityException(itemname="ICA Remote Audio Distraction Mk III", location="berlin", added_restriction="berlin_no_pacification"),
+
+    ItemsanityException(itemname="1945 Grand Paladin", location="mendoza", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
+    ItemsanityException(itemname="Hackl 9S Covert", location="mendoza", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"), #"Start the conversation with Diana and Tamara three times as Tobias Rieper while wearing the Suit"
+    ItemsanityException(itemname="Sieger AR552 Tactical", location="mendoza", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #in safe, need "Winery Workers' Key"
+    ItemsanityException(itemname="Cocaine Brick", location="mendoza", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #in safe, need "Winery Workers' Key"
+    ItemsanityException(itemname="Grapevine", location="mendoza", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #needs Grape Knife
+]
+
+for exception in itemsanity_exceptions:
+    split_item_pickup_location_table["Itempickup - "+goal_table[exception.location]+" - "+exception.itemname].inclusion_conditions[0].require_none.add(exception.added_restriction)
+    for condition in item_pickup_location_table["Itempickup - "+exception.itemname].inclusion_conditions:
+        if exception.location in condition.require_all:
+            condition.require_none.add(exception.added_restriction)
+
+disguise_location_table["Disguise - Mendoza - 47's Signature Suit with Gloves"].inclusion_conditions[0].require_none.add("SKIP_LOCATIONS_WITH_WAIT_TIMES")
+
 #chongqing+vanilla targets+no agility makes reactor core impossible => require startinglocation which skips reactor
 for name in level_completion_location_table:
     if "Chongqing" in name:
@@ -6116,31 +6279,6 @@ for name in location_table:
 location_table["All Contract Pieces Collected"] = LocationTableEntry(10000,[Condition(require_all={"skipped"})],[])
 
 sanity_location_table = item_pickup_location_table | split_item_pickup_location_table | disguise_location_table
-
-goal_table = {
-    "ica_facility":"ICA Facility",
-    "paris":"Paris",
-    "sapienza":"Sapienza",
-    "marrakesh":"Marrakesh",
-    "bangkok":"Bangkok",
-    "colorado":"Colorado",
-    "hokkaido":"Hokkaido",
-    "hawkes_bay":"Hawkes Bay",
-    "miami":"Miami",
-    "santa_fortuna":"Santa Fortuna",
-    "mumbai":"Mumbai",
-    "whittleton_creek":"Whittleton Creek",
-    "isle_of_sgail":"Isle of Sgail",
-    "new_york":"New York",
-    "haven_island":"Haven Island",
-    "dubai":"Dubai",
-    "dartmoor":"Dartmoor",
-    "berlin":"Berlin",
-    "chongqing":"Chongqing",
-    "mendoza":"Mendoza",
-    "carpathian_mountains":"Carpathian Mountains",
-    "ambrose_island":"Ambrose Island"
-}
 
 valid_targets_table = {
     "ica_facility":[5000,5001,5002,5003,5004,5005,5006,5007,5008,5009,5010,5011,5012,5013,5014,5015,5016,5017,5018,5019,5020,5021,5022,5023,5024,5025,5026,5027,5028,5029,5030,5031,5032,5033,5034,5035,5036,5037,5038,5039,5040,5041,5042,5043,5044,5045],

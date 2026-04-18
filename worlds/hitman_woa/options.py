@@ -205,6 +205,28 @@ class MaxNumberOfCheckInLevel(Range):
     range_end = 157
     default = 0
 
+class DisableAnnoyingSanityChecks(OptionCounter):
+    """
+    Removes specific Itemsanity and Disguisesanity locations that are annoying to collect.
+
+        - skip_locations_with_wait_time: Removes locations that require you to wait for NPCs actions (ex. Wristwatch Alarm (Hawks Bay), Beak Staff (Whittleton Creek))
+        - skip_locations_with_extra_step: Removes locations that require multiple steps to spawn/obtain (ex. El Matador (Santa Fortuna), 47's Signature Suit with Gloves (Mendoza))
+        - skip_locations_carried_by_npcs: Removes locations that require you to kill/pacify an NPC to get an item they are carrying (ex. Cocaine Brick (Miami), Lethal Poison Pill Jar (Paris))
+        - skip_locations_requiring_other_items: Removes locations that require items, which require other items like keys (ex. Car Bomb (Miami), Cocaine Souvenir (Santa Fortuna))
+        - skip_buried_locations: Removes locations that require items which are buried and need a shovel to be dug up (ex. Cigar Box (Whittleton Creek), Doubloon (Ambrose Island))
+    """
+    display_name = "Disable Annoying Sanitychecks"
+    default = {
+        "skip_locations_with_wait_time": 1,
+        "skip_locations_with_extra_steps": 1,
+        "skip_locations_carried_by_npcs": 0,
+        "skip_locations_requiring_other_items": 0,
+        "skip_buried_locations": 0
+    }
+    valid_keys=default
+    min = 0
+    max = 1
+
 class ExcludeGoalLevelChecks(DefaultOnToggle):
     """When goal is set to level_completion or contract_collection_level_completion, adds all checks in the Goal-Level to the list of excluded checks, preventing progression items to be placed there."""
     display_name = "Checks in Goal Level are excluded"
@@ -413,7 +435,8 @@ class HitmanOptions(PerGameCommonOptions):
     enable_disguisesanity: DisguiseSanity
     max_sanity_checks_per_level: MaxNumberOfCheckInLevel
     enable_target_checks : CheckForTarget
-    exclude_goal_level_locations : ExcludeGoalLevelChecks 
+    exclude_goal_level_locations : ExcludeGoalLevelChecks
+    disable_annoying_locations: DisableAnnoyingSanityChecks
 
     random_complications : RandomComplications
     min_number_of_complications: MinComplications
@@ -499,6 +522,7 @@ option_groups = [
             SplitItemsanity,
             DisguiseSanity,
             MaxNumberOfCheckInLevel,
+            DisableAnnoyingSanityChecks,
             CheckForCompletion,
             CheckForSA,
             CheckForSO,
