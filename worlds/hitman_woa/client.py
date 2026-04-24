@@ -8,6 +8,8 @@ import requests
 from CommonClient import ClientCommandProcessor, get_base_parser, handle_url_arg, server_loop, gui_enabled, logger
 from NetUtils import ClientStatus, NetworkItem
 from settings import get_settings
+
+from worlds import AutoWorldRegister
 from .items import item_table, base_id
 from .locations import goal_table, item_pickup_location_table, split_item_pickup_location_table, level_completion_location_table, target_kill_location_table, disguise_location_table
 
@@ -173,7 +175,9 @@ class HitmanContext(SuperContext):
                     "seed":self.current_seed,
                     "everythingItemInInventory":self.slot_data.get("item_packages","")=="in_inventory",
                     "checks":all_checks,
-                    "levels":level_data
+                    "levels":level_data,
+                    "genVersion":self.slot_data.get("gen_version","pre-0.8.0"),
+                    "clientVersion":AutoWorldRegister.world_types[self.game].world_version.as_simple_string()
                     #TODO: consolidate goal into this
                 })
             r.raise_for_status()

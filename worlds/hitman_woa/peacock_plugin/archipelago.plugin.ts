@@ -27,6 +27,8 @@ interface slotData {
     difficulty:"normal" | "hard" | "easy",
     seed:string,
     everythingItemInInventory:boolean,
+    genVersion:string,
+    clientVersion:string,
     checks: {
         itemPickupChecks:number[],
         splitItemPickupChecks:number[],

@@ -715,4 +715,6 @@ class HitmanWorld(World):
 
         slotdata["complications"] = self.complications
 
+        slotdata["gen_version"] = self.world_version.as_simple_string()
+
         return slotdata
