@@ -129,16 +129,20 @@ class HitmanWorld(World):
         if self.options.random_complications and sum(self.options.complications_weights.value[x] != 0 for x in self.options.complications_weights.value) < self.options.max_number_of_complications:
             raise OptionError("Not enough non-zero Complications for selected number of Complications.")
 
-        if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion and\
+        if (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion or
+        self.options.goal_mode.value == self.options.goal_mode.option_level_completion) and\
         self.options.goal_level.value == self.options.starting_location.value:
-            raise OptionError("Goal Level cannot be the same as Starting Level with \"Contract Collection-Level Completion\" Goal Mode.")
+            raise OptionError("Goal Level cannot be the same as Starting Level")
 
         if any(x.startswith("Level - ") for x in self.options.excluded_items.value):
             raise OptionError("Cannot exclude Level-Items. If you want to exclude a Level, use the \"included_x_locations\" options.")
         
         if any(x.startswith("Level - ") for x in self.options.excluded_starting_items.value):
             raise OptionError("Cannot exclude Level-Items. If you want to exclude a Level, use the \"included_x_locations\" options.")
-        
+
+        if self.options.include_sniper_assassin_weapons.value and self.options.game_version.value != 3:
+            raise OptionError("Sniper Assassin Weapons can only be enabled when game version is HITMAN 3")
+
         self.enabled_entitlements[self.player] = []
 
         # Universal Tracker support:
@@ -186,6 +190,12 @@ class HitmanWorld(World):
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions and\
            self.options.goal_amount.value > len(set(self.enabled_entitlements[self.player])):
             raise OptionError("Not enough levels enabled for chosen Goal Amount.")
+
+        if (self.options.goal_mode.value == self.options.goal_mode.option_level_completion or
+           self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion) and\
+           self.options.goal_rating.value == self.options.goal_rating.option_sniper_assassin and\
+           self.options.goal_level.value == self.options.goal_level.option_carpathian_mountains:
+            raise OptionError("Carpathian Mountains Completed - Sniper Assassin cannot be set as goal, since Carpathian Mountains cannot be completed with a Sniper Assassin rating.")
 
         if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions and\
            self.options.goal_rating == self.options.goal_rating.option_sniper_assassin and\
@@ -547,17 +557,34 @@ class HitmanWorld(World):
                 if item_table[item][2] == ItemClassification.filler and item not in self.options.prioritized_filler.value and item not in required_items:
                     valid_filler.append(item)
                 if item_table[item][2] == ItemClassification.useful and item not in self.options.prioritized_filler.value:
-                    if any(group in item_table[item][4] for group in required_itemgroups):
-                         item_pool.append(self.create_item_with_classification(item, ItemClassification.progression))
-                    else:
-                        valid_useful.append(item)
+                    valid_useful.append(item)
                 if item_table[item][3]: #is allowed to be duplicated
                     valid_duplicats.append(item)
                 if item in self.options.prioritized_filler.value and item_table[item][2] != ItemClassification.progression:
                     priority_filler.append(item)
 
-        second_sphere_item = self.random.choice(item_pool).name
-        self.multiworld.early_items[self.player][second_sphere_item] = 1
+        for itemgroup in required_itemgroups:
+            if not any(itemgroup in item_table[item.name][4] for item in item_pool): #nothing from required itemgroup is included yet
+                priority_filler_in_group = list(item for item in priority_filler if itemgroup in item_table[item][4])
+                if len(priority_filler_in_group) != 0:
+                    chosen_item = self.random.choice(priority_filler_in_group)
+                    priority_filler.remove(chosen_item)
+                    item_pool.append(self.create_item_with_classification(chosen_item, ItemClassification.progression))
+                    continue
+
+                valid_items_in_group = list(item for item in (valid_filler+valid_useful) if itemgroup in item_table[item][4])
+                if len(valid_items_in_group) == 0:
+                    raise Exception("No valid item of itemgroup \""+itemgroup+"\" was able to be included, but was required for one or more locations.")
+                chosen_item = self.random.choice(valid_items_in_group)
+                if chosen_item in valid_filler:
+                    valid_filler.remove(chosen_item)
+                if chosen_item in valid_useful:
+                    valid_useful.remove(chosen_item)
+                item_pool.append(self.create_item_with_classification(chosen_item, ItemClassification.progression))
+
+        if sum(1 for item in item_pool if item.name.startswith("Level -")) != 0:
+            second_sphere_item = self.random.choice(list(item for item in item_pool if item.name.startswith("Level -"))).name
+            self.multiworld.early_items[self.player][second_sphere_item] = 1
 
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or \
         self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
@@ -583,9 +610,30 @@ class HitmanWorld(World):
                     self.get_location(check).place_locked_item(self.create_item("Contract Piece"))
 
         total_locations = len(self.multiworld.get_unfilled_locations(self.player))
+        total_excluded_locations = sum(1 for x in self.multiworld.get_unfilled_locations(self.player) if x.progress_type == LocationProgressType.EXCLUDED)
         total_items = len(item_pool)
-        
-        for _ in range(total_locations - total_items):
+
+        if len(item_pool) > (total_locations-total_excluded_locations):
+            raise OptionError("Not enough locations for progression items. Consider adding more locations or remove some Contract Pieces.")
+
+        #fill excludeds first, to make sure not everything get promoted to deprioritized_progression and excluded locations go empty
+        valid_true_filler = list(item for item in valid_filler if not any(group in item_table[item][4] for group in required_itemgroups))
+        priority_true_filler = list(item for item in priority_filler if not any(group in item_table[item][4] for group in required_itemgroups))
+        valid_filler_duplicates = list(item for item in valid_duplicats if not any(group in item_table[item][4] for group in required_itemgroups))
+        for _ in range(total_excluded_locations):
+            if len(priority_true_filler) != 0:
+                chosen_item = self.random.choice(priority_true_filler)
+                priority_true_filler.remove(chosen_item)
+                priority_filler.remove(chosen_item)
+            elif len(valid_true_filler) != 0:
+                chosen_item = self.random.choice(valid_true_filler)
+                valid_true_filler.remove(chosen_item)
+                valid_filler.remove(chosen_item)
+            else:
+                chosen_item = self.random.choice(valid_filler_duplicates)
+            item_pool.append(self.create_item(chosen_item))
+
+        for _ in range(total_locations - total_items - total_excluded_locations):
             if len(priority_filler) != 0:
                 chosen_item = self.random.choice(priority_filler)
                 priority_filler.remove(chosen_item)
