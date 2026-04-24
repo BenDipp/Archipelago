@@ -548,7 +548,11 @@ class HitmanWorld(World):
         for item in item_table:
             if len(item_table[item][1][self.options.game_version.value]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1][self.options.game_version.value]):
                 if item in self.options.excluded_starting_items.value:
-                    self.multiworld.push_precollected(self.create_item(item))
+                    if any(itemgroup in item_table[item][4] for itemgroup in required_itemgroups) or\
+                        item in required_items:
+                        self.multiworld.push_precollected(self.create_item_with_classification(item, ItemClassification.progression))
+                    else:
+                        self.multiworld.push_precollected(self.create_item(item))
                     continue
                 if item in self.options.excluded_items.value:
                     continue
@@ -564,7 +568,7 @@ class HitmanWorld(World):
                     priority_filler.append(item)
 
         for itemgroup in required_itemgroups:
-            if not any(itemgroup in item_table[item.name][4] for item in item_pool): #nothing from required itemgroup is included yet
+            if not any(itemgroup in item_table[item.name][4] for item in item_pool+self.multiworld.precollected_items[self.player]): #nothing from required itemgroup is included yet
                 priority_filler_in_group = list(item for item in priority_filler if itemgroup in item_table[item][4])
                 if len(priority_filler_in_group) != 0:
                     chosen_item = self.random.choice(priority_filler_in_group)
@@ -574,7 +578,7 @@ class HitmanWorld(World):
 
                 valid_items_in_group = list(item for item in (valid_filler+valid_useful) if itemgroup in item_table[item][4])
                 if len(valid_items_in_group) == 0:
-                    raise Exception("No valid item of itemgroup \""+itemgroup+"\" was able to be included, but was required for one or more locations.")
+                    raise OptionError("Every item in itemgroup \""+itemgroup+"\" was excluded or disabled, but was required for one or more locations to be accessible.")
                 chosen_item = self.random.choice(valid_items_in_group)
                 if chosen_item in valid_filler:
                     valid_filler.remove(chosen_item)
