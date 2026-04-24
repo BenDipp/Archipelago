@@ -227,9 +227,17 @@ class DisableAnnoyingSanityChecks(OptionCounter):
     min = 0
     max = 1
 
-class ExcludeGoalLevelChecks(DefaultOnToggle):
-    """When goal is set to level_completion or contract_collection_level_completion, adds all checks in the Goal-Level to the list of excluded checks, preventing progression items to be placed there."""
-    display_name = "Checks in Goal Level are excluded"
+class RemoveGoalLevelChecks(Choice):
+    """When goal is set to level_completion or contract_collection_level_completion, excludes or removes all sanity-checks in the Goal-Level
+    - Keep: Keep all checks without modification.
+    - Exclude: Adds the checks to the list of excluded checks, preventing progression items to be placed there.
+    - Remove: Completely removes the checks.
+    """
+    display_name = "Remove Goal Level checks"
+    option_keep = 0
+    option_exclude = 1
+    option_remove = 2
+    default = 0
 
 class GameDifficulty(Choice):
     """Set the ingame difficulty for all missions:
@@ -435,7 +443,7 @@ class HitmanOptions(PerGameCommonOptions):
     enable_disguisesanity: DisguiseSanity
     max_sanity_checks_per_level: MaxNumberOfCheckInLevel
     enable_target_checks : CheckForTarget
-    exclude_goal_level_locations : ExcludeGoalLevelChecks
+    remove_goal_level_locations : RemoveGoalLevelChecks
     disable_annoying_locations: DisableAnnoyingSanityChecks
 
     random_complications : RandomComplications
@@ -533,7 +541,7 @@ option_groups = [
             Goal,
             GoalLevel,
             GoalDifficulty,
-            ExcludeGoalLevelChecks,
+            RemoveGoalLevelChecks,
             GoalAmount,
             RequiredContractPieceAmount,
             AdditionalContractPieces

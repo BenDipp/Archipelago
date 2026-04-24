@@ -428,6 +428,12 @@ class HitmanWorld(World):
         self.multiworld.regions.append(map_region)
         menu_region.connect(map_region)
 
+        if self.options.remove_goal_level_locations.value == self.options.remove_goal_level_locations.option_remove\
+         and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion
+         or  self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
+            while self.options.goal_level.current_key in self.enabled_entitlements[self.player]:
+                self.enabled_entitlements[self.player].remove(self.options.goal_level.current_key)
+
         if self.options.max_sanity_checks_per_level.value > 0 and not hasattr(self.multiworld, "re_gen_passthrough"):
             max_per_level = self.options.max_sanity_checks_per_level.value
 
@@ -478,7 +484,7 @@ class HitmanWorld(World):
             if location_table[location].is_allowed(self.enabled_entitlements[self.player]):
                 map_region.add_locations({location :self.location_name_to_id[location]},HitmanLocation)
                 self.set_rule(self.multiworld.get_location(location, self.player), location_table[location].get_rule(self.enabled_entitlements[self.player]))
-            
+
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or \
         self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
             map_region.add_locations({"All Contract Pieces Collected":self.location_name_to_id["All Contract Pieces Collected"]},HitmanLocation)
@@ -490,22 +496,24 @@ class HitmanWorld(World):
             self.set_rule(self.multiworld.get_location("All Contract Pieces Collected", self.player),
                           Has("Contract Piece",self.options.goal_amount.value))
 
-        if self.options.exclude_goal_level_locations.value \
+        if self.options.remove_goal_level_locations.value == self.options.remove_goal_level_locations.option_exclude\
          and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion
          or  self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
 
             goal_item = "Level - "+goal_table[self.options.goal_level.current_key]
-            for location in map_region.locations:
-                if all(x.required_items == [goal_item] for x in location_table[location.name].fulfilled_conditions(self.enabled_entitlements[self.player])):
+            for location in map_region.locations: #TODO: currently assumes Condition can only have "Level - *goal*" as required Items
+                if all(x.required_items == {goal_item} for x in location_table[location.name].fulfilled_conditions(self.enabled_entitlements[self.player])):
                     location.progress_type = LocationProgressType.EXCLUDED
 
-        enabled_levels_count = sum(entitlement in goal_table.keys() for entitlement in set(self.enabled_entitlements[self.player]))
-        contract_piece_count = self.options.goal_required_contract_pieces.value + self.options.goal_additional_contract_pieces.value
-
-        progression_item_count = enabled_levels_count + (contract_piece_count if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or self.options.goal_mode.value ==self.options.goal_mode.option_contract_collection_level_completion else 0)
-
-        if progression_item_count-1 > len(list(location for location in self.multiworld.get_locations(self.player) if location.progress_type != LocationProgressType.EXCLUDED)):
-            raise OptionError("Not enough locations for progression items. Consider adding more locations or remove some Contract Pieces.")
+        #Re-add goal location if it wasn't added because of remove_goal_level_locations
+        if self.options.remove_goal_level_locations.value == self.options.remove_goal_level_locations.option_remove\
+         and (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion
+         or  self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
+            self.enabled_entitlements[self.player].append(self.options.goal_level.current_key)
+            if not any(location.name == self.goal_location for location in map_region.locations):
+                map_region.add_locations({self.goal_location:self.location_name_to_id[self.goal_location]},HitmanLocation)
+                self.set_rule(self.multiworld.get_location(self.goal_location, self.player), location_table[self.goal_location].get_rule(self.enabled_entitlements[self.player]))
+                self.multiworld.get_location(self.goal_location, self.player).progress_type = LocationProgressType.EXCLUDED
 
     def create_item(self, item:str) -> HitmanItem:
         return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)
@@ -609,7 +617,7 @@ class HitmanWorld(World):
         slotdata = self.options.as_dict( # copy options for yaml-less Universal Tracker
             "game_version",
             "game_difficulty", "enable_itemsanity", "split_itemsanity", "enable_disguisesanity", "max_sanity_checks_per_level",
-            "enable_target_checks", "exclude_goal_level_locations",
+            "enable_target_checks", "remove_goal_level_locations",
             "random_complications", "min_number_of_complications", "max_number_of_complications", "complications_weights",
             "included_s1_locations", "included_s2_locations", "included_s2_dlc_locations", "included_s3_locations",
             "excluded_items", "excluded_starting_items", "prioritized_filler", "item_packages",
