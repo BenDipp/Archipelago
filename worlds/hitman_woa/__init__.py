@@ -351,13 +351,15 @@ class HitmanWorld(World):
                 if self.options.include_requiempack_items:
                     self.enabled_entitlements[self.player].append("H1_REQUIEM_PACK")
 
+        self.enabled_entitlements[self.player] = sorted(self.enabled_entitlements[self.player]) #Fix OptionSets giving non-deterministic order for same seed and yaml
+
         if self.options.random_targets.value:
             target_slot_data = ""
             already_used_targets = []
             for level in valid_targets_table:
                 if level in self.enabled_entitlements[self.player]:
                     num_of_targets = self.random.randint(self.options.min_number_of_targets.value,self.options.max_number_of_targets.value)
-                    valid_targets = valid_targets_table[level]
+                    valid_targets = valid_targets_table[level].copy()
                     if self.options.game_difficulty.value != self.options.game_difficulty.option_master:
                         valid_targets += valid_targets_table_non_master[level]
                     if len(valid_targets) == 0 and self.options.enable_target_checks.value:
@@ -366,7 +368,7 @@ class HitmanWorld(World):
                     for i in range(0, num_of_targets):
                         if len(valid_targets) <= len(already_used_targets):
                             break
-                        chosen_target = self.random.choice(list(set(valid_targets)-set(already_used_targets)))
+                        chosen_target = self.random.choice(list(target for target in valid_targets if target not in already_used_targets))
                         target_slot_data += str(chosen_target)+"_"
                         already_used_targets.append(chosen_target)
 
@@ -381,7 +383,7 @@ class HitmanWorld(World):
             self.enabled_entitlements[self.player].append("vanilla_targets")
             if self.options.enable_target_checks.value:
                 for level in vanilla_target_table:
-                    if  level in self.enabled_entitlements[self.player]:
+                    if level in self.enabled_entitlements[self.player]:
                         for i in vanilla_target_table[level]:
                             self.enabled_entitlements[self.player].append("TARGET_"+str(i)) #TODO: could be replaced with "vanilla_targets" entitlement
 
@@ -542,8 +544,8 @@ class HitmanWorld(World):
         priority_filler = []
         valid_duplicats = []
         starting_locaiton = "Level - "+goal_table[self.options.starting_location.current_key]
-        required_itemgroups = set(group for location in location_table for group in location_table[location].get_required_item_groups(self.enabled_entitlements[self.player]))
-        required_items = set(item for location in location_table for item in location_table[location].get_required_items(self.enabled_entitlements[self.player]))
+        required_itemgroups = list(group for location in location_table for group in location_table[location].get_required_item_groups(self.enabled_entitlements[self.player]))
+        required_items = list(item for location in location_table for item in location_table[location].get_required_items(self.enabled_entitlements[self.player]))
 
         for item in item_table:
             if len(item_table[item][1][self.options.game_version.value]) == 0 or all(x in self.enabled_entitlements[self.player] for x in item_table[item][1][self.options.game_version.value]):
