@@ -126,9 +126,6 @@ class HitmanWorld(World):
             self.options.min_number_of_complications.value = self.options.max_number_of_complications.value
             self.options.max_number_of_complications.value = min
 
-        if self.options.random_complications and sum(self.options.complications_weights.value[x] != 0 for x in self.options.complications_weights.value) < self.options.max_number_of_complications:
-            raise OptionError("Not enough non-zero Complications for selected number of Complications.")
-
         if (self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion or
         self.options.goal_mode.value == self.options.goal_mode.option_level_completion) and\
         self.options.goal_level.value == self.options.starting_location.value:
@@ -399,9 +396,24 @@ class HitmanWorld(World):
                                                                self.options.max_number_of_complications.value)
 
                     already_used_complications = []
+                    available_complications = complication_weights.copy()
+
+                    if level == "dubai" and self.options.starting_location.value == self.options.starting_location.option_dubai:
+                        #if dubai is starting location, there is no chance to gain other Starting Location to avoid softlock
+                        available_complications["No Agility"] = 0
+
+                    if level == "chongqing" and self.options.starting_location.value == self.options.starting_location.option_chongqing and\
+                       not self.options.random_targets.value and not self.options.enable_target_checks.value and not self.options.enable_itemsanity and\
+                       not self.options.enable_disguisesanity.value:
+                        #if chongqing is starting location, has vanilla targets and there are only completion checks,
+                        #there is no chance to gain other Starting Location to avoid softlock (one that skips reactor)
+                        available_complications["No Agility"] = 0
+
                     for _ in range(0, num_of_complications):
+                        if 0 == sum(1 for x, w in available_complications.items() if w != 0 and x not in already_used_complications):
+                            break
                         chosen_complication = self.random.choice(
-                            [x for x, w in complication_weights.items()
+                            [x for x, w in available_complications.items()
                              for _ in range(w)
                              if w != 0 and x not in already_used_complications]
                         )
@@ -562,7 +574,7 @@ class HitmanWorld(World):
                     item_pool.append(self.create_item_with_classification(item, ItemClassification.progression))
                 if item_table[item][2] == ItemClassification.filler and item not in self.options.prioritized_filler.value and item not in required_items:
                     valid_filler.append(item)
-                if item_table[item][2] == ItemClassification.useful and item not in self.options.prioritized_filler.value:
+                if item_table[item][2] == ItemClassification.useful and item not in self.options.prioritized_filler.value and item not in required_items:
                     valid_useful.append(item)
                 if item_table[item][3]: #is allowed to be duplicated
                     valid_duplicats.append(item)
@@ -588,14 +600,10 @@ class HitmanWorld(World):
                     valid_useful.remove(chosen_item)
                 item_pool.append(self.create_item_with_classification(chosen_item, ItemClassification.progression))
 
-        if sum(1 for item in item_pool if item.name.startswith("Level -")) != 0:
-            second_sphere_item = self.random.choice(list(item for item in item_pool if item.name.startswith("Level -"))).name
-            self.multiworld.early_items[self.player][second_sphere_item] = 1
-
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection or \
         self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
             for i in range(0, self.options.goal_required_contract_pieces.value+self.options.goal_additional_contract_pieces.value):
-                item_pool.append(self.create_item("Contract Piece"))
+                item_pool.append(self.create_item_with_classification("Contract Piece", ItemClassification.progression_deprioritized_skip_balancing))
 
         if self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion:
             item_pool.remove(self.create_item("Level - "+goal_table[self.options.goal_level.current_key]))
