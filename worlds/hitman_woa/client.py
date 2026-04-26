@@ -109,7 +109,7 @@ class HitmanContext(SuperContext):
             self.slot_data["included_s2_locations"]+\
             self.slot_data["included_s2_dlc_locations"]+\
             self.slot_data["included_s3_locations"]+\
-            [self.slot_data["starting_location"]]
+            [self.slot_data["starting_location_name"]]
 
             if(cares_about_goal_rating):
                 enabled_levels.append(self.slot_data["goal_location_name"])
