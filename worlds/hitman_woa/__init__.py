@@ -525,8 +525,8 @@ class HitmanWorld(World):
          or  self.options.goal_mode.value == self.options.goal_mode.option_level_completion):
 
             goal_item = "Level - "+goal_table[self.options.goal_level.current_key]
-            for location in map_region.locations: #TODO: currently assumes Condition can only have "Level - *goal*" as required Items
-                if all(x.required_items == {goal_item} for x in location_table[location.name].fulfilled_conditions(self.enabled_entitlements[self.player])):
+            for location in map_region.locations:
+                if not any(item.startswith("Level - ") and item != goal_item for x in location_table[location.name].fulfilled_conditions(self.enabled_entitlements[self.player]) for item in x.required_items):
                     location.progress_type = LocationProgressType.EXCLUDED
 
         #Re-add goal location if it wasn't added because of remove_goal_level_locations
