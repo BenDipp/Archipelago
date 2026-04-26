@@ -70,7 +70,7 @@ class RequiredContractPieceAmount(Range):
     default = 5
 
 class AdditionalContractPieces(Range):
-    """When the goal is set to contract_colleciton or contract_collection_level_completion, how many additional contract pieces are added in the item pool."""
+    """When the goal is set to contract_collection or contract_collection_level_completion, how many additional contract pieces are added in the item pool."""
     display_name = "Number of Additional Contract Pieces"
     range_end = 100
     range_start = 0
@@ -214,6 +214,7 @@ class DisableAnnoyingSanityChecks(OptionCounter):
         - skip_locations_carried_by_npcs: Removes locations that require you to kill/pacify an NPC to get an item they are carrying (ex. Cocaine Brick (Miami), Lethal Poison Pill Jar (Paris))
         - skip_locations_requiring_other_items: Removes locations that require items, which require other items like keys (ex. Car Bomb (Miami), Cocaine Souvenir (Santa Fortuna))
         - skip_buried_locations: Removes locations that require items which are buried and need a shovel to be dug up (ex. Cigar Box (Whittleton Creek), Doubloon (Ambrose Island))
+    A full list of locations affected by each option can be found in the FAQ: https://github.com/BenDipp/Archipelago/blob/hitman_woa/worlds/hitman_woa/docs/en_hitman_woa.md
     """
     display_name = "Disable Annoying Sanitychecks"
     default = {
@@ -245,14 +246,14 @@ class GameDifficulty(Choice):
     - Professional: Unlimited saves, All Mission Story guides available, Surveillance cameras active, Cameras alert guards if illegal activity is spotted, Combat is challenging but fair.
     - Master: One save per mission, No Mission Story guides available, Extra surveillance cameras, Extra enforcers, Ruthless and demanding combat, Bloody eliminations ruin disguises, NPCs are more attentive to sounds.
     """
-    display_name = "Game Difficulaty"
+    display_name = "Game Difficulty"
     option_casual = 0
     option_professional = 1
     option_master = 2
     default = 1
 
 class RandomTargets(Toggle):
-    """Should random Targets be assigned to each Level. For each level, a random number of targets between min_number_of_targets and max_number_of_targets is choosen. If off, the vanilla targets will be chosen (Note: Carpathian Mountains will always remain vanilla.)"""
+    """Should random Targets be assigned to each Level. For each level, a random number of targets between min_number_of_targets and max_number_of_targets is chosen. If off, the vanilla targets will be chosen (Note: Carpathian Mountains will always remain vanilla.)"""
     display_name = "Random Targets"
 
 class MaxRandomTargets(Range):
@@ -270,7 +271,7 @@ class MinRandomTargets(Range):
     default = 2
 
 class RandomComplications(Toggle):
-    """Should random Complications be assigend to each Level. For each level, a random number of complications between min_number_of_complications and max_number_of_complications is chosen (Note: Carpathian Mountains will always remain vanilla.)"""
+    """Should random Complications be assigned to each Level. For each level, a random number of complications between min_number_of_complications and max_number_of_complications is chosen (Note: Carpathian Mountains will always remain vanilla.)"""
     display_name = "Random Complications"
 
 class MaxComplications(Range):
@@ -324,7 +325,7 @@ class EnableEverythingItem(Choice):
     and concealable items of that type will be added to 47's pocket. 
     
     The \"in_inventory\" option adds the packages directly to your starting inventory.
-    The \"in_itempool\" options adds the packages to the itempool and shuffles them to to any check in the multiworld."""
+    The \"in_itempool\" options adds the packages to the itempool and shuffles them to any check in the multiworld."""
     display_name = "Enable Item Packages"
     option_off = 0
     option_in_inventory = 1
@@ -340,17 +341,19 @@ class ExcludedItems(ItemSet):
 class ExcludedStartingItems(ItemSet):
     """List of Items to not be shuffled into the multiworld. 
     Selected Items will always be unlocked ingame. 
-    Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")"""
+    Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")
+    If an item is in both excluded_items and excluded_starting_items, excluded_starting_items takes priority."""
     display_name = "Excluded Starting Items"
 
 class IncludedFiller(ItemSet):
     """List of Items to always be shuffled into the multiworld.
-    Selected Items will be included before any other non-progression Item, ensuring they are not left out if there are more items then checks. 
+    Selected Items will be included before any other non-progression Item, ensuring they are not left out if there are more items than checks.
     Also accepts Itemgroups (ex.: \"Agency Pickup - Any\", \"Starting Location - Any\")"""
     display_name = "Prioritized Filler Items"
 
 class IncludeHeavySnipers(Toggle):
-    """Include the Snipers from the Sniper Assassin gamemode in the itempool, making them useable in normal missions."""
+    """Include the Snipers from the Sniper Assassin gamemode in the itempool, making them usable in normal missions.
+    Only available on game version HITMAN 3"""
     display_name = "Include Sniper Assassin Weapons"
 
 class IncludeDeluxeItems(Toggle):

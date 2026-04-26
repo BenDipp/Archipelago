@@ -6129,6 +6129,7 @@ itemsanity_exceptions = [
     ItemsanityException(itemname="Car Bomb", location="miami", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #In Safe, needs combination from next door
     ItemsanityException(itemname="Modern Lethal Syringe", location="miami", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #In Safe, needs Medical Cabinet Key
     ItemsanityException(itemname="Cocaine Brick", location="miami", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Carried by Hector Delgado
+    ItemsanityException(itemname="Cocaine Brick", location="miami", added_restriction="miami_no_pacification"),
 
     ItemsanityException(itemname="Cocaine Souvenir", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #Needs glue from cave
     ItemsanityException(itemname="Gold Idol", location="santa_fortuna", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #Needs key that is carried
@@ -6248,7 +6249,7 @@ for exception in itemsanity_exceptions:
         if exception.location in condition.require_all:
             condition.require_none.append(exception.added_restriction)
 
-disguise_location_table["Disguise - Mendoza - 47's Signature Suit with Gloves"].inclusion_conditions[0].require_none.append("SKIP_LOCATIONS_WITH_WAIT_TIMES")
+disguise_location_table["Disguise - Mendoza - 47's Signature Suit with Gloves"].inclusion_conditions[0].require_none.extend(["SKIP_LOCATIONS_WITH_WAIT_TIMES", "SKIP_LOCATIONS_WITH_EXTRA_STEPS", "SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM", "mendoza_no_pacification"])
 
 #chongqing+vanilla targets+no agility makes reactor core impossible => require startinglocation which skips reactor
 for name in level_completion_location_table:

@@ -7106,7 +7106,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         if(worked) {
             res.status(200).send()
         }else{
-            res.status(500).contentType("text").send("Error while recieving locations, see console for details")
+            res.status(500).contentType("text").send("Error while receiving locations, see console for details")
         }
     })
 	webFeaturesRouter.post("/archipelago/sendItems", (req,res)=>{
@@ -7116,7 +7116,7 @@ module.exports = function archipelagoCampaign(controller: Controller) {
         if(worked) {
             res.status(200).send()
         }else{
-            res.status(500).contentType("text").send("Error while recieving item, see console for details")
+            res.status(500).contentType("text").send("Error while receiving item, see console for details")
         }
     })
     webFeaturesRouter.post("/archipelago/setData", (req,res)=>{
@@ -7330,7 +7330,8 @@ module.exports = function archipelagoCampaign(controller: Controller) {
 
         // Make level unplayable if it was reached outside of campaign menu
         if(!getFlag("Level - "+modifiedContractMap[contractId].name)){
-            manifest.Metadata.ScenePath = manifest.Metadata.ScenePath+"DISABLED"
+            errArchipelago("Attempted to launch contract "+contractId+", but Level - "+modifiedContractMap[contractId].name+" is not unlocked. Making contract unlaunchable...")
+            return undefined
         }
 
         // Remove GameChangers if override is active

@@ -44,7 +44,7 @@ class HitmanContext(SuperContext):
             r = requests.get(self.peacock_url)
             r.raise_for_status()
         except Exception as e:
-            self.print_error("No respone from Peacock, please make sure the Peacock server is running before connecting.")
+            self.print_error("No response from Peacock, please make sure the Peacock server is running before connecting.")
             return
         logger.info("Peacock connection established.")            
 
