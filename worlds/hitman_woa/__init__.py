@@ -547,7 +547,10 @@ class HitmanWorld(World):
 
     def create_event(self, event: str) -> HitmanItem:
         return HitmanItem(event, ItemClassification.progression, None, self.player)
-      
+
+    def get_filler_item_name(self):
+        return "Distraction - Coin"
+
     def create_items(self) -> None:
         item_pool : List[Item] = []
 
