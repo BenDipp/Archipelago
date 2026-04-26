@@ -208,6 +208,8 @@ Thumbs.db
 
 fuzz.py
 /fuzz_output
+/fuzz_hooks
+fuzzer_meta.yaml
 
 bin/
 pyvenv.cfg
