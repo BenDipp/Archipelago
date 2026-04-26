@@ -6603,7 +6603,7 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
 			bareContract.Metadata.Description = contract.Metadata.Description
 			bareContract.Metadata.BriefingVideo = contract.Metadata.BriefingVideo
 			bareContract.Metadata.TileImage = contract.Metadata.TileImage
-			//TODO: Data.VR?
+			bareContract.Data.VR = contract.Data.VR
 
 			contract = bareContract
             /*
