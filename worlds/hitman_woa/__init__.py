@@ -497,10 +497,6 @@ class HitmanWorld(World):
             allowed_sanity_checks = list(sanity_location_table.keys())
 
         for location in location_table:
-
-            if location.endswith("Small Pumpkin")\
-            and self.options.game_version.value < 3:
-                continue
             
             if location in sanity_location_table and location not in allowed_sanity_checks:
                 continue

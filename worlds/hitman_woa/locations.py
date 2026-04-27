@@ -6263,6 +6263,10 @@ for name in level_completion_location_table:
             new_conditions.append(new_condition)
         level_completion_location_table[name].inclusion_conditions += new_conditions
 
+#Small Pumpkin only exists on H3
+item_pickup_location_table["Itempickup - Small Pumpkin"].inclusion_conditions[0].require_none.extend(["H1_BASE", "H2_BASE"])
+split_item_pickup_location_table["Itempickup - Colorado - Small Pumpkin"].inclusion_conditions[0].require_none.extend(["H1_BASE", "H2_BASE"])
+
 location_table = level_completion_location_table | item_pickup_location_table | split_item_pickup_location_table | disguise_location_table | target_kill_location_table
 
 #Dubai+no agility spawns outside with no way of entering the level, always require Atrium in this case
