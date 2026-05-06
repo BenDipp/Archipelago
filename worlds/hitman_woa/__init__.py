@@ -464,41 +464,46 @@ class HitmanWorld(World):
             while self.options.goal_level.current_key in self.enabled_entitlements[self.player]:
                 self.enabled_entitlements[self.player].remove(self.options.goal_level.current_key)
 
-        if self.options.max_sanity_checks_per_level.value > 0 and not hasattr(self.multiworld, "re_gen_passthrough"):
-            max_per_level = self.options.max_sanity_checks_per_level.value
+        if self.options.max_sanity_checks_per_level.value > 0:
+            if hasattr(self.multiworld, "re_gen_passthrough"):
+                allowed_sanity_checks = self.multiworld.re_gen_passthrough[self.game]["allowed_sanity_checks"]
+            else:
+                max_per_level = self.options.max_sanity_checks_per_level.value
 
-            # Build mapping: check -> set(levels it belongs to)
-            check_levels = {}
-            for check in sanity_location_table:
-                if not sanity_location_table[check].is_allowed(self.enabled_entitlements[self.player]):
-                    continue
-                levels = set()
+                # Build mapping: check -> set(levels it belongs to)
+                check_levels = {}
+                for check in sanity_location_table:
+                    if not sanity_location_table[check].is_allowed(self.enabled_entitlements[self.player]):
+                        continue
+                    levels = set()
 
-                for level in goal_table:
-                    if any(condition.is_fulfilled(self.enabled_entitlements[self.player]) and
-                      "Level - "+goal_table[level] in condition.required_items
-                      for condition in sanity_location_table[check].inclusion_conditions):
-                        levels.add(level)
+                    for level in goal_table:
+                        if any(condition.is_fulfilled(self.enabled_entitlements[self.player]) and
+                          "Level - "+goal_table[level] in condition.required_items
+                          for condition in sanity_location_table[check].inclusion_conditions):
+                            levels.add(level)
 
-                if levels:
-                    check_levels[check] = levels
+                    if levels:
+                        check_levels[check] = levels
 
-            # Track how many checks each level currently has
-            level_counts = {level: 0 for level in goal_table}
-            allowed_sanity_checks = []
+                # Track how many checks each level currently has
+                level_counts = {level: 0 for level in goal_table}
+                allowed_sanity_checks = []
 
-            # Shuffle checks to keep randomness
-            all_checks = list(check_levels.keys())
-            self.random.shuffle(all_checks)
+                # Shuffle checks to keep randomness
+                all_checks = list(check_levels.keys())
+                self.random.shuffle(all_checks)
 
-            for check in all_checks:
-                levels = check_levels[check]
+                for check in all_checks:
+                    levels = check_levels[check]
 
-                # Only allow if ALL levels are still below cap
-                if all(level_counts[level] < max_per_level for level in levels):
-                    allowed_sanity_checks.append(check)
-                    for level in levels:
-                        level_counts[level] += 1
+                    # Only allow if ALL levels are still below cap
+                    if all(level_counts[level] < max_per_level for level in levels):
+                        allowed_sanity_checks.append(check)
+                        for level in levels:
+                            level_counts[level] += 1
+
+                self.allowed_sanity_checks = allowed_sanity_checks
         else:
             allowed_sanity_checks = list(sanity_location_table.keys())
 
@@ -760,5 +765,9 @@ class HitmanWorld(World):
         slotdata["complications"] = self.complications
 
         slotdata["gen_version"] = self.world_version.as_simple_string()
+
+        if self.allowed_sanity_checks is not None:
+            #TODO: Discouraged by "world api.md" docs, but found no other way to give that data to UT at the right time
+            slotdata["allowed_sanity_checks"] = self.allowed_sanity_checks
 
         return slotdata
