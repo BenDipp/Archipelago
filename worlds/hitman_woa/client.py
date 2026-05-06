@@ -15,7 +15,8 @@ from .locations import goal_table, item_pickup_location_table, split_item_pickup
 
 tracker_loaded = False
 try:
-    from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
+    from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext, load_json
+
     tracker_loaded = True
 except ModuleNotFoundError:
     from CommonClient import CommonContext as SuperContext
@@ -65,6 +66,23 @@ class HitmanContext(SuperContext):
 
                 self.game = self.slot_info[self.slot].game
                 self.slot_data = args["slot_data"]
+
+                if tracker_loaded:
+                    #for map tab in UT, give Events insight into which location was already checked
+                    self.tracker_core.multiworld.hitman_client_checked_locations = self.checked_locations
+
+                    #add/remove UT map locations based on master difficulty in yaml
+                    new_locations = self.tracker_world.map_page_locations.copy()
+                    if "master" in self.slot_data["entitlements"]:
+                        new_locations.remove("locations/itempickup_map_non_master_locations.json")
+
+                    self.locs = []
+                    for loc_page in new_locations:
+                        self.locs += load_json(self.tracker_core.get_current_world().__class__.__module__, f"/{self.tracker_world.map_page_folder}/{loc_page}")
+
+                    #force reload the map
+                    self.load_map(1)
+                    self.load_map(0)
                 try:
                     self.set_slot_data()
                     self.set_goal()

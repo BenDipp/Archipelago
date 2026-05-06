@@ -4,10 +4,14 @@ from Options import OptionError, Option
 from rule_builder.rules import *
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch as launch_component, icon_paths
+from .regions import HitmanRegion
 from .settings import HitmanSettings
 from .items import HitmanItem, item_table, base_id
 from .options import HitmanOptions
-from .locations import HitmanLocation, location_table, sanity_location_table, level_completion_location_table, goal_table, valid_targets_table, valid_targets_table_non_master, vanilla_target_table, game_changers_table, LocationTableEntry
+from .locations import HitmanLocation, location_table, sanity_location_table, level_completion_location_table, \
+    goal_table, valid_targets_table, valid_targets_table_non_master, vanilla_target_table, game_changers_table, \
+    LocationTableEntry, item_pickup_location_table, ut_named_sections_table, split_item_pickup_location_table
+
 
 class HitmanWeb(WebWorld):
     theme = "partyTime"
@@ -46,6 +50,7 @@ class HitmanWorld(World):
         "map_page_maps" : "maps/maps.json",
         "map_page_locations" : ["locations/itempickup_map_locations.json",
                                 "locations/itempickup_overview_locations.json",
+                                "locations/itempickup_map_non_master_locations.json",
                                 "locations/completion_locations.json",
                                 "locations/elimination_locations.json",
                                 "locations/disguise_locations.json"],
@@ -153,6 +158,7 @@ class HitmanWorld(World):
                             # You can also set .value directly but that won't work if you have OptionSets
                             setattr(self.options, key, opt.from_any(value))
                     self.enabled_entitlements[self.player] = slot_data["entitlements"]
+                    self.goal_location = self.location_id_to_name[slot_data["goal_location_id"]]
                     return
         
         # make sure the goal Level is added as location
@@ -535,6 +541,28 @@ class HitmanWorld(World):
                 self.set_rule(self.multiworld.get_location(self.goal_location, self.player), location_table[self.goal_location].get_rule(self.enabled_entitlements[self.player]))
                 self.multiworld.get_location(self.goal_location, self.player).progress_type = LocationProgressType.EXCLUDED
 
+        if hasattr(self.multiworld, "generation_is_fake") and self.options.enable_itemsanity.value:
+            if not self.options.split_itemsanity.value:
+                self.enabled_entitlements[self.player].append("split_itemsanity") #To be able to use the access_rules of the split_itemsanity versions
+                for level in goal_table:
+                    if not level in self.enabled_entitlements[self.player]:
+                        continue
+
+                    for location in map_region.locations:
+                        if location.name in item_pickup_location_table and\
+                        "Level - "+goal_table[level] in location_table[location.name].get_required_items(self.enabled_entitlements[self.player]):
+                            new_name = location.name+("​"*(list(goal_table).index(level)+1))
+                            self.create_ut_event(new_name,location.name,location_table[location.name.replace("-","- "+goal_table[level]+" -",1)].get_rule(self.enabled_entitlements[self.player]),menu_region)
+            for section_tuple in ut_named_sections_table:
+                for location in frozenset(self.get_locations()):
+                    if location.name in section_tuple[1]:
+                        if self.options.split_itemsanity.value:
+                            self.create_ut_event(section_tuple[0], section_tuple[1][0], split_item_pickup_location_table[section_tuple[1][0]].get_rule(self.enabled_entitlements[self.player]), map_region)
+                        else:
+                            self.create_ut_event(section_tuple[0], section_tuple[1][1].strip("​"), split_item_pickup_location_table[section_tuple[1][0]].get_rule(self.enabled_entitlements[self.player]), map_region)
+            if not self.options.split_itemsanity.value and "split_itemsanity" in self.enabled_entitlements[self.player]:
+                self.enabled_entitlements[self.player].remove("split_itemsanity")
+
     def create_item(self, item:str) -> HitmanItem:
         return HitmanItem(item,item_table[item][2],item_table[item][0]+base_id,self.player)
 
@@ -543,6 +571,13 @@ class HitmanWorld(World):
 
     def create_event(self, event: str) -> HitmanItem:
         return HitmanItem(event, ItemClassification.progression, None, self.player)
+
+    def create_ut_event(self, name:str, real_location:str, rule:Rule, connecting_region:Region):
+        region = HitmanRegion(name, self.player, self.multiworld)
+        region.ut_mirrored_location = real_location #return true in "can_reach" if this location was checked
+        connecting_region.connect(region, rule=rule)
+        region.add_event(name, "Unused", True_(), HitmanLocation)
+        self.multiworld.get_location(name,self.player).ut_mirrored_location = real_location
 
     def get_filler_item_name(self):
         return "Distraction - Coin"

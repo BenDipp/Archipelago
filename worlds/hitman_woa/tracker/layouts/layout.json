@@ -37,6 +37,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["ica_facility_all"]
+                          }
+                        },
+                        {
                           "title": "Level 0",
                           "content": {
                             "type": "map",
@@ -73,6 +80,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["paris_all"]
+                          }
+                        },
+                        {
                           "title": "Level 0",
                           "content": {
                             "type": "map",
@@ -108,6 +122,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["sapienza_all"]
+                          }
+                        },
                         {
                           "title": "Level 0",
                           "content": {
@@ -173,6 +194,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["marrakesh_all"]
+                          }
+                        },
+                        {
                           "title": "Level 0",
                           "content": {
                             "type": "map",
@@ -208,6 +236,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["bangkok_all"]
+                          }
+                        },
                         {
                           "title": "Level 0",
                           "content": {
@@ -259,6 +294,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["colorado_all"]
+                          }
+                        },
+                        {
                           "title": "Level 0",
                           "content": {
                             "type": "map",
@@ -294,6 +336,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["hokkaido_all"]
+                          }
+                        },
                         {
                           "title": "Level 0",
                           "content": {
@@ -339,6 +388,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["hawkes_bay_all"]
+                          }
+                        },
+                        {
                           "title": "Level 0",
                           "content": {
                             "type": "map",
@@ -368,13 +424,19 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["miami_all"]
+                          }
+                        },
+                        {
                           "title": "Level -1",
                           "content": {
                             "type": "map",
                             "maps": ["miami_-1"]
                           }
                         },
-
                         {
                           "title": "Level 0",
                           "content": {
@@ -412,6 +474,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["santa_fortuna_all"]
+                          }
+                        },
+                        {
                           "title": "Level -1",
                           "content": {
                             "type": "map",
@@ -447,6 +516,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["mumbai_all"]
+                          }
+                        },
                         {
                           "title": "Level -1",
                           "content": {
@@ -519,6 +595,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["whittleton_creek_all"]
+                          }
+                        },
+                        {
                           "title": "Level -1",
                           "content": {
                             "type": "map",
@@ -554,6 +637,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["isle_of_sgail_all"]
+                          }
+                        },
                         {
                           "title": "Level 0",
                           "content": {
@@ -626,6 +716,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["new_york_all"]
+                          }
+                        },
+                        {
                           "title": "Level -1",
                           "content": {
                             "type": "map",
@@ -668,6 +765,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["haven_island_all"]
+                          }
+                        },
                         {
                           "title": "Level -3",
                           "content": {
@@ -734,6 +838,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["dubai_all"]
+                          }
+                        },
+                        {
                           "title": "Level -1",
                           "content": {
                             "type": "map",
@@ -791,6 +902,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["dartmoor_all"]
+                          }
+                        },
+                        {
                           "title": "Level 0",
                           "content": {
                             "type": "map",
@@ -826,6 +944,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["berlin_all"]
+                          }
+                        },
                         {
                           "title": "Level -2",
                           "content": {
@@ -883,6 +1008,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["chongqing_all"]
+                          }
+                        },
                         {
                           "title": "Level -3",
                           "content": {
@@ -955,6 +1087,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["mendoza_all"]
+                          }
+                        },
+                        {
                           "title": "Level 0",
                           "content": {
                             "type": "map",
@@ -1012,6 +1151,13 @@
                       "type": "tabbed",
                       "tabs": [
                         {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["carpathian_mountains_all"]
+                          }
+                        },
+                        {
                           "title": "Lab Area",
                           "content": {
                             "type": "map",
@@ -1047,6 +1193,13 @@
                     "content": {
                       "type": "tabbed",
                       "tabs": [
+                        {
+                          "title": "All",
+                          "content": {
+                            "type": "map",
+                            "maps": ["ambrose_island_all"]
+                          }
+                        },
                         {
                           "title": "Level 0",
                           "content": {

@@ -36,7 +36,138 @@
     "location_border_thickness": 2,
     "img": "images/haven_island_3.jpeg"
   },
-
+  {
+    "name": "ica_facility_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/ica_facility_all.jpeg"
+  },
+  {
+    "name": "paris_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/paris_all.jpeg"
+  },
+  {
+    "name": "sapienza_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/sapienza_all.jpeg"
+  },
+  {
+    "name": "marrakesh_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/marrakesh_all.jpeg"
+  },
+  {
+    "name": "bangkok_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/bangkok_all.jpeg"
+  },
+  {
+    "name": "colorado_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/colorado_all.jpeg"
+  },
+  {
+    "name": "hokkaido_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/hokkaido_all.jpeg"
+  },
+  {
+    "name": "hawkes_bay_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/hawkes_bay_all.jpeg"
+  },
+  {
+    "name": "miami_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/miami_all.jpeg"
+  },
+  {
+    "name": "santa_fortuna_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/santa_fortuna_all.jpeg"
+  },
+  {
+    "name": "mumbai_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/mumbai_all.jpeg"
+  },
+  {
+    "name": "whittleton_creek_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/whittleton_creek_all.jpeg"
+  },
+  {
+    "name": "isle_of_sgail_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/isle_of_sgail_all.jpeg"
+  },
+  {
+    "name": "new_york_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/new_york_all.jpeg"
+  },
+  {
+    "name": "haven_island_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/haven_island_all.jpeg"
+  },
+  {
+    "name": "dubai_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/dubai_all.jpeg"
+  },
+  {
+    "name": "dartmoor_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/dartmoor_all.jpeg"
+  },
+  {
+    "name": "berlin_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/berlin_all.jpeg"
+  },
+  {
+    "name": "chongqing_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/chongqing_all.jpeg"
+  },
+  {
+    "name": "mendoza_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/mendoza_all.jpeg"
+  },
+  {
+    "name": "carpathian_mountains_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/carpathian_mountains_all.jpeg"
+  },
+  {
+    "name": "ambrose_island_all",
+    "location_size": 10,
+    "location_border_thickness": 2,
+    "img": "images/ambrose_island_all.jpeg"
+  },
 
   { "name" : "ica_facility_0", "location_size": 10, "location_border_thickness": 2, "img": "images/ica_facility_0.jpeg"},
   { "name" : "ica_facility_1", "location_size": 10, "location_border_thickness": 2, "img": "images/ica_facility_1.jpeg"},
