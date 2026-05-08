@@ -707,6 +707,14 @@ class HitmanWorld(World):
         self.multiworld.push_precollected(self.create_item(starting_locaiton))
         self.multiworld.itempool.extend(item_pool)
 
+    def fill_hook(self,
+                  progitempool: List["Item"],
+                  usefulitempool: List["Item"],
+                  filleritempool: List["Item"],
+                  fill_locations: List["Location"]) -> None:
+        if self.options.goal_mode.value == self.options.goal_mode.option_level_completion:
+            progitempool.sort(key = lambda item: item.player == self.player and item.name == "Level - "+goal_table[self.options.goal_level.current_key])
+
     def set_rules(self) -> None:
         match self.options.goal_mode.value:
             case self.options.goal_mode.option_level_completion | self.options.goal_mode.option_contract_collection_level_completion:
