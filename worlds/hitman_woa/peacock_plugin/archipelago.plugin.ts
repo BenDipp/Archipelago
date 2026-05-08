@@ -6152,7 +6152,7 @@ const checkLocation = (id:number) =>{
             logArchipelago("Saving id: "+id+" to send")
             listOfUnsentChecks.push(id)
         }else{
-            logArchipelago("Id: "+id+" already in list to send-")
+            logArchipelago("Id: "+id+" already in list to send")
         }
     }else{
         errArchipelago("Invalid Archipelago Id found, either this Completed Level was not from AP or this item/elimination isn't a check.")
@@ -6586,7 +6586,7 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
         }
 		let newContractId = slotData.seed.substring(slotData.seed.length-8)+"-0000-0000-0000-"+contractId.split("-")[4]
 
-        if(levelData.targets !== undefined) {
+        if(levelData.targets !== undefined && levelData.targets.length === 0) {
 
 			// get contractcreation contract instead of main mission
 			let bareContract = controller.resolveContract(contractMap[levelName].contractCreationId, "h3")
@@ -7024,7 +7024,7 @@ function setupMainMenuTiles(){
         "title": "HITMAPS",
         "header": "Item information provided by",
         "icon": "story",
-        "image": "$res images/challenges/marrakech/story_evacuation_spider.jpg"
+        "image": "$res images/challenges/marrakech/spider_opp_zaydan_speach.jpg" //normal one is not in H1
     }
     configs.LegacyHubTemplate.body.children[3].children[0].children.children.$merge[4].actions!.accept = [{
 		"open-url": {
@@ -7326,12 +7326,12 @@ module.exports = function archipelagoCampaign(controller: Controller) {
             return undefined
         }
 
-        const manifest = JSON.parse(JSON.stringify(contractMap[modifiedContractMap[contractId].name].contractData))
+        const manifest:MissionManifest = JSON.parse(JSON.stringify(contractMap[modifiedContractMap[contractId].name].contractData))
 
         // Make level unplayable if it was reached outside of campaign menu
         if(!getFlag("Level - "+modifiedContractMap[contractId].name)){
             errArchipelago("Attempted to launch contract "+contractId+", but Level - "+modifiedContractMap[contractId].name+" is not unlocked. Making contract unlaunchable...")
-            return undefined
+            manifest.Metadata.ScenePath = manifest.Metadata.ScenePath+"Refusing to load"
         }
 
         // Remove GameChangers if override is active
