@@ -108,10 +108,6 @@ class HitmanContext(SuperContext):
 
         await super().disconnect(allow_autoreconnect)
 
-    async def disconnectOnWindowClose(self):
-        # only nececery in rare circumstances, where the window would give no respone when closing with the windows x while connected
-        await self.disconnect()
-
     def make_gui(self):
         ui = super().make_gui()
         ui.base_title = "Archipelago HITMAN Client"
@@ -303,9 +299,6 @@ class HitmanContext(SuperContext):
 async def main(args):
     ctx = HitmanContext(args.connect, args.password)
     ctx.auth = args.name
-
-    import atexit
-    atexit.register(ctx.disconnectOnWindowClose)
 
     ctx.server_task = asyncio.create_task(server_loop(ctx), name="server loop")
 
