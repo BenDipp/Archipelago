@@ -7072,7 +7072,7 @@ function setupFlags(){
     }
 }
 module.exports = function archipelagoCampaign(controller: Controller) {
-    logArchipelago("Loading Archipelago Plugin (v0.8.0)")
+    logArchipelago("Loading Archipelago Plugin (v0.8.1)")
 
     setupFlags()
     saveImagesToDisk()

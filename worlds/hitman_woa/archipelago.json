@@ -1,6 +1,6 @@
 {
     "game":"HITMAN World of Assassination",
     "minimum_ap_version": "0.6.7",
-    "world_version": "0.8.0",
+    "world_version": "0.8.1",
     "authors": ["BenDipp"]
 }
