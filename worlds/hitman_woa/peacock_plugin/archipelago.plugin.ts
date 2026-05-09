@@ -6586,7 +6586,7 @@ const addModifiedMissions = (controller: Controller, slotData:slotData) => {
         }
 		let newContractId = slotData.seed.substring(slotData.seed.length-8)+"-0000-0000-0000-"+contractId.split("-")[4]
 
-        if(levelData.targets !== undefined && levelData.targets.length === 0) {
+        if(levelData.targets !== undefined && levelData.targets.length !== 0) {
 
 			// get contractcreation contract instead of main mission
 			let bareContract = controller.resolveContract(contractMap[levelName].contractCreationId, "h3")
