@@ -774,7 +774,7 @@ class HitmanWorld(World):
 
         slotdata["gen_version"] = self.world_version.as_simple_string()
 
-        if self.allowed_sanity_checks is not None:
+        if hasattr(self, "allowed_sanity_checks"):
             #TODO: Discouraged by "world api.md" docs, but found no other way to give that data to UT at the right time
             slotdata["allowed_sanity_checks"] = self.allowed_sanity_checks
 
