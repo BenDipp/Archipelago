@@ -6120,6 +6120,9 @@ level_completion_location_table["Carpathian Mountains Completed - Sniper Assassi
 level_completion_location_table["ICA Facility Completed - Sniper Assassin"].inclusion_conditions = [Condition(require_all=["ica_facility"],require_any=["ica_facility_sna","sna"], required_items=["Level - ICA Facility"], required_item_groups=["Sniper - Any", "Suitcase - Any"])]
 #Dubai default entrance doesn't allow Suitcases, Atrium is the only one
 level_completion_location_table["Dubai Completed - Sniper Assassin"].inclusion_conditions[0].required_items.append("Starting Location - Dubai - Atrium Lobby")
+#Berlin default entry doesn't allow anything, Club Entrance and Radio Tower are the only ones
+level_completion_location_table["Berlin Completed - Sniper Assassin"].inclusion_conditions[0].required_items.append("Starting Location - Berlin - Club Entrance")
+level_completion_location_table["Berlin Completed - Sniper Assassin"].inclusion_conditions.append(Condition(require_all=["berlin"],require_any=["berlin_sna","sna"], required_items=["Level - Berlin", "Starting Location - Berlin - Radio Tower"], required_item_groups=["Sniper - Any", "Suitcase - Any"]))
 
 @dataclass
 class ItemsanityException:
