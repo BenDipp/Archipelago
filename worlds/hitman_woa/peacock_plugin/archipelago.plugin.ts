@@ -6542,27 +6542,40 @@ const addEliminationChallanges = (controller:Controller, slotData:slotData)=>{
 
         addChallangeGroup(controller, "AP Eliminations","images/contracts/ap/campaign.jpg","challenge_category_targets","AP_KILL_CHECKS",contractRecord.locationParent)
 
+        let statemachine:any = {
+            "Scope": "session",
+            "States": {
+                "Start":{
+                    "Kill": {
+                        "Condition": {
+                            "$eq": [
+                                "$Value.RepositoryId",
+                                targetRecord.targetId
+                            ]
+                        },
+                        "Transition": "Success"
+                    }
+                }
+            }
+        }
+
+        if(slotData.checks.eliminationChecks[id] === 9501){ //Soders
+            statemachine = {
+                "Scope": "session",
+                "States": {
+                    "Start": {
+                        "Soders_Dead": [{ "Transition": "Success" }]
+                    }
+                }
+            }
+        }
+
         addChallange(controller,
 			"Elimination - "+modifiedContractRecord.name+" - "+targetRecord.name,
 			targetRecord.imagePath,
 			"Eliminate "+targetRecord.name,
 			"challenge_category_targets",
-			{
-				"Scope": "session",
-				"States": {
-					"Start":{
-						"Kill": {
-							"Condition": {
-								"$eq": [
-									"$Value.RepositoryId",
-									targetRecord.targetId
-								]
-							},
-							"Transition": "Success"
-						}
-					}
-				}
-			},
+			statemachine,
 			"AP_KILL_CHECKS",
 			contractRecord.locationParent,
 			[getContractFromName(modifiedContractRecord.name)],
