@@ -747,28 +747,23 @@ class HitmanWorld(World):
             case self.options.game_difficulty.option_master:
                 slotdata["difficulty"] = "hard"
         
-        slotdata["goal_mode"] = self.options.goal_mode.current_key
+        slotdata["goal_mode_name"] = self.options.goal_mode.current_key
         match self.options.goal_mode.value:
             case self.options.goal_mode.option_number_of_completions:
-                slotdata["goal_amount"] = self.options.goal_amount.value
-                slotdata["goal_rating"] = self.options.goal_rating.current_key
+                slotdata["goal_rating_name"] = self.options.goal_rating.current_key
                 slotdata["goal_location_id"] = self.location_name_to_id["All Contract Pieces Collected"]
             case self.options.goal_mode.option_level_completion:
                 slotdata["goal_location_id"] = self.location_name_to_id[self.goal_location]
                 slotdata["goal_location_name"] = self.options.goal_level.current_key
-                slotdata["goal_rating"] = self.options.goal_rating.current_key
+                slotdata["goal_rating_name"] = self.options.goal_rating.current_key
             case self.options.goal_mode.option_contract_collection:
-                slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
                 slotdata["goal_location_id"] = self.location_name_to_id["All Contract Pieces Collected"]
             case self.options.goal_mode.option_contract_collection_level_completion:
                 slotdata["goal_location_id"] = self.location_name_to_id[self.goal_location]
                 slotdata["goal_location_name"] = self.options.goal_level.current_key
-                slotdata["goal_rating"] = self.options.goal_rating.current_key
-                slotdata["goal_amount"] = self.options.goal_required_contract_pieces.value
+                slotdata["goal_rating_name"] = self.options.goal_rating.current_key
 
         slotdata["targets"] = self.target_slotdata
-
-        slotdata["item_packages"] = self.options.item_packages.current_key
 
         slotdata["complications"] = self.complications
 

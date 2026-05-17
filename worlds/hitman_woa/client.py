@@ -187,7 +187,7 @@ class HitmanContext(SuperContext):
                 json={
                     "difficulty":self.slot_data.get("difficulty","normal"),
                     "seed":self.current_seed,
-                    "everythingItemInInventory":self.slot_data.get("item_packages","")=="in_inventory",
+                    "everythingItemInInventory":self.slot_data.get("item_packages","") == 1, #option_in_inventory
                     "checks":all_checks,
                     "levels":level_data,
                     "genVersion":self.slot_data.get("gen_version","pre-0.8.0"),
@@ -203,26 +203,26 @@ class HitmanContext(SuperContext):
         
     def set_goal(self):
         try:
-            match self.slot_data["goal_mode"]:
+            match self.slot_data.get("goal_mode_name"):
                 case "level_completion":
                     goal_data = self.slot_data["goal_location_name"]
-                    more_goal_data = self.slot_data["goal_rating"]
+                    more_goal_data = self.slot_data.get("goal_rating_name")
                     even_more_goal_data = "none"
                 case "contract_collection":
-                    goal_data = self.slot_data["goal_amount"]
+                    goal_data = self.slot_data["goal_required_contract_pieces"]
                     more_goal_data = "none"
                     even_more_goal_data = "none"
                 case "contract_collection_level_completion":
-                    goal_data = self.slot_data["goal_amount"]
+                    goal_data = self.slot_data["goal_required_contract_pieces"]
                     more_goal_data = self.slot_data["goal_location_name"]
-                    even_more_goal_data = self.slot_data["goal_rating"]
+                    even_more_goal_data = self.slot_data.get("goal_rating_name")
                 case "number_of_completions":
                     goal_data = self.slot_data["goal_amount"]
-                    more_goal_data = self.slot_data["goal_rating"]
+                    more_goal_data = self.slot_data.get("goal_rating_name")
                     even_more_goal_data = "none"
 
             logger.info("Sending Goal information...")
-            r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data["goal_mode"]+"/"+str(goal_data)+"/"+more_goal_data+"/"+even_more_goal_data)
+            r = requests.get(self.peacock_url+"/setGoal/"+self.slot_data.get("goal_mode_name")+"/"+str(goal_data)+"/"+str(more_goal_data)+"/"+str(even_more_goal_data))
             r.raise_for_status()
             logger.info("Goal information sent.")
         except Exception as e:
