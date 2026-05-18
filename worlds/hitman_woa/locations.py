@@ -6123,6 +6123,16 @@ level_completion_location_table["Dubai Completed - Sniper Assassin"].inclusion_c
 #Berlin default entry doesn't allow anything, Club Entrance and Radio Tower are the only ones
 level_completion_location_table["Berlin Completed - Sniper Assassin"].inclusion_conditions[0].required_items.append("Starting Location - Berlin - Club Entrance")
 level_completion_location_table["Berlin Completed - Sniper Assassin"].inclusion_conditions.append(Condition(require_all=["berlin"],require_any=["berlin_sna","sna"], required_items=["Level - Berlin", "Starting Location - Berlin - Radio Tower"], required_item_groups=["Sniper - Any", "Suitcase - Any"]))
+#Mendoza default entry doesn't allow Suitcases, Parking Lot and Shrine are the only ones
+level_completion_location_table["Mendoza Completed - Sniper Assassin"].inclusion_conditions[0].required_items.append("Starting Location - Mendoza - Parking Lot")
+level_completion_location_table["Mendoza Completed - Sniper Assassin"].inclusion_conditions.append(Condition(require_all=["mendoza"],require_any=["mendoza_sna","sna"], required_items=["Level - Mendoza", "Starting Location - Mendoza - Shrine"], required_item_groups=["Sniper - Any", "Suitcase - Any"]))
+#Sapienza,Paris,Marrakesh,Bangkok,Colorado,Miami always have an Agency Pickup unlocked, don't need another one
+level_completion_location_table["Sapienza Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Sapienza - Any")
+level_completion_location_table["Paris Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Paris - Any")
+level_completion_location_table["Marrakesh Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Marrakesh - Any")
+level_completion_location_table["Bangkok Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Bangkok - Any")
+level_completion_location_table["Colorado Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Colorado - Any")
+level_completion_location_table["Miami Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Miami - Any")
 
 @dataclass
 class ItemsanityException:
