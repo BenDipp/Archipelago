@@ -203,6 +203,11 @@ class HitmanContext(SuperContext):
         
     def set_goal(self):
         try:
+            #Hotfix for compatibility with 0.8.0 and 0.8.1 generated worlds. TODO: Can be removed next major version
+            if self.slot_data.get("gen_version","pre-0.8.0") == "0.8.1" or self.slot_data.get("gen_version","pre-0.8.0") == "0.8.0":
+                self.slot_data["goal_mode_name"] = self.slot_data.get("goal_mode","N/A")
+                self.slot_data["goal_rating_name"] = self.slot_data.get("goal_rating", "N/A")
+
             match self.slot_data.get("goal_mode_name"):
                 case "level_completion":
                     goal_data = self.slot_data["goal_location_name"]

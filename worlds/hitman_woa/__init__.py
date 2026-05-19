@@ -156,7 +156,10 @@ class HitmanWorld(World):
                         opt: Optional[Option] = getattr(self.options, key, None)
                         if opt is not None:
                             # You can also set .value directly but that won't work if you have OptionSets
-                            setattr(self.options, key, opt.from_any(value))
+                            try:
+                                setattr(self.options, key, opt.from_any(value))
+                            except Exception as e:
+                                print("Exception '"+str(e)+"' in HitmanWorld.generate_early")
                     self.enabled_entitlements[self.player] = slot_data["entitlements"]
                     self.goal_location = self.location_id_to_name[slot_data["goal_location_id"]]
                     return
