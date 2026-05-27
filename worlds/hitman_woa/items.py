@@ -344,7 +344,7 @@ item_table= {
     "Explosive - ICA Proximity Concussion Device MK III":(335,[[],["N/A"],["N/A"],["H3_BASE"]], ItemClassification.filler, True, ["Explosive - Any"]),
     "Explosive - ICA Remote Concussion Device":(336,[[],["N/A"],["H2_BASE"],["H3_BASE"]], ItemClassification.filler, True, ["Explosive - Any"]),
     "Explosive - Remote Concussion Rubber Duck":(337,[[],["N/A"],["H2_BASE"],["H3_BASE"]], ItemClassification.filler, True, ["Explosive - Any"]),
-    "Explosive - Goldbrick Proximity Mine":(338,[[],["N/A"],["N/A"],["H3_DELUXE_PACK"]], ItemClassification.filler, True, ["Explosive - Any"]),
+    "Explosive - Goldbrick Proximity Mine":(338,[[],["N/A"],["N/A"],["H3_SINS_SLOTH"]], ItemClassification.filler, True, ["Explosive - Any"]),
     "Explosive - Remote Concussion Collectors Duck":(339,[[],["N/A"],["H2_COLLECTORS"],["H3_H2_EXPANSION"]], ItemClassification.filler, True, ["Explosive - Any"]),
     "Explosive - Concussion Grenade":(340,[[],["N/A"],["H2_BASE"],["H3_BASE"]], ItemClassification.filler, True, ["Explosive - Any"]),
     "Explosive - Nitroglycerin":(341,[[],["N/A"],["N/A"],["H3_BASE"]], ItemClassification.filler, True, ["Explosive - Any"]),
