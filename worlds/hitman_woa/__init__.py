@@ -398,6 +398,7 @@ class HitmanWorld(World):
         if self.options.random_complications.value:
             complication_slot_data = ""
             complication_weights = self.options.complications_weights.value
+            num_of_levels = sum(1 for level in goal_table if level in self.enabled_entitlements[self.player] and not level == "carpathian_mountains")
 
             for level in goal_table:
                 if level in self.enabled_entitlements[self.player] and level != "carpathian_mountains":
@@ -417,6 +418,21 @@ class HitmanWorld(World):
                         #if chongqing is starting location, has vanilla targets and there are only completion checks,
                         #there is no chance to gain other Starting Location to avoid softlock (one that skips reactor)
                         available_complications["No Agility"] = 0
+
+                    if level == self.options.goal_level.current_key\
+                       and self.options.goal_rating.value == self.options.goal_rating.option_sniper_assassin\
+                       and (self.options.goal_mode.value == self.options.goal_mode.option_level_completion
+                       or  self.options.goal_mode.value == self.options.goal_mode.option_contract_collection_level_completion):
+                        #if goal_level is relevant and goal_rating is sna
+                        #remove no ballistic to ensure the goal_check is not removed
+                        available_complications["No Balistic Kills"] = 0
+
+                    if self.options.goal_mode.value == self.options.goal_mode.option_number_of_completions\
+                       and self.options.goal_rating.value == self.options.goal_rating.option_sniper_assassin:
+                        #if goal_mode is level_completion and goal_rating is sna and there are already too many no_ballistics
+                        #make sure remaining levels don't have no_ballistic so that there are enough contract pieces
+                        if num_of_levels - complication_slot_data.count(str(game_changers_table["No Balistic Kills"][0])) <= self.options.goal_amount.value:
+                            available_complications["No Balistic Kills"] = 0
 
                     for _ in range(0, num_of_complications):
                         if 0 == sum(1 for x, w in available_complications.items() if w != 0 and x not in already_used_complications):

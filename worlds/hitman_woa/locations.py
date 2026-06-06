@@ -6134,6 +6134,11 @@ level_completion_location_table["Bangkok Completed - Sniper Assassin"].inclusion
 level_completion_location_table["Colorado Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Colorado - Any")
 level_completion_location_table["Miami Completed - Sniper Assassin"].inclusion_conditions[1].required_item_groups.remove("Agency Pickup - Miami - Any")
 
+# No Ballistics makes Sniper Assassin impossible
+for level in goal_table:
+    for condition in level_completion_location_table[goal_table[level]+" Completed - Sniper Assassin"].inclusion_conditions:
+        condition.require_none.append(level+"_no_balistic")
+
 @dataclass
 class ItemsanityException:
     itemname:str = field(factory=str)
@@ -6399,7 +6404,7 @@ game_changers_table = {
     "One Pacification":(14, ["_no_pacification"]),
     "If Recorded by Camera, finish in 2 min":(15, []),
     "No Civilian Casualties":(16, []),
-    "No Balistic Kills":(17, []),
+    "No Balistic Kills":(17, ["_no_balistic"]),
     "3 min Timer":(18, []),
     "No Pacifications":(19, ["_no_pacification"]),
     "Defuse Combat Situations":(20, []),
