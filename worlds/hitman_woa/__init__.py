@@ -303,12 +303,17 @@ class HitmanWorld(World):
                 if self.options.include_makeshift_items:
                     self.enabled_entitlements[self.player].append("H3_VANITY_MAKESHIFTSCRAP")
 
+                if self.options.include_sports_items:
+                    self.enabled_entitlements[self.player].append("H3_VANITY_SPORT")
+                    self.enabled_entitlements[self.player].append("H3_ET_PENICILLIN_ITEMS")
+
                 # Check for H3 Elusive Target DLCs
                 if self.options.include_splitter_items:
                     self.enabled_entitlements[self.player].append("H3_ET_LAMBIC")
 
                 if self.options.include_disruptor_items:
                     self.enabled_entitlements[self.player].append("H3_ET_PENICILLIN")
+                    self.enabled_entitlements[self.player].append("H3_ET_PENICILLIN_ITEMS")
 
                 if self.options.include_undying_items:
                     self.enabled_entitlements[self.player].append("H3_ET_SAMBUCA")
@@ -327,6 +332,9 @@ class HitmanWorld(World):
 
                 if self.options.include_jovovich_items:
                     self.enabled_entitlements[self.player].append("H3_ET_FILUR")
+
+                if self.options.include_wizard_items:
+                    self.enabled_entitlements[self.player].append("H3_ET_POMADA")
 
             case self.options.game_version.option_hitman_2:
                 self.enabled_entitlements[self.player].append("H2_BASE")

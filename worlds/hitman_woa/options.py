@@ -408,6 +408,10 @@ class IncludePatientZeroRequiemItems(Toggle):
     """Include Items from the Patient Zero Requiem Pack"""
     display_name = "Include Patient Zero Requiem Pack Items"
 
+class IncludeWizardItems(Toggle):
+    """Include Items from the Wizard Pack"""
+    display_name = "Include Wizard Pack Items"
+
 class IncludeTrinityItems(Toggle):
     """Include Items from the Trinity Pack"""
     display_name = "Include Trinity Pack Items"
@@ -419,6 +423,10 @@ class IncludeConcreteArtItems(Toggle):
 class IncludeMakeshiftItems(Toggle):
     """Include Items from the Makeshift Pack"""
     display_name = "Include Makeshift Pack Items"
+
+class IncludeSportsItems(Toggle):
+    """Include Items from the World Champions Pack"""
+    display_name = "Include World Champions Pack Items"
 
 class IncludeH2LegacyItems(Toggle):
     """For HITMAN 2: Include Items from the HITMAN Legacy Pack"""
@@ -499,10 +507,12 @@ class HitmanOptions(PerGameCommonOptions):
     include_bruce_lee_items: IncludeBruceLeeItems
     include_eminem_items: IncludeEminemItems
     include_jovovich_items: IncludePatientZeroRequiemItems
+    include_wizard_items: IncludeWizardItems
 
     include_trinity_items: IncludeTrinityItems
     include_street_art_items: IncludeConcreteArtItems
     include_makeshift_items: IncludeMakeshiftItems
+    include_sports_items: IncludeSportsItems
 
     include_h2_silver_items: IncludeH2SilverItems
     include_h2_gold_items: IncludeH2GoldItems
@@ -563,6 +573,7 @@ option_groups = [
             IncludeSinsItems,
             IncludeConcreteArtItems,
             IncludeMakeshiftItems,
+            IncludeSportsItems,
             IncludeTrinityItems,
             IncludeLambicItems,
             IncludePenecillinItems,
@@ -571,7 +582,8 @@ option_groups = [
             IncludeBankerItems,
             IncludeBruceLeeItems,
             IncludeEminemItems,
-            IncludePatientZeroRequiemItems
+            IncludePatientZeroRequiemItems,
+            IncludeWizardItems
         ]),
         OptionGroup("Included Items from HITMAN 2 DLC",[
             IncludeH2SilverItems,
