@@ -5382,7 +5382,7 @@ target_kill_location_table = {
     "Elimination - Mendoza - Brooklyn Bush":LocationTableEntry(9039, [Condition(require_all=["mendoza","TARGET_9039"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
     "Elimination - Mendoza - Pablo Farías":LocationTableEntry(9040, [Condition(require_all=["mendoza","TARGET_9040"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
     "Elimination - Mendoza - Fresco DeRose":LocationTableEntry(9041, [Condition(require_all=["mendoza","TARGET_9041"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
-    "Elimination - Mendoza - Tim Quinn":LocationTableEntry(9042, [Condition(require_all=["mendoza","TARGET_9042"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
+    "Elimination - Mendoza - Tom Twinn":LocationTableEntry(9042, [Condition(require_all=["mendoza","TARGET_9042"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
     "Elimination - Mendoza - Montrel Moreno":LocationTableEntry(9043, [Condition(require_all=["mendoza","TARGET_9043"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
     "Elimination - Mendoza - Melissa Harper":LocationTableEntry(9044, [Condition(require_all=["mendoza","TARGET_9044"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
     "Elimination - Mendoza - Jerico DeRose":LocationTableEntry(9045, [Condition(require_all=["mendoza","TARGET_9045"], required_items=["Level - Mendoza"])], ["Elimination - Mendoza - Any","Elimination - Any"]),
