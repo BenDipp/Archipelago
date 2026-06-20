@@ -43,7 +43,6 @@ class HitmanWorld(World):
     settings: HitmanSettings
     options_dataclass = HitmanOptions
     options: HitmanOptions
-    topology_present = True
 
     tracker_world: ClassVar = {
         "map_page_folder" : "tracker",
