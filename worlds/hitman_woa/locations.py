@@ -6231,6 +6231,7 @@ itemsanity_exceptions = [
     ItemsanityException(itemname="Folding Knife", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #carried by Female Bank Robber
     ItemsanityException(itemname="Folding Knife", location="new_york", added_restriction="new_york_no_pacification"),
     ItemsanityException(itemname="Gold Idol", location="new_york", added_restriction="SKIP_LOCATIONS_THAT_REQUIRE_OTHER_ITEM"), #needs deposit box key that needs to be shot down from light 2 stories above
+    ItemsanityException(itemname="Gold Idol", location="new_york", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
     ItemsanityException(itemname="Goldbar", location="new_york", added_restriction="SKIP_LOCATIONS_FROM_CARRIED_ITEMS"), #needs to enter vault, which needs keycard one way or another
     ItemsanityException(itemname="Goldbar", location="new_york", added_restriction="SKIP_LOCATIONS_WITH_EXTRA_STEPS"),
     ItemsanityException(itemname="Goldbar", location="new_york", added_restriction="new_york_no_pacification"),

@@ -49,6 +49,7 @@ If there are more location checks then items, some items will be added into the 
     - Itempickup - Isle of Sgail - Sacrificial Knife
     - Itempickup - New York - Goldbar
     - Itempickup - New York - Golden Sawed Off Bartoli 12G
+    - Itempickup - New York - Gold Idol
     - Itempickup - Mendoza - 1945 Grand Paladin
     - Itempickup - Mendoza - Hackl 9S Covert
     - Disguise - Mendoza - 47's Signature Suit with Gloves
