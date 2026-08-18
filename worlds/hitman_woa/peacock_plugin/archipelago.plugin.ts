@@ -6759,6 +6759,10 @@ const handleRecivedItems = (controller: Controller, itemIds: number[]) => {
 			if(id === 1001){ // exception for Nothing
 				continue
 			}
+            if(id >= 1700 && id <= 1750){ // exception for Traps
+                logArchipelago("Ignoring Trap with id "+id+", let HitmanArchipelagoCompanion handle it.")
+                continue
+            }
             errArchipelago("Recived ItemId "+id+" is not in ItemMap!")
             errorOccured = true
             continue
@@ -7108,7 +7112,7 @@ function setupFlags(){
     }
 }
 module.exports = function archipelagoCampaign(controller: Controller) {
-    logArchipelago("Loading Archipelago Plugin (v0.8.2)")
+    logArchipelago("Loading Archipelago Plugin (v0.9.0 Beta 1 (Trap Support))")
 
     setupFlags()
     saveImagesToDisk()

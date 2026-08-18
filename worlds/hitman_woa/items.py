@@ -4,6 +4,12 @@ class HitmanItem(Item):
     game: str = "HITMAN World of Assassination"
 
 base_id = 2023011800
+    # item ids ranges:
+    # 	1-965       Items from allunlockables.json
+	# 	1000        Contract Piece
+	# 	1500-1510   Item Packages
+	# 	1600-1608   Custom items (currently only Heavy Snipers)
+	# 	1700-1719   Traps (peacock reserved to 1750)
 
 # id, required entitlement per game version (h0, h1, h2, h3) (all required), classifier, allowed to be duplicated, itemgroups
 item_table= {
@@ -1002,4 +1008,27 @@ custom_item_table = {
     "Heavy Sniper - Siger 300 Ice":(1608,[[],["N/A"],["N/A"],["heavy_snipers"]], ItemClassification.filler, False, ["Sniper - Any", "Heavy Sniper - Any"]),
 }
 
-item_table = item_table | item_package_table | custom_item_table
+trap_table = { #TODO: consider if "Trap - NAME" format works so it can be consistent with the other items
+    "Trap 1":(1700,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 2":(1701,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 3":(1702,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 4":(1703,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 5":(1704,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 6":(1705,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 7":(1706,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 8":(1707,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 9":(1708,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 10":(1709,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 11":(1710,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 12":(1711,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 13":(1712,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 14":(1713,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 15":(1714,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 16":(1715,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 17":(1716,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 18":(1717,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 19":(1718,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"]),
+    "Trap 20":(1719,[[],["N/A"],["N/A"],["N/A"]], ItemClassification.trap, True, ["Trap - Any"])
+}
+
+item_table = item_table | item_package_table | custom_item_table | trap_table

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from schema import Schema
 from Options import Choice, ItemSet, OptionCounter, OptionGroup, OptionSet, PerGameCommonOptions, Range, Toggle, Visibility, DefaultOnToggle
+from .items import trap_table
 from .locations import game_changers_table
 
 class Goal(Choice):
@@ -319,6 +320,47 @@ class ComplicationWeights(OptionCounter):
     }
     valid_keys = game_changers_table
 
+class TrapPercent(Range):
+    """Percentage of filler items to be replaced with traps.
+    If you don't want any traps, set this to 0.
+
+    Only available on game version HITMAN 3.
+    WARNING: requires ArchipelagoHitmanCompanion, see Setup Guide for more information. """
+    #TODO: actually add more information there
+    display_name = "Trap Percentage"
+    range_start = 0
+    range_end = 100
+    default = 0
+
+class TrapWeights(OptionCounter):
+    """When traps are active, these weights determine the odds for each trap to be selected.
+    If you don't want a specific trap, set its weight to 0."""
+    display_name = "Trap Weights"
+    min = 0
+    default = {
+        "Trap 1" : 1,
+        "Trap 2" : 1,
+        "Trap 3" : 1,
+        "Trap 4" : 1,
+        "Trap 5" : 1,
+        "Trap 6" : 1,
+        "Trap 7" : 1,
+        "Trap 8" : 1,
+        "Trap 9" : 1,
+        "Trap 10" : 1,
+        "Trap 11" : 1,
+        "Trap 12" : 1,
+        "Trap 13" : 1,
+        "Trap 14" : 1,
+        "Trap 15" : 1,
+        "Trap 16" : 1,
+        "Trap 17" : 1,
+        "Trap 18" : 1,
+        "Trap 19" : 1,
+        "Trap 20" : 1
+    }
+    valid_keys = trap_table
+
 class EnableEverythingItem(Choice):
     """Adds multiple Item Packages one for each type of item (Pistol, Poison, Explosive etc.). 
     When starting a mission with a package equipped, all unlocked 
@@ -473,6 +515,9 @@ class HitmanOptions(PerGameCommonOptions):
     item_packages: EnableEverythingItem
     include_sniper_assassin_weapons: IncludeHeavySnipers
 
+    trap_percentage: TrapPercent
+    trap_weights: TrapWeights
+
     starting_location: StartingLevel
     goal_mode: Goal
     goal_rating: GoalDifficulty
@@ -564,7 +609,9 @@ option_groups = [
             ExcludedItems,
             ExcludedStartingItems,
             IncludedFiller,
-            IncludeHeavySnipers
+            IncludeHeavySnipers,
+            TrapPercent,
+            TrapWeights
         ]),
         OptionGroup("Included Items from HITMAN 3/WoA DLC",[
             IncludeFreelancerItems,

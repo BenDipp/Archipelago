@@ -144,6 +144,12 @@ class HitmanWorld(World):
         if self.options.include_sniper_assassin_weapons.value and self.options.game_version.value != 3:
             raise OptionError("Sniper Assassin Weapons can only be enabled when game version is HITMAN 3")
 
+        if self.options.trap_percentage.value != 0 and self.options.game_version.value != self.options.game_version.option_hitman_world_of_assassination:
+            raise OptionError("Traps can only be enabled when game version is HITMAN 3")
+
+        if self.options.trap_percentage.value != 0 and all(w==0 for _,w in self.options.trap_weights.value.items()):
+            raise OptionError("At least one trap needs to have a non-zero weight if traps are enabled.")
+
         self.enabled_entitlements[self.player] = []
 
         # Universal Tracker support:
@@ -692,6 +698,9 @@ class HitmanWorld(World):
         total_excluded_locations = sum(1 for x in self.multiworld.get_unfilled_locations(self.player) if x.progress_type == LocationProgressType.EXCLUDED)
         total_items = len(item_pool)
 
+        total_filler =  total_locations - total_items
+        total_traps = total_filler * self.options.trap_percentage.value/100
+
         if len(item_pool) > (total_locations-total_excluded_locations):
             raise OptionError("Not enough locations for progression items. Consider adding more locations or remove some Contract Pieces.")
 
@@ -700,7 +709,14 @@ class HitmanWorld(World):
         priority_true_filler = list(item for item in priority_filler if not any(group in item_table[item][4] for group in required_itemgroups))
         valid_filler_duplicates = list(item for item in valid_duplicats if not any(group in item_table[item][4] for group in required_itemgroups))
         for _ in range(total_excluded_locations):
-            if len(priority_true_filler) != 0:
+            if total_traps > 0:
+                chosen_item = self.random.choice(
+                    [x for x, w in self.options.trap_weights.value.items()
+                     for _ in range(w)
+                     if w != 0]
+                )
+                total_traps -= 1
+            elif len(priority_true_filler) != 0:
                 chosen_item = self.random.choice(priority_true_filler)
                 priority_true_filler.remove(chosen_item)
                 priority_filler.remove(chosen_item)
@@ -716,6 +732,13 @@ class HitmanWorld(World):
             if len(priority_filler) != 0:
                 chosen_item = self.random.choice(priority_filler)
                 priority_filler.remove(chosen_item)
+            elif total_traps > 0:
+                chosen_item = self.random.choice(
+                    [x for x, w in self.options.trap_weights.value.items()
+                     for _ in range(w)
+                     if w != 0]
+                )
+                total_traps -= 1
             elif len(valid_useful) != 0:
                 chosen_item = self.random.choice(valid_useful)
                 valid_useful.remove(chosen_item)

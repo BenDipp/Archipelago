@@ -13,6 +13,8 @@
 
 ### Optional software
 - [Universal Tracker](https://github.com/FarisTheAncient/Archipelago/releases?q=Tracker) for a map tracking
+- [ArchipelagoHitmanCompanion](https://github.com/Speaker4TheUndead/ArchipelagoHitmanCompanion/#installation) for DeathLink and Trap support
+    - Note that the ArchipelagoHitmanCompanion is only compatible with Hitman World of Assassination
 
 ## Installation
 
